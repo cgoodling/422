@@ -1,0 +1,163 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.15.02
+Created On: 11/14/2014 4:11:20 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      : Convert ASCII to hex
+00000000                             3  * Written by : Kaley & Cole
+00000000                             4  * Date       : 11/11/14
+00000000                             5  * Description: Small piece of disassembler project
+00000000                             6  *-----------------------------------------------------------
+00000000                             7  
+00000000                             8  *--------------------- HEX FOR OUTPUT ---------------------*
+00000000                             9              OPT         CRE
+00000000  =0000000D                 10  CR          EQU         $0D
+00000000  =0000000A                 11  LF          EQU         $0A
+00000000                            12  
+00001000                            13              ORG         $1000
+00001000                            14  START:                  ; first instruction of program for 
+00001000  31FC 4E71 7000            15              MOVE.W      #%0100111001110001,$7000 ; nop test
+00001006                            16              
+00001006  103C 000E                 17              MOVE.B      #14,D0
+0000100A  43F9 00001120             18              LEA         prompt_start,A1
+00001010  4E4F                      19              TRAP        #15             ; prompt for address
+00001012                            20              
+00001012  103C 0002                 21              MOVE.B      #2,D0
+00001016  43F9 000011C0             22              LEA         input,A1
+0000101C  4E4F                      23              TRAP        #15             ; store user input
+0000101E                            24              
+0000101E  4EB9 00001048             25              JSR         asciiToHexS      ; convert user input for start address to hex
+00001024                            26              
+00001024  103C 000E                 27              MOVE.B      #14,D0
+00001028  43F9 00001171             28              LEA         prompt_end,A1
+0000102E  4E4F                      29              TRAP        #15             ; prompt for address
+00001030                            30              
+00001030                            31              
+00001030  103C 0002                 32              MOVE.B      #2,D0
+00001034  43F9 000011C0             33              LEA         input,A1
+0000103A  4E4F                      34              TRAP        #15             ; store user input
+0000103C                            35              
+0000103C  4EB9 000010B2             36              JSR         asciiToHexE      ; convert user input for end address to hex
+00001042  4EB9 0000111C             37              JSR         EXIT
+00001048                            38  
+00001048                            39  * Put program code here
+00001048                            40  * D0 = temp value, D1 = length of string, D2 = counter, D3 = ret val
+00001048                            41  * A1 = memory location of beginning of the string
+00001048                            42  
+00001048  B23C 0008                 43  asciiToHexS CMP.B       #8,D1           ; check that length is <= 8
+0000104C  6E00 0272                 44              BGT         invalidAdd
+00001050  B23C 0000                 45              CMP.B       #0,D1           ; check that length is > 0
+00001054  6F00 026A                 46              BLE         invalidAdd
+00001058                            47              
+00001058  4283                      48              CLR.L       D3              ; clear return value
+0000105A  5301                      49              SUBQ.B      #1,D1           ; subtract 1 from the counter
+0000105C                            50              
+0000105C  E99B                      51  ATHS_loop    ROL.L       #4,D3           ; shift bits left by 4
+0000105E  1019                      52              MOVE.B      (A1)+,D0        ; copy next byte from memory to convert
+00001060  B03C 0039                 53              CMP.B       #$39,D0         ; if the value is < 39 its a number
+00001064  6E00 0012                 54              BGT         ATHS_letter      ; its its not a number process it as a letter
+00001068  B03C 0030                 55              CMP.B       #$30,D0         ; if the value is < 30 its invalid
+0000106C  6D00 0252                 56              BLT         invalidAdd
+00001070  0400 0030                 57              SUBI.B      #$30,D0         ; its a valid number, subtract 30
+00001074  6000 0032                 58              BRA         ATHS_done
+00001078                            59              
+00001078  B03C 0066                 60  ATHS_letter  CMP.B       #$66,D0         ; if the value is > 66 its invalid
+0000107C  6E00 0242                 61              BGT         invalidAdd
+00001080  B03C 0061                 62              CMP.B       #$61,D0         ; if the value is >= 61 its lowercase
+00001084  6C00 001A                 63              BGE         ATHS_lower       ; process it as a lowercase letter
+00001088                            64              
+00001088  B03C 0046                 65              CMP.B       #$46,D0         ; if the value is less than 46 its invalid
+0000108C  6E00 0232                 66              BGT         invalidAdd
+00001090  B03C 0041                 67              CMP.B       #$41,D0         ; if the value is less than 41 its invalid
+00001094  6D00 022A                 68              BLT         invalidAdd
+00001098  0400 0037                 69              SUBI.B      #$37,D0         ; valid letter, subtract 37
+0000109C  6000 000A                 70              BRA         ATHS_done
+000010A0                            71              
+000010A0  0400 0057                 72  ATHS_lower   SUBI.B      #$57,D0         ; convert lowercase letter to hex
+000010A4  6000 0002                 73              BRA         ATHS_done
+000010A8                            74              
+000010A8  8680                      75  ATHS_done    OR.L        D0,D3           ; OR the result to the retVal
+000010AA  51C9 FFB0                 76              DBF         D1,ATHS_loop     ; decrement counter and loop while they're > 0
+000010AE  4281                      77              CLR.L       D1              ; done
+000010B0  4E75                      78              RTS
+000010B2                            79              
+000010B2                            80              
+000010B2                            81  * Put program code here
+000010B2                            82  * D0 = temp value, D1 = length of string, D2 = counter, D4 = ret val
+000010B2                            83  * A1 = memory location of beginning of the string
+000010B2                            84  
+000010B2  B23C 0008                 85  asciiToHexE CMP.B       #8,D1           ; check that length is <= 8
+000010B6  6E00 0208                 86              BGT         invalidAdd
+000010BA  B23C 0000                 87              CMP.B       #0,D1           ; check that length is > 0
+000010BE  6F00 0200                 88              BLE         invalidAdd
+000010C2                            89              
+000010C2  4284                      90              CLR.L       D4              ; clear return value
+000010C4  5301                      91              SUBQ.B      #1,D1           ; subtract 1 from the counter
+000010C6                            92              
+000010C6  E99C                      93  ATHE_loop    ROL.L       #4,D4           ; shift bits left by 4
+000010C8  1019                      94              MOVE.B      (A1)+,D0        ; copy next byte from memory to convert
+000010CA  B03C 0039                 95              CMP.B       #$39,D0         ; if the value is < 39 its a number
+000010CE  6E00 0012                 96              BGT         ATHE_letter      ; its its not a number process it as a letter
+000010D2  B03C 0030                 97              CMP.B       #$30,D0         ; if the value is < 30 its invalid
+000010D6  6D00 01E8                 98              BLT         invalidAdd
+000010DA  0400 0030                 99              SUBI.B      #$30,D0         ; its a valid number, subtract 30
+000010DE  6000 0032                100              BRA         ATHE_done
+000010E2                           101              
+000010E2  B03C 0066                102  ATHE_letter  CMP.B       #$66,D0         ; if the value is > 66 its invalid
+000010E6  6E00 01D8                103              BGT         invalidAdd
+000010EA  B03C 0061                104              CMP.B       #$61,D0         ; if the value is >= 61 its lowercase
+000010EE  6C00 001A                105              BGE         ATHE_lower       ; process it as a lowercase letter
+000010F2                           106              
+000010F2  B03C 0046                107              CMP.B       #$46,D0         ; if the value is less than 46 its invalid
+000010F6  6E00 01C8                108              BGT         invalidAdd
+000010FA  B03C 0041                109              CMP.B       #$41,D0         ; if the value is less than 41 its invalid
+000010FE  6D00 01C0                110              BLT         invalidAdd
+00001102  0400 0037                111              SUBI.B      #$37,D0         ; valid letter, subtract 37
+00001106  6000 000A                112              BRA         ATHE_done
+0000110A                           113              
+0000110A  0400 0057                114  ATHE_lower   SUBI.B      #$57,D0         ; convert lowercase letter to hex
+0000110E  6000 0002                115              BRA         ATHE_done
+00001112                           116              
+00001112  8880                     117  ATHE_done    OR.L        D0,D4           ; OR the result to the retVal
+00001114  51C9 FFB0                118              DBF         D1,ATHE_loop     ; decrement counter and loop while they're > 0
+00001118  4281                     119              CLR.L       D1              ; done
+0000111A  4E75                     120              RTS
+0000111C                           121  
+0000111C                           122              
+0000111C  FFFF FFFF                123  EXIT    SIMHALT             ; halt simulator
+00001120                           124  
+00001120                           125  * Put variables and constants here
+00001120= 57 68 61 74 20 69 ...    126  prompt_start      DC.B        'What is the starting address?',CR,LF,'Must be greater than 10000 and less than 3FFFF.',CR,LF,0
+00001171= 57 68 61 74 20 69 ...    127  prompt_end        DC.B        'What is the ending address?',CR,LF,'Must be greater than 10000 and less than 3FFFF.',CR,LF,0
+000011C0                           128  
+000011C0= 00 00 00 00 00 00 ...    129  input       DCB.B        256,0
+000012C0                           130  
+000012C0= 45 52 52 4F 52 00        131  invalidAdd  DC.B        'ERROR',0
+000012C6                           132  
+000012C6                           133              END         START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ASCIITOHEXE         10B2
+ASCIITOHEXS         1048
+ATHE_DONE           1112
+ATHE_LETTER         10E2
+ATHE_LOOP           10C6
+ATHE_LOWER          110A
+ATHS_DONE           10A8
+ATHS_LETTER         1078
+ATHS_LOOP           105C
+ATHS_LOWER          10A0
+CR                  D
+EXIT                111C
+INPUT               11C0
+INVALIDADD          12C0
+LF                  A
+PROMPT_END          1171
+PROMPT_START        1120
+START               1000
