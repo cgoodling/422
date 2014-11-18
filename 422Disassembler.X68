@@ -29,10 +29,10 @@ START:                              ; first instruction of program
             MOVE.W      #%0001001000000000, $7010       MOVE.B D0,D1
             MOVE.W      #%0001001000000111, $7020
             MOVE.W      #%0110000000000000, $7030       BRA 16bit
-            MOVE.W      #%0101010101010101, $7032
+            MOVE.W      #%0101010101010101, $7032       55 following
             MOVE.W      #%0110000011111111, $7040       BRA 32bit
-            MOVE.L      #%01010101010101010101010101010101, $7042
-            *MOVE.W      #%01100000
+            MOVE.L      #%01010101010101010101010101010101, $7042 ; 5555 following
+            MOVE.W      #%0100101111010101, $7050       LEA A5 with D5
             
             
             LEA         STACK,SP    Load the stack
@@ -262,6 +262,11 @@ code0100    CLR.L       D0              ; clear D0
             CMP.W       D0,D1           ; compare D0 and D1
             BEQ         op_NOP          ; if they're equal, the operation is NOP
             
+            MOVE.L      #%0000000000000011,D4
+            ANDI.W      #%1111000111000000,D1
+            CMP.W       #%0100000111000000,D1
+            BEQ         op_LEA
+            
             MOVE.B      #14,D0
             LEA         data,A1
             TRAP        #15             ; OP code DNE
@@ -333,7 +338,7 @@ code1111    MOVE.B      #14,D0
             RTS
             
 op_NOP      MOVE.L      #14,D0
-            LEA         NOP,A1
+            LEA         NOP_STR,A1
             TRAP        #15             ; OP code DNE
             RTS
             
@@ -347,18 +352,23 @@ op_BRA      MOVE.L      #%11111111,D2   ; $FF into D2
             BEQ         op_BRA32        ; if equal, it's a 32 bit displacement
             
             MOVE.L      #14,D0
-            LEA         NOP,A1
+            LEA         NOP_STR,A1
             TRAP        #15             ; OP code DNE
             RTS
 
 op_BRA16    MOVE.L      #14,D0
-            LEA         BRA16,A1
+            LEA         BRA16_STR,A1
             TRAP        #15             ; 16 bit displacement
             RTS
 
 op_BRA32    MOVE.L      #14,D0
-            LEA         BRA32,A1
+            LEA         BRA32_STR,A1
             TRAP        #15             ; 32 bit displacement
+            RTS
+          
+op_LEA      MOVE.L      #14,D0
+            LEA         LEA_STR,A1
+            TRAP        #15
             RTS
             
             
@@ -439,10 +449,11 @@ data         DC.B        '      DATA',CR,LF,0
 COMMA        DC.B        ',',0
 TAB          DC.B        '    ',0
 *------------------------------------------------------------------*
-NOP          DC.B        'NOP',CR,LF,0
+NOP_STR      DC.B        'NOP',CR,LF,0
 MOVEB_STR    DC.B        'MOVE.B',0
-BRA16        DC.B        'BRA - 16-bit displacement **FINISH HIM',CR,LF,0
-BRA32        DC.B        'BRA - 32-bit displacement **FINISH HIM',CR,LF,0
+BRA16_STR    DC.B        'BRA - 16-bit displacement **FINISH HIM',CR,LF,0
+BRA32_STR    DC.B        'BRA - 32-bit displacement **FINISH HIM',CR,LF,0
+LEA_STR      DC.B        'LEA       **FINITOOOO',CR,LF,0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
