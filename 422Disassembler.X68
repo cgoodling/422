@@ -33,7 +33,7 @@ START:                              ; first instruction of program
             MOVE.W      #%0110000011111111, $7040       BRA 32bit
             MOVE.L      #%01010101010101010101010101010101, $7042 ; 5555 following
             MOVE.W      #%0100101111010101, $7050       LEA A5 with D5
-            
+            MOVE.W      #%0100111010000000, $7070       JSR            
             
             LEA         STACK,SP    Load the stack
             
@@ -255,17 +255,27 @@ code0011    MOVE.B      #14,D0
             TRAP        #15             ; OP code DNE
             RTS
             
-code0100    CLR.L       D0              ; clear D0
+code0100    
+            *NOP
+            CLR.L       D0              ; clear D0
             MOVE.W      #%0100111001110001,D0 ; move the NOP code into D0
             CLR.L       D1              ; clear D1
             MOVE.W      (A2),D1         ; move the original operation into D1
             CMP.W       D0,D1           ; compare D0 and D1
             BEQ         op_NOP          ; if they're equal, the operation is NOP
             
+            *LEA
             MOVE.L      #%0000000000000011,D4
             ANDI.W      #%1111000111000000,D1
             CMP.W       #%0100000111000000,D1
             BEQ         op_LEA
+            
+            *JSR
+            MOVE.W      (A2),D1                 ; move the original operation into D1 after LEA check changed it
+	        MOVE.L	    #%0000000000101011,D4	; Prep for EA (mode6)
+	        ANDI.W	    #%1111111111000000,D1	; Get bits 6-15 for compare
+	        CMP.W	    #%0100111010000000,D1	; Check for JSR
+	        BEQ         op_JSR
             
             MOVE.B      #14,D0
             LEA         data,A1
@@ -371,6 +381,11 @@ op_LEA      MOVE.L      #14,D0
             TRAP        #15
             RTS
             
+op_JSR      MOVE.L      #14,D0
+            LEA         JSR_STR,A1
+            TRAP        #15
+            RTS
+            
             
 *------------------------------------------------------------------*
 * Determine EA MODE 
@@ -454,6 +469,7 @@ MOVEB_STR    DC.B        'MOVE.B',0
 BRA16_STR    DC.B        'BRA - 16-bit displacement **FINISH HIM',CR,LF,0
 BRA32_STR    DC.B        'BRA - 32-bit displacement **FINISH HIM',CR,LF,0
 LEA_STR      DC.B        'LEA       **FINITOOOO',CR,LF,0
+JSR_STR      DC.B        'JSR',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
@@ -488,6 +504,7 @@ REG_A7          DC.B        'A7',0
 INST_LINE       DCB.B       256,0   String for one line of instruction
 
              END         START        ; last line of source
+
 
 
 
