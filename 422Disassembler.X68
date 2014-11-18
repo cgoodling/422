@@ -66,7 +66,7 @@ START:                              ; first instruction of program
             CLR.L       D6
             CLR.L       D7          ; clear all of the registers
 
-            MOVEA.W     A1,A3       ; move the current operation address to A3
+            MOVEA.L     A1,A3       ; move the current operation address to A3
             MOVE.W      (A1)+,D0    ; move the starting address to D0
             JSR         opcode      ; decode the opcode
             
@@ -196,10 +196,7 @@ JUMPTABLE   JMP         code0000
             JMP         code1110
             JMP         code1111
             
-code0000    MOVE.B      #14,D0
-            LEA         data,A1
-            TRAP        #15             ; OP code DNE
-            RTS
+code0000    BRA         op_DATA
 
 *-------------------------------------------------------------------------*
 * Move Byte
@@ -245,15 +242,9 @@ code0001    *MOVEM.L     D1,-(SP)   Save what we have here in D1 just in case
             RTS
             
             
-code0010    MOVE.B      #14,D0
-            LEA         data,A1
-            TRAP        #15             ; OP code DNE
-            RTS
+code0010    BRA         op_DATA
             
-code0011    MOVE.B      #14,D0
-            LEA         data,A1
-            TRAP        #15             ; OP code DNE
-            RTS
+code0011    BRA         op_DATA
             
 code0100    CLR.L       D0              ; clear D0
             MOVE.W      #%0100111001110001,D0 ; move the NOP code into D0
@@ -267,15 +258,9 @@ code0100    CLR.L       D0              ; clear D0
             CMP.W       #%0100000111000000,D1
             BEQ         op_LEA
             
-            MOVE.B      #14,D0
-            LEA         data,A1
-            TRAP        #15             ; OP code DNE
-            RTS
+            BRA         op_DATA
             
-code0101    MOVE.B      #14,D0
-            LEA         data,A1
-            TRAP        #15             ; OP code DNE
-            RTS
+code0101    BRA         op_DATA
             
 code0110    CLR.L       D0
             MOVE.W      (A2),D0
@@ -287,58 +272,37 @@ code0110    CLR.L       D0
             CMP.W       #%01100000,D0         ; standard first 8 bits of a BRA op
             BEQ         op_BRA                ; if they're equal, OP code is BRA
 
-            MOVE.B      #14,D0
-            LEA         data,A1
-            TRAP        #15             ; OP code DNE
-            RTS
+            BRA         op_DATA
             
-code0111    MOVE.B      #14,D0
-            LEA         data,A1
-            TRAP        #15             ; OP code DNE
-            RTS
+code0111    BRA         op_DATA
             
-code1000    MOVE.B      #14,D0
-            LEA         data,A1
-            TRAP        #15             ; OP code DNE
-            RTS
+code1000    BRA         op_DATA
             
-code1001    MOVE.B      #14,D0
-            LEA         data,A1
-            TRAP        #15             ; OP code DNE
-            RTS
+code1001    BRA         op_DATA
             
-code1010    MOVE.B      #14,D0
-            LEA         data,A1
-            TRAP        #15             ; OP code DNE
-            RTS
+code1010    BRA         op_DATA
             
-code1011    MOVE.B      #14,D0
-            LEA         data,A1
-            TRAP        #15             ; OP code DNE
-            RTS
+code1011    BRA         op_DATA
             
-code1100    MOVE.B      #14,D0
-            LEA         data,A1
-            TRAP        #15             ; OP code DNE
-            RTS
+code1100    BRA         op_DATA
             
-code1101    MOVE.B      #14,D0
-            LEA         data,A1
-            TRAP        #15             ; OP code DNE
-            RTS
+code1101    BRA         op_DATA
            
-code1110    MOVE.B      #14,D0
-            LEA         data,A1
-            TRAP        #15             ; OP code DNE
-            RTS
+code1110    BRA         op_DATA
             
-code1111    MOVE.B      #14,D0
-            LEA         data,A1
-            TRAP        #15             ; OP code DNE
-            RTS
+code1111    BRA         op_DATA
             
 op_NOP      MOVE.L      #14,D0
             LEA         NOP_STR,A1
+            TRAP        #15             ; OP code DNE
+            RTS
+            
+op_DATA     MOVE.L      A3,D1           ; Move the current address to D1
+            MOVE.L      #15,D0          ; Move the I/O code to D0 to print the number in D1
+            MOVE.L      #16,D2          ; Print the number in base 16
+            TRAP        #15             ; print
+            MOVE.L      #14,D0
+            LEA         data,A1
             TRAP        #15             ; OP code DNE
             RTS
             
