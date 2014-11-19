@@ -1,7 +1,6 @@
 *-----------------------------------------------------------
 * Title      : Convert ASCII to hex
 * Written by : Kaley & Cole & Abby
-* Date       : 11/11/14
 * Description: Small piece of disassembler project
 *-----------------------------------------------------------
 
