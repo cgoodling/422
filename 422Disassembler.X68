@@ -32,7 +32,7 @@ START:                              ; first instruction of program
             MOVE.W      #%0110000011111111, $7040       BRA 32bit
             MOVE.L      #%01010101010101010101010101010101, $7042 ; 5555 following
             MOVE.W      #%0100101111010101, $7050       LEA A5 with D5
-            
+            MOVE.W      #%0100111010000000, $7070       JSR            
             
             LEA         STACK,SP    Load the stack
             
@@ -65,7 +65,7 @@ START:                              ; first instruction of program
             CLR.L       D6
             CLR.L       D7          ; clear all of the registers
 
-            MOVEA.L     A1,A3       ; move the current operation address to A3
+            MOVEA.W     A1,A3       ; move the current operation address to A3
             MOVE.W      (A1)+,D0    ; move the starting address to D0
             JSR         opcode      ; decode the opcode
             
@@ -195,7 +195,10 @@ JUMPTABLE   JMP         code0000
             JMP         code1110
             JMP         code1111
             
-code0000    BRA         op_DATA
+code0000    MOVE.B      #14,D0
+            LEA         data,A1
+            TRAP        #15             ; OP code DNE
+            RTS
 
 *-------------------------------------------------------------------------*
 * Move Byte
@@ -241,25 +244,47 @@ code0001    *MOVEM.L     D1,-(SP)   Save what we have here in D1 just in case
             RTS
             
             
-code0010    BRA         op_DATA
+code0010    MOVE.B      #14,D0
+            LEA         data,A1
+            TRAP        #15             ; OP code DNE
+            RTS
             
-code0011    BRA         op_DATA
+code0011    MOVE.B      #14,D0
+            LEA         data,A1
+            TRAP        #15             ; OP code DNE
+            RTS
             
-code0100    CLR.L       D0              ; clear D0
+code0100    
+            *NOP
+            CLR.L       D0              ; clear D0
             MOVE.W      #%0100111001110001,D0 ; move the NOP code into D0
             CLR.L       D1              ; clear D1
             MOVE.W      (A2),D1         ; move the original operation into D1
             CMP.W       D0,D1           ; compare D0 and D1
             BEQ         op_NOP          ; if they're equal, the operation is NOP
             
+            *LEA
             MOVE.L      #%0000000000000011,D4
             ANDI.W      #%1111000111000000,D1
             CMP.W       #%0100000111000000,D1
             BEQ         op_LEA
             
-            BRA         op_DATA
+            *JSR
+            MOVE.W      (A2),D1                 ; move the original operation into D1 after LEA check changed it
+	        MOVE.L	    #%0000000000101011,D4	; Prep for EA (mode6)
+	        ANDI.W	    #%1111111111000000,D1	; Get bits 6-15 for compare
+	        CMP.W	    #%0100111010000000,D1	; Check for JSR
+	        BEQ         op_JSR
             
-code0101    BRA         op_DATA
+            MOVE.B      #14,D0
+            LEA         data,A1
+            TRAP        #15             ; OP code DNE
+            RTS
+            
+code0101    MOVE.B      #14,D0
+            LEA         data,A1
+            TRAP        #15             ; OP code DNE
+            RTS
             
 code0110    CLR.L       D0
             MOVE.W      (A2),D0
@@ -271,37 +296,58 @@ code0110    CLR.L       D0
             CMP.W       #%01100000,D0         ; standard first 8 bits of a BRA op
             BEQ         op_BRA                ; if they're equal, OP code is BRA
 
-            BRA         op_DATA
-            
-code0111    BRA         op_DATA
-            
-code1000    BRA         op_DATA
-            
-code1001    BRA         op_DATA
-            
-code1010    BRA         op_DATA
-            
-code1011    BRA         op_DATA
-            
-code1100    BRA         op_DATA
-            
-code1101    BRA         op_DATA
-           
-code1110    BRA         op_DATA
-            
-code1111    BRA         op_DATA
-            
-op_NOP      MOVE.L      #14,D0
-            LEA         NOP_STR,A1
+            MOVE.B      #14,D0
+            LEA         data,A1
             TRAP        #15             ; OP code DNE
             RTS
             
-op_DATA     MOVE.L      A3,D1           ; Move the current address to D1
-            MOVE.L      #15,D0          ; Move the I/O code to D0 to print the number in D1
-            MOVE.L      #16,D2          ; Print the number in base 16
-            TRAP        #15             ; print
-            MOVE.L      #14,D0
+code0111    MOVE.B      #14,D0
             LEA         data,A1
+            TRAP        #15             ; OP code DNE
+            RTS
+            
+code1000    MOVE.B      #14,D0
+            LEA         data,A1
+            TRAP        #15             ; OP code DNE
+            RTS
+            
+code1001    MOVE.B      #14,D0
+            LEA         data,A1
+            TRAP        #15             ; OP code DNE
+            RTS
+            
+code1010    MOVE.B      #14,D0
+            LEA         data,A1
+            TRAP        #15             ; OP code DNE
+            RTS
+            
+code1011    MOVE.B      #14,D0
+            LEA         data,A1
+            TRAP        #15             ; OP code DNE
+            RTS
+            
+code1100    MOVE.B      #14,D0
+            LEA         data,A1
+            TRAP        #15             ; OP code DNE
+            RTS
+            
+code1101    MOVE.B      #14,D0
+            LEA         data,A1
+            TRAP        #15             ; OP code DNE
+            RTS
+           
+code1110    MOVE.B      #14,D0
+            LEA         data,A1
+            TRAP        #15             ; OP code DNE
+            RTS
+            
+code1111    MOVE.B      #14,D0
+            LEA         data,A1
+            TRAP        #15             ; OP code DNE
+            RTS
+            
+op_NOP      MOVE.L      #14,D0
+            LEA         NOP_STR,A1
             TRAP        #15             ; OP code DNE
             RTS
             
@@ -331,6 +377,11 @@ op_BRA32    MOVE.L      #14,D0
           
 op_LEA      MOVE.L      #14,D0
             LEA         LEA_STR,A1
+            TRAP        #15
+            RTS
+            
+op_JSR      MOVE.L      #14,D0
+            LEA         JSR_STR,A1
             TRAP        #15
             RTS
             
@@ -417,6 +468,7 @@ MOVEB_STR    DC.B        'MOVE.B',0
 BRA16_STR    DC.B        'BRA - 16-bit displacement **FINISH HIM',CR,LF,0
 BRA32_STR    DC.B        'BRA - 32-bit displacement **FINISH HIM',CR,LF,0
 LEA_STR      DC.B        'LEA       **FINITOOOO',CR,LF,0
+JSR_STR      DC.B        'JSR',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
@@ -451,6 +503,7 @@ REG_A7          DC.B        'A7',0
 INST_LINE       DCB.B       256,0   String for one line of instruction
 
              END         START        ; last line of source
+
 
 
 
