@@ -40,7 +40,9 @@ START:                              ; first instruction of program
             MOVE.W      #%1000101101000001, $8010       OR.W D5,D1 (into ea)
             MOVE.W      #%1000101010000001, $8020       OR.L D5,D1 (into Dn)
             MOVE.W      #%1000101110000001, $8030       OR.L D5,D1 (into ea)
-            
+            MOVE.W      #%0000000000000101, $8040       ORI.B #%xxxxxxxx,D5
+            MOVE.W      #%0000000001000101, $8050       ORI.W #%xxxxxxxxxxxxxxxx,D5
+            MOVE.W      #%0000000010000101, $8060       ORI.L #%xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,D5
             
             
             LEA         STACK,SP    Load the stack
@@ -187,15 +189,15 @@ OC_decode   MOVE.W      D0,D1           ; move the original operation into D1
             
             RTS
 
-JUMPTABLE   JMP         code0000
+JUMPTABLE   JMP         code0000        ORI
             JMP         code0001        MOVE.B
             JMP         code0010
             JMP         code0011
-            JMP         code0100        NOP
+            JMP         code0100        NOP, LEA, JSR
             JMP         code0101
             JMP         code0110        BRA
             JMP         code0111
-            JMP         code1000
+            JMP         code1000        OR.X
             JMP         code1001
             JMP         code1010
             JMP         code1011
@@ -203,14 +205,20 @@ JUMPTABLE   JMP         code0000
             JMP         code1101
             JMP         code1110
             JMP         code1111
-            
-code0000    BRA         op_DATA
 
 *-------------------------------------------------------------------------*
 * Move Byte
 *
 *
-*-------------------------------------------------------------------------*      
+*-------------------------------------------------------------------------*
+code0000    *ORI
+            MOVE.W      (A2),D1                ; copy instruction into D1
+            ANDI        #%1111111100000000,D1   ; isolate bits 8-15
+            CMP.W       #%0000000000000000,D1   ; check if this is ORI
+            BEQ         op_ORI
+
+            BRA         op_DATA
+
 code0001    *MOVEM.L     D1,-(SP)   Save what we have here in D1 just in case
             
             MOVE.W      (A2)+,D7        Get instruction, advance pointer
@@ -280,7 +288,8 @@ code0100
             
 code0101    BRA         op_DATA
             
-code0110    CLR.L       D0
+code0110    *BRA
+            CLR.L       D0
             MOVE.W      (A2),D0
             ANDI.W      #%1111111100000000,D0 ; bitmask the first 6 bits (bits 8-15)
             LSR.L       #8,D0                 ; separate them
@@ -406,6 +415,23 @@ op_OR       JSR         print_add       ; print the address
             TRAP        #15
             RTS
             
+op_ORI      JSR         print_add       ; print the address
+            MOVE.L      #14,D0
+            LEA         ORI_STR,A1      ; print the op
+            TRAP        #15
+            BRA         ORI_size        ; find the size and print
+            RTS
+            
+ORI_size    MOVE.W      (A2),D1
+            ANDI.W      #%0000000011000000,D1
+            CMP.W       #%0000000000000000,D1
+            BEQ         print_B
+            CMP.W       #%0000000001000000,D1
+            BEQ         print_W
+            CMP.W       #%0000000010000000,D1
+            BEQ         print_L
+            
+            BRA         op_DATA
             
 *------------------------------------------------------------------*
 * Determine EA MODE 
@@ -494,6 +520,7 @@ BRA32_STR    DC.B        '      BRA - 32-bit displacement **FINISH HIM',0
 LEA_STR      DC.B        '      LEA       **FINITOOOO',0
 JSR_STR      DC.B        '      JSR',0
 OR_STR       DC.B        '      OR',0
+ORI_STR      DC.B        '      ORI',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
