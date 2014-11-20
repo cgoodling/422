@@ -237,7 +237,7 @@ code0001    *MOVEM.L     D1,-(SP)   Save what we have here in D1 just in case
             JSR         FIND_MODE       Find destination mode
             
             *MOVE.B      #14,D0
-            *LEA         data,A1
+            *LEA         DATA_STR,A1
             *TRAP        #15             ; OP code DNE
            
             RTS
@@ -302,18 +302,22 @@ code1101    BRA         op_DATA
 code1110    BRA         op_DATA
             
 code1111    BRA         op_DATA
+
+print_add   MOVE.L      A3,D1           ; Move the current address to D1
+            MOVE.L      #15,D0          ; Move the I/O code to D0 to print the number in D1
+            MOVE.L      #16,D2          ; Print the number in base 16
+            TRAP        #15             ; print
+            RTS
             
-op_NOP      MOVE.L      #14,D0
+op_NOP      JSR         print_add       ; print the address
+            MOVE.L      #14,D0
             LEA         NOP_STR,A1
             TRAP        #15             ; OP code DNE
             RTS
             
-op_DATA     MOVE.L      A3,D1           ; Move the current address to D1
-            MOVE.L      #15,D0          ; Move the I/O code to D0 to print the number in D1
-            MOVE.L      #16,D2          ; Print the number in base 16
-            TRAP        #15             ; print
+op_DATA     JSR         print_add       ; print the address
             MOVE.L      #14,D0
-            LEA         data,A1
+            LEA         DATA_STR,A1
             TRAP        #15             ; OP code DNE
             RTS
             
@@ -326,27 +330,29 @@ op_BRA      MOVE.L      #%11111111,D2   ; $FF into D2
             CMP.B       D1,D2           ; check the value of the last 8 bits against $FF
             BEQ         op_BRA32        ; if equal, it's a 32 bit displacement
             
-            MOVE.L      #14,D0
-            LEA         NOP_STR,A1
-            TRAP        #15             ; OP code DNE
+            JSR         op_NOP          ; OP code DNE
             RTS
 
-op_BRA16    MOVE.L      #14,D0
+op_BRA16    JSR         print_add       ; print the address
+            MOVE.L      #14,D0
             LEA         BRA16_STR,A1
             TRAP        #15             ; 16 bit displacement
             RTS
 
-op_BRA32    MOVE.L      #14,D0
+op_BRA32    JSR         print_add       ; print the address
+            MOVE.L      #14,D0
             LEA         BRA32_STR,A1
             TRAP        #15             ; 32 bit displacement
             RTS
           
-op_LEA      MOVE.L      #14,D0
+op_LEA      JSR         print_add       ; print the address
+            MOVE.L      #14,D0
             LEA         LEA_STR,A1
             TRAP        #15
             RTS
 
-op_JSR      MOVE.L      #14,D0
+op_JSR      JSR         print_add       ; print the address
+            MOVE.L      #14,D0
             LEA         JSR_STR,A1
             TRAP        #15
             RTS
@@ -425,16 +431,16 @@ prompt_start DC.B        'What is the starting address?',CR,LF,0
 prompt_end   DC.B        'What is the ending address?',CR,LF,0
 input        DCB.B       256,0
 invalidAdd   DC.B        'ERROR',0
-data         DC.B        '      DATA',CR,LF,0
 COMMA        DC.B        ',',0
 TAB          DC.B        '    ',0
 *------------------------------------------------------------------*
-NOP_STR      DC.B        'NOP',CR,LF,0
-MOVEB_STR    DC.B        'MOVE.B',0
-BRA16_STR    DC.B        'BRA - 16-bit displacement **FINISH HIM',CR,LF,0
-BRA32_STR    DC.B        'BRA - 32-bit displacement **FINISH HIM',CR,LF,0
-LEA_STR      DC.B        'LEA       **FINITOOOO',CR,LF,0
-JSR_STR      DC.B        'JSR',0
+DATA_STR     DC.B        '      DATA',CR,LF,0
+NOP_STR      DC.B        '      NOP',CR,LF,0
+MOVEB_STR    DC.B        '      MOVE.B',0
+BRA16_STR    DC.B        '      BRA - 16-bit displacement **FINISH HIM',CR,LF,0
+BRA32_STR    DC.B        '      BRA - 32-bit displacement **FINISH HIM',CR,LF,0
+LEA_STR      DC.B        '      LEA       **FINITOOOO',CR,LF,0
+JSR_STR      DC.B        '      JSR',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
@@ -469,6 +475,7 @@ REG_A7          DC.B        'A7',0
 INST_LINE       DCB.B       256,0   String for one line of instruction
 
              END         START        ; last line of source
+
 
 
 
