@@ -34,6 +34,13 @@ START:                              ; first instruction of program
             MOVE.L      #%01010101010101010101010101010101, $7042 ; 5555 following
             MOVE.W      #%0100101111010101, $7050       LEA A5 with D5
             MOVE.W      #%0100111010000000, $7070       JSR
+            MOVE.W      #%1000101001000001, $7080       OR.W D5,D1 (into Dn)
+            MOVE.W      #%1000101000000001, $7090       OR.B D5,D1 (into Dn)
+            MOVE.W      #%1000101100000001, $8000       OR.B D5,D1 (into ea)
+            MOVE.W      #%1000101101000001, $8010       OR.W D5,D1 (into ea)
+            MOVE.W      #%1000101010000001, $8020       OR.L D5,D1 (into Dn)
+            MOVE.W      #%1000101110000001, $8030       OR.L D5,D1 (into ea)
+            
             
             
             LEA         STACK,SP    Load the stack
@@ -287,7 +294,13 @@ code0110    CLR.L       D0
             
 code0111    BRA         op_DATA
             
-code1000    BRA         op_DATA
+code1000    * OR
+            JSR         op_OR
+            JSR         OR_opmode
+            RTS
+
+            * OP Code not found// prob not necessary?
+            BRA         op_DATA
             
 code1001    BRA         op_DATA
             
@@ -303,10 +316,40 @@ code1110    BRA         op_DATA
             
 code1111    BRA         op_DATA
 
+OR_opmode   CMP.W       #%0000,D4
+            BEQ         print_B
+            CMP.W       #%0100,D4
+            BEQ         print_B
+            CMP.W       #%0001,D4
+            BEQ         print_W
+            CMP.W       #%0101,D4
+            BEQ         print_W
+            CMP.W       #%0010,D4
+            BEQ         print_L
+            CMP.W       #%0110,D4
+            BEQ         print_L
+            CMP.W       #%0111,D4
+            BEQ         op_DATA
+
 print_add   MOVE.L      A3,D1           ; Move the current address to D1
             MOVE.L      #15,D0          ; Move the I/O code to D0 to print the number in D1
             MOVE.L      #16,D2          ; Print the number in base 16
             TRAP        #15             ; print
+            RTS
+           
+print_B     MOVE.L      #14,D0
+            LEA         B_STR,A1
+            TRAP        #15
+            RTS
+
+print_W     MOVE.L      #14,D0
+            LEA         W_STR,A1
+            TRAP        #15
+            RTS
+
+print_L     MOVE.L      #14,D0
+            LEA         L_STR,A1
+            TRAP        #15
             RTS
             
 op_NOP      JSR         print_add       ; print the address
@@ -354,6 +397,12 @@ op_LEA      JSR         print_add       ; print the address
 op_JSR      JSR         print_add       ; print the address
             MOVE.L      #14,D0
             LEA         JSR_STR,A1
+            TRAP        #15
+            RTS
+         
+op_OR       JSR         print_add       ; print the address
+            MOVE.L      #14,D0
+            LEA         OR_STR,A1
             TRAP        #15
             RTS
             
@@ -433,14 +482,18 @@ input        DCB.B       256,0
 invalidAdd   DC.B        'ERROR',0
 COMMA        DC.B        ',',0
 TAB          DC.B        '    ',0
+B_STR        DC.B        '.B    ',0
+W_STR        DC.B        '.W    ',0
+L_STR        DC.B        '.L    ',0
 *------------------------------------------------------------------*
 DATA_STR     DC.B        '      DATA',CR,LF,0
 NOP_STR      DC.B        '      NOP',CR,LF,0
 MOVEB_STR    DC.B        '      MOVE.B',0
-BRA16_STR    DC.B        '      BRA - 16-bit displacement **FINISH HIM',CR,LF,0
-BRA32_STR    DC.B        '      BRA - 32-bit displacement **FINISH HIM',CR,LF,0
-LEA_STR      DC.B        '      LEA       **FINITOOOO',CR,LF,0
+BRA16_STR    DC.B        '      BRA - 16-bit displacement **FINISH HIM',0
+BRA32_STR    DC.B        '      BRA - 32-bit displacement **FINISH HIM',0
+LEA_STR      DC.B        '      LEA       **FINITOOOO',0
 JSR_STR      DC.B        '      JSR',0
+OR_STR       DC.B        '      OR',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
