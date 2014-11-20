@@ -15,19 +15,19 @@ STACK       EQU         $8000
 *----------------------------------------------------------*
 *Mode Masks
 * SRC 
-SRC_MODE    EQU    %00111000  
-SRC_ADDR    EQU    %00000111    
+EA_MODE    EQU    %00111000  
+EA_REG     EQU    %00000111    
     
 * DST
 DEST_MODE   EQU    %00111000
-DEST_ADDR   EQU    %00111000
+DEST_REG    EQU    %00000111
 
 *----------------------------------------------------------*
 START:                              ; first instruction of program
             
             MOVE.W      #%0100111001110001, $7000       NOP 
             MOVE.W      #%0001001000000000, $7010       MOVE.B D0,D1
-            MOVE.W      #%0001001000000111, $7020
+            MOVE.W      #%0001011000000111, $7020       MOVE.B D7,D3
             MOVE.W      #%0110000000000000, $7030       BRA 16bit
             MOVE.W      #%0101010101010101, $7032       55 following
             MOVE.W      #%0110000011111111, $7040       BRA 32bit
@@ -48,7 +48,7 @@ START:                              ; first instruction of program
             MOVE.W      #%0100010010000001, $8090       NEG.L
             MOVE.W      #%0100111001110101, $9000       RTS
             MOVE.W      #%0000101110010001, $9010       BCLR D5,A1 
-
+            MOVE.W      #%0011001001000110, $9020       MOVE.W D6,A1
 
             
             
@@ -180,17 +180,17 @@ opcode      CLR.L       D7              ; Clear D7 (not sure if this is necessar
             JSR         00(A0,D7)       ; find the corresponding code in the jump table
             
 OC_decode   MOVE.W      D0,D1           ; move the original operation into D1
-            MOVE.W      D0,D7           ; also move it into D7                      SRC (MOD|ADDR)
+            MOVE.W      D0,D7           ; also move it into D7                      Effective Addressing BITS
             ANDI.W      #%0000000000111111,D1 ; bitmask the last 6 bits (bits 0-5)
             MOVE.B      D1,D5           ; move the last 6 bits into D5
             
             ROR.W       #6,D0           ; rotate the operation to the right by 6 bits
-            MOVE.W      D0,D1           ; move the new op value into D1                 DEST (MOD)
+            MOVE.W      D0,D1           ; move the new op value into D1                OPMODE BITS
             ANDI.W      #%0000000000000111,D1 ; bitmask the last 3 bits (bits 6-8)
             MOVE.B      D1,D4           ; move these bits into D4
             
             ROR.W       #3,D0           ; rotate the operation to the right by 3 bits
-            MOVE.W      D0,D1           ; move the new op value into D1                 DEST (ADDR)
+            MOVE.W      D0,D1           ; move the new op value into D1                 Register bits
             ANDI.W      #%0000000000000111,D1 ; bitmask the last 3 bits (bits 9-11)
             MOVE.B      D1,D3           ; move these bits into D3
             
@@ -246,23 +246,15 @@ code0001    *MOVEM.L     D1,-(SP)   Save what we have here in D1 just in case
             TRAP        #15
             
             *MOVEM.L     (SP)+,D1        Restore it
-
-            CLR         D0              Empty D0
-            MOVE.B      D5,D0           Copy D5
-            ANDI.B      #SRC_MODE,D0    Get Mode of source
-            LSR.B       #3,D0           Shift bits over (MODE IN D0)
             
-            JSR         FIND_MODE       Get its mode
+            JSR         FIND_EAMODE       Get its mode
             
             MOVE.B      #14,D0          Place the comma
             LEA         COMMA,A1
             TRAP        #15
             
-            
-            MOVE        D4,D0           Get Destination Mode
-            MOVE        D3,D5           Get Destination Address
-            
-            JSR         FIND_MODE       Find destination mode
+                        
+            JSR         OP_MODE       Find destination mode
             
             *MOVE.B      #14,D0
             *LEA         DATA_STR,A1
@@ -480,66 +472,256 @@ op_RTS      JSR         print_add       ; print the address
 *------------------------------------------------------------------*
 * Determine EA MODE 
 * This will deterine what effective addressing mode to do
-* D0 - Contains our mode
-* D5 contains the byte with both Src mode and Src Addr
-* D7 Contains the instruction
 *
 * 
-FIND_MODE   
-            CMP.B   #0,D0   Which mode?
-            BEQ     M_ONE
-            CMP.B   #1,D0
-            BEQ     M_TWO
-            CMP.B   #3,D0
-            BEQ     M_THREE
-            CMP.B   #4,D0
-            BEQ     M_FOUR
-            CMP.B   #5,D0
-            BEQ     M_FIVE
-            CMP.B   #6,D0
-            BEQ     M_SIX
-            CMP.B   #7,D0
-            BEQ     M_SEVEN
+* D5 - Contains the EA bits
+* 
+* D7 Contains the instruction
+* 
+* FIND_MODE(D5:EA Bits, D7:Current instruction)
+* D2 - Contains the Register
+
+FIND_EAMODE   MOVE.B  D5,D2
+              ANDI.B  #EA_REG,D2      Get the EA register    
+              ANDI.B  #EA_MODE,D5     Get the EA Mode
+              LSR.B   #3,D5
+              BRA     MODE_SELECT 
+ 
+
+*------------------------------------------------------------------------*
+* This Subroutine performs the same way as EA, only we get the 
+* Desination reg and mode (mainly for testing simpler commands where
+* we know the what register and mode are, 
+* D4 - is expected to carry an the op-mode
+* D3 - has the appropriate register
+*             
+OP_MODE       MOVE.B  D4,D5         Get OPMODE (this is for destination mode, reg testing)
+              MOVE.B  D3,D2         Get reg number then go to appropriate mode
+
+*-----------------------------------------------------------------------
+* This goes to the appropriate mode whether we start with FIND_EAMODE
+* or OP_MODE
+* D5 - is the mode
+* D2 - is expected to have the reg number
+*
+
+
+MODE_SELECT   CMP.B   #0,D5     MODE ZERO Goes to DATA REG DIRECT
+              BEQ     M_ZERO
+              CMP.B   #1,D5
+              BEQ     M_ONE     Address Reg Direct
+              CMP.B   #2,D5
+              BEQ     M_TWO     Address Reg Indirect
+              CMP.B   #3,D5
+              BEQ     M_THREE   Address Reg Indirect Post Inc
+              CMP.B   #4,D5
+              BEQ     M_FOUR    Address Reg Indirect Pre Dec
+              CMP.B   #5,D5
+              BEQ     M_FIVE
+              CMP.B   #6,D5
+              BEQ     M_SIX
+              CMP.B   #7,D5
+              BEQ     M_SEVEN
             
          
 
 *-------------------------------------
-* Mode on is data register direct mode
-* D0 - has the mode
+* Mode zero is data register direct mode
+* D2 - has the Register
 * 
-M_ONE    MOVEM.L    D0-D7/A0-A7,-(SP)   Save our stuff real quick
+M_ZERO    MOVEM.L    D0-D7/A0-A7,-(SP)   Save our stuff real quick
                 
-         MOVE.B     #14,D0              Print the 'D'
-         LEA        DATA_REG,A1         
-         TRAP       #15
+          MOVE.B     #14,D0              Print the 'D'
+          LEA        DATA_REG,A1         
+          TRAP       #15
          
-         
-            
-         CLR         D1                 Get SRC Address
-         MOVE.B      D5,D1              
-         ANDI.B      #SRC_ADDR,D1
-            
-         
+          CLR         D1                 Get EA Register
+          MOVE.B      D2,D1                          
                 
-         MOVE.B     #3,D0               (SRC ADDRESS IS IN D1)
-         TRAP       #15                 Display it
+          MOVE.B     #3,D0               EA REG in D1
+          TRAP       #15                 Display it
 
-         MOVEM.L    (SP)+,D0-D7/A0-A7   Restore registers
+          MOVEM.L    (SP)+,D0-D7/A0-A7   Restore registers
          
-         RTS                            Leave this place  
+          RTS                            Leave this place 
+ 
+ 
+ 
+*------------------------------------------- 
+* Mode One is Address Register Direct
+* D2 has the register
+*
+M_ONE     MOVEM.L    D0-D7/A0-A7,-(SP)   Save our stuff real quick
+                
+          MOVE.B     #14,D0              Print the 'A'
+          LEA        ADDR_REG,A1         
+          TRAP       #15
+         
+          CLR         D1                 Get EA Register
+          MOVE.B      D2,D1                          
+                
+          MOVE.B     #3,D0               EA REG in D1
+          TRAP       #15                 Display it
+
+          MOVEM.L    (SP)+,D0-D7/A0-A7   Restore registers
+         
+          RTS                            Leave this place 
 
 
-M_TWO       BRA exit
+*---------------------------------------------
+* Mode Two is Address Register Indirect
+* (A2)
+*
+M_TWO       MOVEM.L    D0-D7/A0-A7,-(SP)   Save our stuff real quick
+            MOVE.B     #14,D0              Print the '('
+            LEA        L_PAREN,A1
+            TRAP       #15
+            
+            
+            MOVE.B     #14,D0              Print the 'A'
+            LEA        ADDR_REG,A1         
+            TRAP       #15
 
-M_THREE     BRA exit
+            CLR        D1                  Get EA Register
+            MOVE.B     D2,D1                          
+                
+            MOVE.B     #3,D0               EA REG in D1
+            TRAP       #15                 Display it
+            
+           
+            MOVE.B     #14,D0              Print the ')'
+            LEA        R_PAREN,A1
+            TRAP       #15
+            
+            MOVEM.L    (SP)+,D0-D7/A0-A7   Restore registers
+         
+            RTS                            Leave this place 
 
-M_FOUR      BRA exit
+
+*--------------------------------------------------------*
+* Mode is Register Indirect Post Increment Mode
+*
+*
+*    
+M_THREE     MOVEM.L    D0-D7/A0-A7,-(SP)   Save our stuff real quick
+
+            MOVE.B     #14,D0              Print the '('
+            LEA        L_PAREN,A1
+            TRAP       #15
+            
+            
+            MOVE.B     #14,D0              Print the 'A'
+            LEA        ADDR_REG,A1         
+            TRAP       #15
+
+            CLR        D1                  Get EA Register
+            MOVE.B     D2,D1                          
+                
+            MOVE.B     #3,D0               EA REG in D1
+            TRAP       #15                 Display it
+            
+           
+            MOVE.B     #14,D0              Print the ')'
+            LEA        R_PAREN,A1
+            TRAP       #15
+
+            MOVE.B     #14,D0              Print the '+'
+            LEA        INCREMENT,A1
+            TRAP       #15
+
+            MOVEM.L    (SP)+,D0-D7/A0-A7   Restore registers
+         
+            RTS                            Leave this place 
+
+
+*--------------------------------------------------------------
+* Mode is Register Indirect Pre-Decrement Mode
+*
+*            
+
+M_FOUR      MOVEM.L    D0-D7/A0-A7,-(SP)   Save our stuff real quick
+            
+            MOVE.B     #14,D0              Print the '-'
+            LEA        DECREMENT,A1
+            TRAP       #15           
+
+            MOVE.B     #14,D0              Print the '('
+            LEA        L_PAREN,A1
+            TRAP       #15
+            
+            
+            MOVE.B     #14,D0              Print the 'A'
+            LEA        ADDR_REG,A1         
+            TRAP       #15
+
+            CLR        D1                  Get EA Register
+            MOVE.B     D2,D1                          
+                
+            MOVE.B     #3,D0               EA REG in D1
+            TRAP       #15                 Display it
+            
+           
+            MOVE.B     #14,D0              Print the ')'
+            LEA        R_PAREN,A1
+            TRAP       #15
+
+
+            MOVEM.L    (SP)+,D0-D7/A0-A7   Restore registers
+         
+            RTS                            Leave this place 
+
+
 
 M_FIVE      BRA exit
 
 M_SIX       BRA exit
 
-M_SEVEN     BRA exit
+
+
+*--------------------------------------------*
+* Mode seven is special, it does stuff
+* like absolute addressing and immediate 
+* data.
+* D2 - is the register data
+* D5 - the mode data
+*
+M_SEVEN     CMP.B   #0,D2
+            BEQ     ABS_SHORTADDR
+            CMP.B   #1,D2
+            BEQ     ABS_LONGADDR
+            CMP.B   #2,D2
+            BEQ     exit            NOT DONE
+            CMP.B   #3,D2
+            BEQ     exit            NOT DONE
+            CMP.B   #4,D2       
+            BEQ     IMMED_DATA
+
+            
+
+ABS_SHORTADDR   BRA exit
+
+
+ABS_LONGADDR    BRA exit
+
+
+IMMED_DATA  BRA exit
+
+
+
+
+
+*-------------------------------------------*
+* For replacing the current Register with 
+* the SP register. EX (SP),D1...
+*   
+*   
+STACK_PREG
+
+            MOVE.B  #14,D0
+            LEA     SP_REG,A1
+            TRAP    #15
+            
+*-------------------------------------------*
 
 
             
@@ -555,6 +737,10 @@ TAB          DC.B        '    ',0
 B_STR        DC.B        '.B    ',0
 W_STR        DC.B        '.W    ',0
 L_STR        DC.B        '.L    ',0
+L_PAREN      DC.B        '(',0
+R_PAREN      DC.B        ')',0
+INCREMENT    DC.B        '+',0
+DECREMENT    DC.B        '-',0
 *------------------------------------------------------------------*
 DATA_STR     DC.B        '      DATA',CR,LF,0
 NOP_STR      DC.B        '      NOP',CR,LF,0
@@ -575,33 +761,17 @@ BCLR_STR     DC.B        '      BCLR',0
 * DATA Register
 
 DATA_REG        DC.B        'D',0
-ADD_REG         DC.B        'A',0
-
-
-REG_D0          DC.B        'D0',0
-REG_D1          DC.B        'D1',0
-REG_D2          DC.B        'D2',0
-REG_D3          DC.B        'D3',0
-REG_D4          DC.B        'D4',0
-REG_D5          DC.B        'D5',0
-REG_D6          DC.B        'D6',0
-REG_D7          DC.B        'D7',0
-*------------------------------------------------------------------*
-* Address Registers
-REG_A0          DC.B        'A0',0
-REG_A1          DC.B        'A1',0
-REG_A2          DC.B        'A2',0
-REG_A3          DC.B        'A3',0
-REG_A4          DC.B        'A4',0
-REG_A5          DC.B        'A5',0
-REG_A6          DC.B        'A6',0
-REG_A7          DC.B        'A7',0
-
+ADDR_REG        DC.B        'A',0
+SP_REG          DC.B        'SP',0
 
 *------------------------------------------------------------------*
 INST_LINE       DCB.B       256,0   String for one line of instruction
 
              END         START        ; last line of source
+
+
+
+
 
 
 
