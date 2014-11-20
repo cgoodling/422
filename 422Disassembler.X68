@@ -46,6 +46,7 @@ START:                              ; first instruction of program
             MOVE.W      #%0100010000000001, $8070       NEG.B
             MOVE.W      #%0100010001000001, $8080       NEG.W
             MOVE.W      #%0100010010000001, $8090       NEG.L
+            MOVE.W      #%0100111001110101, $9000       RTS
 
 
             
@@ -198,7 +199,7 @@ JUMPTABLE   JMP         code0000        ORI
             JMP         code0001        MOVE.B
             JMP         code0010
             JMP         code0011
-            JMP         code0100        NEG, NOP, LEA, JSR
+            JMP         code0100        NEG, NOP, LEA, JSR, RTS
             JMP         code0101
             JMP         code0110        BRA
             JMP         code0111
@@ -290,11 +291,15 @@ code0100
             BEQ         op_LEA
             
             *JSR
-            MOVE.W      (A2),D1                 ; move the original operation into D1 after LEA check
+            MOVE.W      (A2),D1                 ; move the original operation into D1 
             ANDI.W      #%1111111111000000,D1   ; Get bits 6-15 for compare
             CMP.W       #%0100111010000000,D1   ; Check for JSR
             BEQ         op_JSR
             
+            *RTS
+            MOVE.W      (A2),D1                 ; move the original operation into D1
+            CMP.W	    #%0100111001110101,D1	; Check for RTS
+            BEQ         op_RTS
 
             
             BRA         op_DATA                 ; invalid
@@ -448,7 +453,13 @@ op_NEG      JSR         print_add       ; print the address
             MOVE.L      #14,D0
             LEA         NEG_STR,A1      ; print the op
             TRAP        #15
-            BRA         opcode_size        ; find the size and print
+            BRA         opcode_size     ; find the size and print
+            RTS
+
+op_RTS      JSR         print_add       ; print the address
+            MOVE.L      #14,D0
+            LEA         RTS_STR,A1      ; print the op
+            TRAP        #15
             RTS
             
             BRA         op_DATA
@@ -542,6 +553,7 @@ JSR_STR      DC.B        '      JSR',0
 OR_STR       DC.B        '      OR',0
 ORI_STR      DC.B        '      ORI',0
 NEG_STR      DC.B        '      NEG',0
+RTS_STR      DC.B        '      RTS',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
@@ -576,6 +588,7 @@ REG_A7          DC.B        'A7',0
 INST_LINE       DCB.B       256,0   String for one line of instruction
 
              END         START        ; last line of source
+
 
 
 
