@@ -43,6 +43,11 @@ START:                              ; first instruction of program
             MOVE.W      #%0000000000000101, $8040       ORI.B #%xxxxxxxx,D5
             MOVE.W      #%0000000001000101, $8050       ORI.W #%xxxxxxxxxxxxxxxx,D5
             MOVE.W      #%0000000010000101, $8060       ORI.L #%xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,D5
+            MOVE.W      #%0100010000000001, $8070       NEG.B
+            MOVE.W      #%0100010001000001, $8080       NEG.W
+            MOVE.W      #%0100010010000001, $8090       NEG.L
+
+
             
             
             LEA         STACK,SP    Load the stack
@@ -193,7 +198,7 @@ JUMPTABLE   JMP         code0000        ORI
             JMP         code0001        MOVE.B
             JMP         code0010
             JMP         code0011
-            JMP         code0100        NOP, LEA, JSR
+            JMP         code0100        NEG, NOP, LEA, JSR
             JMP         code0101
             JMP         code0110        BRA
             JMP         code0111
@@ -263,13 +268,20 @@ code0010    BRA         op_DATA
 code0011    BRA         op_DATA
             
 code0100    
+            *NEG
+            MOVE.W      (A2),D1                 ; move operation into D1
+	        ANDI.W	    #%0000000011000000,D4   ; get the size
+	        ANDI.W	    #%1111111100000000,D1	; Get bits 8-15
+	        CMP.W	    #%0100010000000000,D1	; Check for NEG
+	        BEQ         op_NEG
+	        
             *NOP
-            CLR.L       D0              ; clear D0
-            MOVE.W      #%0100111001110001,D0 ; move the NOP code into D0
-            CLR.L       D1              ; clear D1
-            MOVE.W      (A2),D1         ; move the original operation into D1
-            CMP.W       D0,D1           ; compare D0 and D1
-            BEQ         op_NOP          ; if they're equal, the operation is NOP
+            CLR.L       D0                      ; clear D0
+            MOVE.W      #%0100111001110001,D0   ; move the NOP code into D0
+            CLR.L       D1                      ; clear D1
+            MOVE.W      (A2),D1                 ; move the original operation into D1
+            CMP.W       D0,D1                   ; compare D0 and D1
+            BEQ         op_NOP                  ; if they're equal, the operation is NOP
             
             *LEA
             MOVE.L      #%0000000000000011,D4
@@ -279,12 +291,13 @@ code0100
             
             *JSR
             MOVE.W      (A2),D1                 ; move the original operation into D1 after LEA check
-            MOVE.L      #%0000000000101011,D4   ; Prep for EA 
             ANDI.W      #%1111111111000000,D1   ; Get bits 6-15 for compare
             CMP.W       #%0100111010000000,D1   ; Check for JSR
             BEQ         op_JSR
             
-            BRA         op_DATA
+
+            
+            BRA         op_DATA                 ; invalid
             
 code0101    BRA         op_DATA
             
@@ -419,10 +432,10 @@ op_ORI      JSR         print_add       ; print the address
             MOVE.L      #14,D0
             LEA         ORI_STR,A1      ; print the op
             TRAP        #15
-            BRA         ORI_size        ; find the size and print
+            BRA         opcode_size        ; find the size and print
             RTS
             
-ORI_size    MOVE.W      (A2),D1
+opcode_size MOVE.W      (A2),D1
             ANDI.W      #%0000000011000000,D1
             CMP.W       #%0000000000000000,D1
             BEQ         print_B
@@ -430,6 +443,13 @@ ORI_size    MOVE.W      (A2),D1
             BEQ         print_W
             CMP.W       #%0000000010000000,D1
             BEQ         print_L
+            
+op_NEG      JSR         print_add       ; print the address
+            MOVE.L      #14,D0
+            LEA         NEG_STR,A1      ; print the op
+            TRAP        #15
+            BRA         opcode_size        ; find the size and print
+            RTS
             
             BRA         op_DATA
             
@@ -521,6 +541,7 @@ LEA_STR      DC.B        '      LEA       **FINITOOOO',0
 JSR_STR      DC.B        '      JSR',0
 OR_STR       DC.B        '      OR',0
 ORI_STR      DC.B        '      ORI',0
+NEG_STR      DC.B        '      NEG',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
@@ -555,6 +576,7 @@ REG_A7          DC.B        'A7',0
 INST_LINE       DCB.B       256,0   String for one line of instruction
 
              END         START        ; last line of source
+
 
 
 
