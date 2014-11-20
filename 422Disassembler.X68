@@ -47,6 +47,7 @@ START:                              ; first instruction of program
             MOVE.W      #%0100010001000001, $8080       NEG.W
             MOVE.W      #%0100010010000001, $8090       NEG.L
             MOVE.W      #%0100111001110101, $9000       RTS
+            MOVE.W      #%0000101110010001, $9010       BCLR D5,A1 
 
 
             
@@ -195,7 +196,7 @@ OC_decode   MOVE.W      D0,D1           ; move the original operation into D1
             
             RTS
 
-JUMPTABLE   JMP         code0000        ORI
+JUMPTABLE   JMP         code0000        ORI, BCLR
             JMP         code0001        MOVE.B
             JMP         code0010
             JMP         code0011
@@ -219,10 +220,16 @@ JUMPTABLE   JMP         code0000        ORI
 *-------------------------------------------------------------------------*
 code0000    *ORI
             MOVE.W      (A2),D1                ; copy instruction into D1
-            ANDI        #%1111111100000000,D1   ; isolate bits 8-15
-            CMP.W       #%0000000000000000,D1   ; check if this is ORI
+            ANDI        #%1111111100000000,D1  ; isolate bits 8-15
+            CMP.W       #%0000000000000000,D1  ; check if this is ORI
             BEQ         op_ORI
-
+            
+            *BCLR
+            MOVE.W      (A2),D1                ; copy instruction into D1
+            ANDI        #%0000000111000000,D1  ; get bits 9-11
+            CMP.W       #%0000000110000000,D1  ; check for BCLR
+            BEQ         op_BCLR
+            
             BRA         op_DATA
 
 code0001    *MOVEM.L     D1,-(SP)   Save what we have here in D1 just in case
@@ -298,7 +305,7 @@ code0100
             
             *RTS
             MOVE.W      (A2),D1                 ; move the original operation into D1
-            CMP.W	    #%0100111001110101,D1	; Check for RTS
+            CMP.W       #%0100111001110101,D1	; Check for RTS
             BEQ         op_RTS
 
             
@@ -437,7 +444,13 @@ op_ORI      JSR         print_add       ; print the address
             MOVE.L      #14,D0
             LEA         ORI_STR,A1      ; print the op
             TRAP        #15
-            BRA         opcode_size        ; find the size and print
+            BRA         opcode_size     ; find the size and print
+            RTS
+            
+op_BCLR     JSR         print_add       ; print the address
+            MOVE.L      #14,D0
+            LEA         BCLR_STR,A1     ; print the op
+            TRAP        #15
             RTS
             
 opcode_size MOVE.W      (A2),D1
@@ -554,6 +567,7 @@ OR_STR       DC.B        '      OR',0
 ORI_STR      DC.B        '      ORI',0
 NEG_STR      DC.B        '      NEG',0
 RTS_STR      DC.B        '      RTS',0
+BCLR_STR     DC.B        '      BCLR',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
@@ -588,6 +602,7 @@ REG_A7          DC.B        'A7',0
 INST_LINE       DCB.B       256,0   String for one line of instruction
 
              END         START        ; last line of source
+
 
 
 
