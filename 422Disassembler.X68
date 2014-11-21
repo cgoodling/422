@@ -64,7 +64,10 @@ START:
             MOVE.W      #%1110011000101101, $9120       LSR.B D3,D5
             MOVE.W      #%1110011001101101, $9130       LSR.W D3,D5
             MOVE.W      #%1110011010101101, $9140       LSR.L D3,D5
-
+            
+            MOVE.W      #%0000110000000001, $9200       CMPI.B #%xx,D1
+            MOVE.W      #%0000110001010001, $9210       CMPI.W #%xxxx,(A1)
+            MOVE.W      #%0000110010011001, $9220       CMPI.L #%xxxxxxxx,(A1)+
             
             
             LEA         STACK,SP    Load the stack
@@ -243,6 +246,12 @@ op0000
             ANDI        #%0000000111000000,D1  ; get bits 9-11
             CMP.W       #%0000000110000000,D1  ; check for BCLR
             BEQ         op_BCLR
+            
+            *CMPI
+            MOVE.W      (A2),D1
+            ANDI        #%1111111100000000,D1  ; get bits 8-15
+            CMP.W       #%0000110000000000,D1  ; check for CMPI
+            BEQ         op_CMPI
             
             BRA         op_DATA
 
@@ -647,6 +656,13 @@ op_LSR_ea   JSR         print_add       ; print the address
             
             RTS
             
+op_CMPI     JSR         print_add       ; print the address
+            MOVE.L      #14,D0
+            LEA         CMPI_STR,A1
+            TRAP        #15
+            BRA         opcode_size     ; print the size
+            RTS
+            
             *BRA         op_DATA
             
 *------------------------------------------------------------------*
@@ -937,6 +953,7 @@ RTS_STR      DC.B        '      RTS',0
 BCLR_STR     DC.B        '      BCLR',0
 LSL_STR      DC.B        '      LSL',0
 LSR_STR      DC.B        '      LSR',0
+CMPI_STR     DC.B        '      CMPI',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
@@ -951,6 +968,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0   String for one line of instruction
 
              END         START        ; last line of source
+
 
 
 
