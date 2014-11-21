@@ -23,8 +23,8 @@ DEST_MODE   EQU    %00111000
 DEST_REG    EQU    %00000111
 
 *----------------------------------------------------------*
-START:                              ; first instruction of program
-            
+START:                              
+            * For testing           
             MOVE.W      #%0100111001110001, $7000       NOP 
             MOVE.W      #%0001001000000000, $7010       MOVE.B D0,D1
             MOVE.W      #%0001011000000111, $7020       MOVE.B D7,D3
@@ -167,58 +167,57 @@ ATHE_done   OR.L        D0,D4        ; OR the result to the retVal
             RTS
 
 ******************************** OPCODE **********************************
-opcode      CLR.L       D7              ; Clear D7 (not sure if this is necessary..?)
-            LEA         JUMPTABLE,A0    ; load the jump table into A0
-            JSR         OC_decode       ; decode the opcode
-            CLR.L       D1              ; clear D1
-            MOVE.L      D0,D1           ; move instruction into D1
-            MOVE.B      #12,D2          ; load the value 12 into D2
+opcode      CLR.L       D7                  ; Clear D7 (not sure if this is necessary..?)
+            LEA         JUMPTABLE,A0        ; load the jump table into A0
+            JSR         OC_decode           ; decode the opcode
+            CLR.L       D1                  ; clear D1
+            MOVE.L      D0,D1               ; move instruction into D1
+            MOVE.B      #12,D2              ; load the value 12 into D2
             
                        
-            LSR.W       D2,D7           ; shift the original operation right by 12 bits
-            MULU        #6,D7           ; multiply the new value in D7 by 6
-            JSR         00(A0,D7)       ; find the corresponding code in the jump table
+            LSR.W       D2,D7               ; shift the original operation right by 12 bits
+            MULU        #6,D7               ; multiply the new value in D7 by 6
+            JSR         00(A0,D7)           ; find the corresponding code in the jump table
             
-OC_decode   MOVE.W      D0,D1           ; move the original operation into D1
-            MOVE.W      D0,D7           ; also move it into D7                      Effective Addressing BITS
-            ANDI.W      #%0000000000111111,D1 ; bitmask the last 6 bits (bits 0-5)
-            MOVE.B      D1,D5           ; move the last 6 bits into D5
+OC_decode   MOVE.W      D0,D1                   ; move the original operation into D1
+            MOVE.W      D0,D7                   ; also move it into D7                      Effective Addressing BITS
+            ANDI.W      #%0000000000111111,D1   ; bitmask the last 6 bits (bits 0-5)
+            MOVE.B      D1,D5                   ; move the last 6 bits into D5
             
-            ROR.W       #6,D0           ; rotate the operation to the right by 6 bits
-            MOVE.W      D0,D1           ; move the new op value into D1                OPMODE BITS
-            ANDI.W      #%0000000000000111,D1 ; bitmask the last 3 bits (bits 6-8)
-            MOVE.B      D1,D4           ; move these bits into D4
+            ROR.W       #6,D0                   ; rotate the operation to the right by 6 bits
+            MOVE.W      D0,D1                   ; move the new op value into D1                OPMODE BITS
+            ANDI.W      #%0000000000000111,D1   ; bitmask the last 3 bits (bits 6-8)
+            MOVE.B      D1,D4                   ; move these bits into D4
             
-            ROR.W       #3,D0           ; rotate the operation to the right by 3 bits
-            MOVE.W      D0,D1           ; move the new op value into D1                 Register bits
-            ANDI.W      #%0000000000000111,D1 ; bitmask the last 3 bits (bits 9-11)
-            MOVE.B      D1,D3           ; move these bits into D3
+            ROR.W       #3,D0                   ; rotate the operation to the right by 3 bits
+            MOVE.W      D0,D1                   ; move the new op value into D1                 Register bits
+            ANDI.W      #%0000000000000111,D1   ; bitmask the last 3 bits (bits 9-11)
+            MOVE.B      D1,D3                   ; move these bits into D3
             
             RTS
 
-JUMPTABLE   JMP         code0000        ORI, BCLR
-            JMP         code0001        MOVE.B
-            JMP         code0010
-            JMP         code0011
-            JMP         code0100        NEG, NOP, LEA, JSR, RTS
-            JMP         code0101
-            JMP         code0110        BRA
-            JMP         code0111
-            JMP         code1000        OR.X
-            JMP         code1001
-            JMP         code1010
-            JMP         code1011
-            JMP         code1100
-            JMP         code1101
-            JMP         code1110
-            JMP         code1111
+JUMPTABLE   JMP         op0000        ORI, BCLR
+            JMP         op0001        MOVE.B
+            JMP         op0010
+            JMP         op0011
+            JMP         op0100        NEG, NOP, LEA, JSR, RTS
+            JMP         op0101
+            JMP         op0110        BRA
+            JMP         op0111
+            JMP         op1000        OR.X
+            JMP         op1001
+            JMP         op1010
+            JMP         op1011
+            JMP         op1100
+            JMP         op1101
+            JMP         op1110
+            JMP         op1111
 
 *-------------------------------------------------------------------------*
-* Move Byte
-*
-*
-*-------------------------------------------------------------------------*
-code0000    *ORI
+* Inclusive Or, Test a Bit and Clear, Compare Immediate
+*-------------------------------------------------------------------------* 
+op0000    
+            *ORI
             MOVE.W      (A2),D1                ; copy instruction into D1
             ANDI        #%1111111100000000,D1  ; isolate bits 8-15
             CMP.W       #%0000000000000000,D1  ; check if this is ORI
@@ -232,8 +231,11 @@ code0000    *ORI
             
             BRA         op_DATA
 
-code0001    *MOVEM.L     D1,-(SP)   Save what we have here in D1 just in case
-            
+*-------------------------------------------------------------------------*
+* Move Byte
+*-------------------------------------------------------------------------*
+op0001    *MOVEM.L     D1,-(SP)   Save what we have here in D1 just in case
+            JSR         print_add
             MOVE.W      (A2)+,D7        Get instruction, advance pointer
             
             MOVE.B      #14,D0          Place MOVE.B string
@@ -262,12 +264,21 @@ code0001    *MOVEM.L     D1,-(SP)   Save what we have here in D1 just in case
            
             RTS
             
-            
-code0010    BRA         op_DATA
-            
-code0011    BRA         op_DATA
-            
-code0100    
+*-------------------------------------------------------------------------*
+* Move Long
+*-------------------------------------------------------------------------*            
+op0010    BRA         op_DATA
+
+*-------------------------------------------------------------------------*
+* Move Word
+*-------------------------------------------------------------------------*             
+op0011    BRA         op_DATA
+
+*-------------------------------------------------------------------------*
+* Negate, No Operation, Load Effective Address, Jump to Subroutine, 
+* Return from Subroutine, Move Multiple Registers
+*-------------------------------------------------------------------------*             
+op0100    
             *NEG
             MOVE.W      (A2),D1                 ; move operation into D1
 	        ANDI.W	    #%0000000011000000,D4   ; get the size
@@ -302,10 +313,15 @@ code0100
 
             
             BRA         op_DATA                 ; invalid
-            
-code0101    BRA         op_DATA
-            
-code0110    *BRA
+
+          
+op0101    BRA         op_DATA
+
+*-------------------------------------------------------------------------*
+* Branch Subroutine, Branch Always, Branch Conditionally
+*-------------------------------------------------------------------------*             
+op0110    
+            *BRA
             CLR.L       D0
             MOVE.W      (A2),D0
             ANDI.W      #%1111111100000000,D0 ; bitmask the first 6 bits (bits 8-15)
@@ -318,29 +334,50 @@ code0110    *BRA
 
             BRA         op_DATA
             
-code0111    BRA         op_DATA
-            
-code1000    * OR
+op0111    BRA         op_DATA
+
+*-------------------------------------------------------------------------*
+* Inclusive Or, Signed Divide
+*-------------------------------------------------------------------------*             
+op1000    
+            * OR
             JSR         op_OR
             JSR         OR_opmode
             RTS
 
             * OP Code not found// prob not necessary?
             BRA         op_DATA
+
+*-------------------------------------------------------------------------*
+* Subtract
+*-------------------------------------------------------------------------*             
+op1001    BRA         op_DATA
             
-code1001    BRA         op_DATA
+op1010    BRA         op_DATA
+
+*-------------------------------------------------------------------------*
+* Exclusive Or, Compare
+*-------------------------------------------------------------------------*             
+op1011    BRA         op_DATA
+
+*-------------------------------------------------------------------------*
+* Signed Multiply
+*-------------------------------------------------------------------------*            
+op1100    BRA         op_DATA
+
+*-------------------------------------------------------------------------*
+* Add Address, Add
+*-------------------------------------------------------------------------*            
+op1101    BRA         op_DATA
+
+*-------------------------------------------------------------------------*
+* Arethmatic Shift Left, Arethmatic Shift Right, Logical Shift Left, 
+* Logical Shift Right, Rotate Left, Rotate Right
+*-------------------------------------------------------------------------*            
+op1110    BRA         op_DATA
             
-code1010    BRA         op_DATA
-            
-code1011    BRA         op_DATA
-            
-code1100    BRA         op_DATA
-            
-code1101    BRA         op_DATA
-           
-code1110    BRA         op_DATA
-            
-code1111    BRA         op_DATA
+op1111    BRA         op_DATA
+
 
 OR_opmode   CMP.W       #%0000,D4
             BEQ         print_B
@@ -365,17 +402,17 @@ print_add   MOVE.L      A3,D1           ; Move the current address to D1
            
 print_B     MOVE.L      #14,D0
             LEA         B_STR,A1
-            TRAP        #15
+            TRAP        #15             ; print .B
             RTS
 
 print_W     MOVE.L      #14,D0
             LEA         W_STR,A1
-            TRAP        #15
+            TRAP        #15             ; print .W
             RTS
 
 print_L     MOVE.L      #14,D0
             LEA         L_STR,A1
-            TRAP        #15
+            TRAP        #15             ; print .L
             RTS
             
 op_NOP      JSR         print_add       ; print the address
@@ -447,11 +484,11 @@ op_BCLR     JSR         print_add       ; print the address
             
 opcode_size MOVE.W      (A2),D1
             ANDI.W      #%0000000011000000,D1
-            CMP.W       #%0000000000000000,D1
+            CMP.W       #%0000000000000000,D1   ; check for byte
             BEQ         print_B
-            CMP.W       #%0000000001000000,D1
+            CMP.W       #%0000000001000000,D1   ; check for word
             BEQ         print_W
-            CMP.W       #%0000000010000000,D1
+            CMP.W       #%0000000010000000,D1   ; check for long
             BEQ         print_L
             
 op_NEG      JSR         print_add       ; print the address
@@ -768,6 +805,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0   String for one line of instruction
 
              END         START        ; last line of source
+
 
 
 
