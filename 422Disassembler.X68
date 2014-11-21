@@ -389,17 +389,23 @@ op1101      BRA         op_DATA
 * Arithmetic Shift Left, Arithmetic Shift Right, Logical Shift Left, 
 * Logical Shift Right, Rotate Left, Rotate Right
 *-------------------------------------------------------------------------*            
-op1110      *LSL
+op1110      *LSL/LSR
             MOVE.W      (A2),D1
             ANDI.W      #%1111111111000000,D1
             CMP.W       #%1110001111000000,D1       ; LSL EA mode
             BEQ         LSL_ea
+            CMP.W       #%1110001011000000,D1       ; LSR EA mode
+            BEQ         LSR_ea
             MOVE.W      (A2),D1
-            ANDI.W      #%1111000100111000,D1
-            CMP.W       #%1110000100001000,D1
-            BEQ         LSL_count
-            CMP.W       #%1110000100101000,D1
-            BEQ         LSL_reg
+            
+            JSR         LS_no_ea
+
+            MOVE.W      (A2),D1
+            ANDI.W      #%1111000000111000,D1
+            CMP.W       #%1110000000001000,D1
+            BEQ         LS_count
+            CMP.W       #%1110000000101000,D1
+            BEQ         LS_reg
             
             BRA         op_DATA
             
@@ -408,9 +414,20 @@ op1111      BRA         op_DATA
 LSL_ea      JSR         op_LSL_ea
             *** NEEDS TO BE FINISHED
             RTS
+            
+LSR_ea      JSR         op_LSR_ea
+            *** NEEDS TO BE FINITO
+            RTS
+            
+LS_no_ea    MOVE.L      D1,D0
+            ANDI.W      #%0000000100000000,D0
+            CMP.W       #%0000000100000000,D0
+            BEQ         op_LSL
+            CMP.W       #%0000000000000000,D0
+            BEQ         op_LSR
+            RTS
 
-LSL_count   JSR         op_LSL
-            MOVE.L      #14,D0
+LS_count    MOVE.L      #14,D0
             LEA         POUND,A1
             TRAP        #15             ; print #
             
@@ -440,8 +457,7 @@ LSL_count   JSR         op_LSL
             
             RTS
 
-LSL_reg     JSR         op_LSL
-            MOVE.L      #14,D0
+LS_reg      MOVE.L      #14,D0
             LEA         DATA_REG,A1
             TRAP        #15             ; print 'D'
             
@@ -584,6 +600,7 @@ opcode_size MOVE.W      (A2),D1
             BEQ         print_W
             CMP.W       #%0000000010000000,D1   ; check for long
             BEQ         print_L
+            RTS
             
 op_NEG      JSR         print_add       ; print the address
             MOVE.L      #14,D0
@@ -606,11 +623,27 @@ op_LSL      JSR         print_add       ; print the address
             JSR         opcode_size     ; print the size
             
             RTS
+          
+op_LSR      JSR         print_add       ; print the address
+            MOVE.L      #14,D0
+            LEA         LSR_STR,A1      ; print the operation
+            TRAP        #15
+            
+            JSR         opcode_size     ; print the size
+            
+            RTS
             
 op_LSL_ea   JSR         print_add       ; print the address
             MOVE.L      #14,D0
             LEA         LSL_STR,A1
             TRAP        #15             ; print the operation
+            
+            RTS
+            
+op_LSR_ea   JSR         print_add       ; print the address
+            MOVE.L      #14,D0
+            LEA         LSR_STR,A1
+            TRAP        #15
             
             RTS
             
@@ -903,6 +936,7 @@ NEG_STR      DC.B        '      NEG',0
 RTS_STR      DC.B        '      RTS',0
 BCLR_STR     DC.B        '      BCLR',0
 LSL_STR      DC.B        '      LSL',0
+LSR_STR      DC.B        '      LSR',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
