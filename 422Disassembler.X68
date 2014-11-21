@@ -49,6 +49,21 @@ START:
             MOVE.W      #%0100111001110101, $9000       RTS
             MOVE.W      #%0000101110010001, $9010       BCLR D5,A1 
             MOVE.W      #%0011001001000110, $9020       MOVE.W D6,A1
+            MOVE.W      #%1110011100001101, $9030       LSL.B #3,D5
+            MOVE.W      #%1110011101001101, $9040       LSL.W #3,D5
+            MOVE.W      #%1110011110001101, $9050       LSL.L #3,D5
+            
+            MOVE.W      #%1110011100101101, $9060       LSL.B D3,D5
+            MOVE.W      #%1110011101101101, $9070       LSL.W D3,D5
+            MOVE.W      #%1110011110101101, $9080       LSL.L D3,D5
+            
+            MOVE.W      #%1110011000001101, $9090       LSR.B #3,D5
+            MOVE.W      #%1110011001001101, $9100       LSR.W #3,D5
+            MOVE.W      #%1110011010001101, $9110       LSR.L #3,D5
+            
+            MOVE.W      #%1110011000101101, $9120       LSR.B D3,D5
+            MOVE.W      #%1110011001101101, $9130       LSR.W D3,D5
+            MOVE.W      #%1110011010101101, $9140       LSR.L D3,D5
 
             
             
@@ -234,7 +249,7 @@ op0000
 *-------------------------------------------------------------------------*
 * Move Byte
 *-------------------------------------------------------------------------*
-op0001    *MOVEM.L     D1,-(SP)   Save what we have here in D1 just in case
+op0001      *MOVEM.L     D1,-(SP)   Save what we have here in D1 just in case
             JSR         print_add
             MOVE.W      (A2)+,D7        Get instruction, advance pointer
             
@@ -267,12 +282,12 @@ op0001    *MOVEM.L     D1,-(SP)   Save what we have here in D1 just in case
 *-------------------------------------------------------------------------*
 * Move Long
 *-------------------------------------------------------------------------*            
-op0010    BRA         op_DATA
+op0010      BRA         op_DATA
 
 *-------------------------------------------------------------------------*
 * Move Word
 *-------------------------------------------------------------------------*             
-op0011    BRA         op_DATA
+op0011      BRA         op_DATA
 
 *-------------------------------------------------------------------------*
 * Negate, No Operation, Load Effective Address, Jump to Subroutine, 
@@ -315,7 +330,7 @@ op0100
             BRA         op_DATA                 ; invalid
 
           
-op0101    BRA         op_DATA
+op0101      BRA         op_DATA
 
 *-------------------------------------------------------------------------*
 * Branch Subroutine, Branch Always, Branch Conditionally
@@ -334,7 +349,7 @@ op0110
 
             BRA         op_DATA
             
-op0111    BRA         op_DATA
+op0111      BRA         op_DATA
 
 *-------------------------------------------------------------------------*
 * Inclusive Or, Signed Divide
@@ -351,33 +366,112 @@ op1000
 *-------------------------------------------------------------------------*
 * Subtract
 *-------------------------------------------------------------------------*             
-op1001    BRA         op_DATA
+op1001      BRA         op_DATA
             
-op1010    BRA         op_DATA
+op1010      BRA         op_DATA
 
 *-------------------------------------------------------------------------*
 * Exclusive Or, Compare
 *-------------------------------------------------------------------------*             
-op1011    BRA         op_DATA
+op1011      BRA         op_DATA
 
 *-------------------------------------------------------------------------*
 * Signed Multiply
 *-------------------------------------------------------------------------*            
-op1100    BRA         op_DATA
+op1100      BRA         op_DATA
 
 *-------------------------------------------------------------------------*
 * Add Address, Add
 *-------------------------------------------------------------------------*            
-op1101    BRA         op_DATA
+op1101      BRA         op_DATA
 
 *-------------------------------------------------------------------------*
-* Arethmatic Shift Left, Arethmatic Shift Right, Logical Shift Left, 
+* Arithmetic Shift Left, Arithmetic Shift Right, Logical Shift Left, 
 * Logical Shift Right, Rotate Left, Rotate Right
 *-------------------------------------------------------------------------*            
-op1110    BRA         op_DATA
+op1110      *LSL
+            MOVE.W      (A2),D1
+            ANDI.W      #%1111111111000000,D1
+            CMP.W       #%1110001111000000,D1       ; LSL EA mode
+            BEQ         LSL_ea
+            MOVE.W      (A2),D1
+            ANDI.W      #%1111000100111000,D1
+            CMP.W       #%1110000100001000,D1
+            BEQ         LSL_count
+            CMP.W       #%1110000100101000,D1
+            BEQ         LSL_reg
             
-op1111    BRA         op_DATA
+            BRA         op_DATA
+            
+op1111      BRA         op_DATA
 
+LSL_ea      JSR         op_LSL_ea
+            *** NEEDS TO BE FINISHED
+            RTS
+
+LSL_count   JSR         op_LSL
+            MOVE.L      #14,D0
+            LEA         POUND,A1
+            TRAP        #15             ; print #
+            
+            MOVE.W      (A2),D1
+            ANDI.W      #%0000111000000000,D1
+            LSR.L       #8,D1
+            LSR.L       #1,D1
+            MOVE.L      #16,D2
+            
+            MOVE.L      #15,D0
+            TRAP        #15             ; print the register
+            
+            MOVE.L      #14,D0
+            LEA         COMMA,A1
+            TRAP        #15             ; print a comma
+            
+            MOVE.L      #14,D0
+            LEA         DATA_REG,A1
+            TRAP        #15             ; print 'D'
+            
+            MOVE.W      (A2),D1
+            ANDI.W      #%0000000000000111,D1
+            MOVE.L      #16,D2
+            
+            MOVE.L      #15,D0
+            TRAP        #15             ; print the register
+            
+            RTS
+
+LSL_reg     JSR         op_LSL
+            MOVE.L      #14,D0
+            LEA         DATA_REG,A1
+            TRAP        #15             ; print 'D'
+            
+            MOVE.W      (A2),D1
+            ANDI.W      #%0000111000000000,D1
+            LSR.L       #8,D1
+            LSR.L       #1,D1
+            MOVE.L      #16,D2
+            
+            MOVE.L      #15,D0
+            TRAP        #15             ; print the register
+            
+            MOVE.L      #14,D0
+            LEA         COMMA,A1
+            TRAP        #15             ; print a comma
+            
+            MOVE.L      #14,D0
+            LEA         DATA_REG,A1
+            TRAP        #15             ; print 'D'
+            
+            MOVE.W      (A2),D1
+            ANDI.W      #%0000000000000111,D1
+            MOVE.L      #16,D2
+            
+            MOVE.L      #15,D0
+            TRAP        #15             ; print the register
+
+
+            RTS
+            
 
 OR_opmode   CMP.W       #%0000,D4
             BEQ         print_B
@@ -504,7 +598,23 @@ op_RTS      JSR         print_add       ; print the address
             TRAP        #15
             RTS
             
-            BRA         op_DATA
+op_LSL      JSR         print_add       ; print the address
+            MOVE.L      #14,D0
+            LEA         LSL_STR,A1
+            TRAP        #15             ; print the operation
+            
+            JSR         opcode_size     ; print the size
+            
+            RTS
+            
+op_LSL_ea   JSR         print_add       ; print the address
+            MOVE.L      #14,D0
+            LEA         LSL_STR,A1
+            TRAP        #15             ; print the operation
+            
+            RTS
+            
+            *BRA         op_DATA
             
 *------------------------------------------------------------------*
 * Determine EA MODE 
@@ -771,13 +881,14 @@ input        DCB.B       256,0
 invalidAdd   DC.B        'ERROR',0
 COMMA        DC.B        ',',0
 TAB          DC.B        '    ',0
-B_STR        DC.B        '.B    ',0
-W_STR        DC.B        '.W    ',0
-L_STR        DC.B        '.L    ',0
+B_STR        DC.B        '.B ',0
+W_STR        DC.B        '.W ',0
+L_STR        DC.B        '.L ',0
 L_PAREN      DC.B        '(',0
 R_PAREN      DC.B        ')',0
 INCREMENT    DC.B        '+',0
 DECREMENT    DC.B        '-',0
+POUND        DC.B        '#',0
 *------------------------------------------------------------------*
 DATA_STR     DC.B        '      DATA',CR,LF,0
 NOP_STR      DC.B        '      NOP',CR,LF,0
@@ -791,6 +902,7 @@ ORI_STR      DC.B        '      ORI',0
 NEG_STR      DC.B        '      NEG',0
 RTS_STR      DC.B        '      RTS',0
 BCLR_STR     DC.B        '      BCLR',0
+LSL_STR      DC.B        '      LSL',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
@@ -805,6 +917,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0   String for one line of instruction
 
              END         START        ; last line of source
+
 
 
 
