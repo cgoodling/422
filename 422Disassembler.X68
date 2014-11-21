@@ -101,7 +101,6 @@ START:
             CLR.L       D6
             CLR.L       D7          ; clear all of the registers
 
-            MOVEA.L     A1,A3       ; move the current operation address to A3
             MOVE.W      (A1)+,D0    ; move the starting address to D0
             JSR         opcode      ; decode the opcode
             
@@ -968,6 +967,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0   String for one line of instruction
 
              END         START        ; last line of source
+
 
 
 
