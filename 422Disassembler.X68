@@ -40,9 +40,9 @@ START:
             MOVE.W      #%1000101101000001, $8010       OR.W D5,D1 (into ea)
             MOVE.W      #%1000101010000001, $8020       OR.L D5,D1 (into Dn)
             MOVE.W      #%1000101110000001, $8030       OR.L D5,D1 (into ea)
-            MOVE.W      #%0000000000000101, $8040       ORI.B #%xxxxxxxx,D5
-            MOVE.W      #%0000000001000101, $8050       ORI.W #%xxxxxxxxxxxxxxxx,D5
-            MOVE.W      #%0000000010000101, $8060       ORI.L #%xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,D5
+            MOVE.W      #%0000000000000101, $8040       ORI.B #$xx,D5
+            MOVE.W      #%0000000001000101, $8050       ORI.W #$xxxx,D5
+            MOVE.W      #%0000000010000101, $8060       ORI.L #$xxxxxxxx,D5
             MOVE.W      #%0100010000000001, $8070       NEG.B
             MOVE.W      #%0100010001000001, $8080       NEG.W
             MOVE.W      #%0100010010000001, $8090       NEG.L
@@ -65,9 +65,11 @@ START:
             MOVE.W      #%1110011001101101, $9130       LSR.W D3,D5
             MOVE.W      #%1110011010101101, $9140       LSR.L D3,D5
             
-            MOVE.W      #%0000110000000001, $9200       CMPI.B #%xx,D1
-            MOVE.W      #%0000110001010001, $9210       CMPI.W #%xxxx,(A1)
-            MOVE.W      #%0000110010011001, $9220       CMPI.L #%xxxxxxxx,(A1)+
+            MOVE.W      #%0000110000000001, $9200       CMPI.B #$xx,D1
+            MOVE.W      #%0000110001010001, $9210       CMPI.W #$xxxx,(A1)
+            MOVE.W      #%0000110010011001, $9220       CMPI.L #$xxxxxxxx,(A1)+
+            
+            
             
             
             LEA         STACK,SP    Load the stack
@@ -968,6 +970,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0   String for one line of instruction
 
              END         START        ; last line of source
+
 
 
 
