@@ -105,6 +105,9 @@ START:
             CLR.L       D5
             CLR.L       D6
             CLR.L       D7          ; clear all of the registers
+            
+            LEA         $5000,A5    ; move the starting address of the output string to A1
+            MOVE.W      A5,A6       ; move the ending address of the output string here too (empty string)
 
             MOVE.W      (A1),D0    ; MOVEs INSTRUCTION in A1 to D0 (NOTE THIS WAS (A1)+, why?)
             JSR         opcode      ; decode the opcode
@@ -546,8 +549,7 @@ op_NOP      JSR         print_add       ; print the address
             TRAP        #15             ; OP code DNE
             RTS
             
-op_DATA     JSR         print_add       ; print the address
-            MOVE.L      #14,D0
+op_DATA     MOVE.L      #14,D0
             LEA         DATA_STR,A1
             TRAP        #15             ; OP code DNE
             RTS
@@ -630,11 +632,15 @@ op_OR       JSR         print_add       ; print the address
             TRAP        #15
             RTS
             
-op_ORI      JSR         print_add       ; print the address
-            MOVE.L      #14,D0
-            LEA         ORI_STR,A1      ; print the op
-            TRAP        #15
-            BRA         opcode_size     ; find the size and print
+op_ORI      JSR         print_add           ; print the address
+            LEA         ORI_STR,A5
+            MOVE.L      A5,(A6)+            ; add the op to the string
+            JSR         opcode_size_str     ; find the size and add it to the string            
+            
+            **** FINDING/ADDING EA TO STRING HERE
+            
+            JSR         PRINT_init          ; print the string            
+            
             RTS
             
 op_BCLR     JSR         print_add       ; print the address
@@ -651,8 +657,55 @@ opcode_size MOVE.W      (A2),D1
             BEQ         print_W
             CMP.W       #%0000000010000000,D1   ; check for long
             BEQ         print_L
+            BRA         op_DATA
+            RTS
+***************************************************************************       
+opcode_size_str 
+            MOVE.W      (A2),D1
+            ANDI.W      #%0000000011000000,D1
+            CMP.W       #%0000000000000000,D1   ; check for byte
+            BEQ         print_B_str
+            CMP.W       #%0000000001000000,D1   ; check for word
+            BEQ         print_W_str
+            CMP.W       #%0000000010000000,D1   ; check for long
+            BEQ         print_L_str
             RTS
             
+print_B_str
+            LEA        B_STR,A5     ; Add the address of .B to the string
+            MOVE.L     A5,(A6)+
+            RTS
+
+print_W_str
+            LEA        W_STR,A5     ; Add the address of .W to the string
+            MOVE.L     A5,(A6)+
+            RTS
+
+print_L_str
+            LEA        L_STR,A5     ; Add the address of .L to the string
+            MOVE.L     A5,(A6)+
+            RTS
+            
+PRINT_init
+            LEA        $5000,A5     ; load the beginning of the string
+            BRA        PRINT_loop   ; enter the print loop
+            RTS
+            
+PRINT_loop
+            CMP.L      #$FFFFFFFF,(A5)  ; if the value at A5 is all F's, you've reached the end
+            BEQ        PRINT_exit       ; exit
+            MOVE.L     #14,D0
+            MOVE.L     (A5),A1          ; load the address pointed at by A5 to A1
+            TRAP       #15              ; print what the address points to
+            ADDA.L     #$00000004,A5    ; increment A5 by a long
+            CMP.L      A6,A5            ; if A6 == A5, you've reached the end
+            BNE        PRINT_loop       ; otherwise, exit
+            
+            RTS
+
+PRINT_exit
+            RTS
+***************************************************************************
 op_NEG      JSR         print_add       ; print the address
             MOVE.L      #14,D0
             LEA         NEG_STR,A1      ; print the op
@@ -1126,7 +1179,7 @@ BRA32_STR    DC.B        '      BRA - 32-bit displacement **FINISH HIM',0
 LEA_STR      DC.B        '      LEA',0
 JSR_STR      DC.B        '      JSR',0
 OR_STR       DC.B        '      OR',0
-ORI_STR      DC.B        '      ORI',0
+ORI_STR      DC.B        ' ORI',0
 NEG_STR      DC.B        '      NEG',0
 RTS_STR      DC.B        '      RTS',0
 BCLR_STR     DC.B        '      BCLR',0
@@ -1147,6 +1200,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0   String for one line of instruction
 
              END         START        ; last line of source
+
 
 
 
