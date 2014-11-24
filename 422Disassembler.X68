@@ -445,33 +445,46 @@ LS_no_ea    MOVE.L      D1,D0
             BEQ         op_LSR
             RTS
 
-LS_count    MOVE.L      #14,D0
-            LEA         POUND,A1
-            TRAP        #15             ; print #
+***
+            JSR         print_add           ; print the address
+            LEA         OR_STR,A5
+            MOVE.L      A5,(A6)+            ; add the op to the string
+            JSR         OR_opmode           ; find the size and add it to the string
+            
+            **** FINDING/ADDING EA TO STRING HERE
+            
+            JSR         PRINT_init          ; print the string
+
+LS_count    LEA         POUND,A5
+            MOVE.L      A5,(A6)+                ; add # to the string
             
             MOVE.W      (A2),D1
-            ANDI.W      #%0000111000000000,D1
+            ANDI.W      #%0000111000000000,D1   ; mask for the register
             LSR.L       #8,D1
-            LSR.L       #1,D1
-            MOVE.L      #16,D2
+            LSR.L       #1,D1                   ; shift to get the register
+            ADD.W       #$30,D1                 ; convert ascii number to hex
             
-            MOVE.L      #15,D0
-            TRAP        #15             ; print the register
+            MOVE.B      D1,$4000                ; move the register to address $4000
+            MOVE.B      #$00,$4001              ; add the string terminating character
+            MOVE.L      #$00004000,A5
+            MOVE.L      A5,(A6)+                ; add the register to the string
             
-            MOVE.L      #14,D0
-            LEA         COMMA,A1
-            TRAP        #15             ; print a comma
+            LEA         COMMA,A5                ; add a comma to the string
+            MOVE.L      A5,(A6)+
             
-            MOVE.L      #14,D0
-            LEA         DATA_REG,A1
-            TRAP        #15             ; print 'D'
-            
+            LEA         DATA_REG,A5
+            MOVE.L      A5,(A6)+                ; add a 'D' to the string
+                        
             MOVE.W      (A2),D1
-            ANDI.W      #%0000000000000111,D1
-            MOVE.L      #16,D2
+            ANDI.W      #%0000000000000111,D1   ; mask for the other register
+            ADD.W       #$30,D1                 ; convert the register to hex
+
+            MOVE.B      D1,$4002                ; move the register to address $4002
+            MOVE.B      #$00,$4003              ; add the string terminating character
+            MOVE.L      #$00004002,A5
+            MOVE.L      A5,(A6)+                ; add the register to the string
             
-            MOVE.L      #15,D0
-            TRAP        #15             ; print the register
+            BRA         PRINT_init              ; print the string
             
             RTS
 
@@ -508,17 +521,17 @@ LS_reg      MOVE.L      #14,D0
             
 
 OR_opmode   CMP.W       #%0000,D4
-            BEQ         print_B
+            BEQ         print_B_str
             CMP.W       #%0100,D4
-            BEQ         print_B
+            BEQ         print_B_str
             CMP.W       #%0001,D4
-            BEQ         print_W
+            BEQ         print_W_str
             CMP.W       #%0101,D4
-            BEQ         print_W
+            BEQ         print_W_str
             CMP.W       #%0010,D4
-            BEQ         print_L
+            BEQ         print_L_str
             CMP.W       #%0110,D4
-            BEQ         print_L
+            BEQ         print_L_str
             CMP.W       #%0111,D4
             BEQ         op_DATA
 
@@ -563,19 +576,35 @@ op_BRA      MOVE.L      #%11111111,D2   ; $FF into D2
             CMP.B       D1,D2           ; check the value of the last 8 bits against $FF
             BEQ         op_BRA32        ; if equal, it's a 32 bit displacement
             
-            JSR         op_NOP          ; OP code DNE
+            BRA         op_BRA8
+            
             RTS
 
-op_BRA16    JSR         print_add       ; print the address
-            MOVE.L      #14,D0
-            LEA         BRA16_STR,A1
-            TRAP        #15             ; 16 bit displacement
+op_BRA8     JSR         print_add           ; print the address
+            LEA         BRA8_STR,A5
+            MOVE.L      A5,(A6)+            ; add the op to the string
+            
+            **** FINDING/ADDING EA TO STRING HERE
+            
+            JSR         PRINT_init          ; print the string
+            RTS
+            
+op_BRA16    JSR         print_add           ; print the address
+            LEA         BRA16_STR,A5
+            MOVE.L      A5,(A6)+            ; add the op to the string
+            
+            **** FINDING/ADDING EA TO STRING HERE
+            
+            JSR         PRINT_init          ; print the string
             RTS
 
-op_BRA32    JSR         print_add       ; print the address
-            MOVE.L      #14,D0
-            LEA         BRA32_STR,A1
-            TRAP        #15             ; 32 bit displacement
+op_BRA32    JSR         print_add           ; print the address
+            LEA         BRA32_STR,A5
+            MOVE.L      A5,(A6)+            ; add the op to the string
+            
+            **** FINDING/ADDING EA TO STRING HERE
+            
+            JSR         PRINT_init          ; print the string
             RTS
 
 
@@ -620,16 +649,23 @@ op_LEA      MOVEM.L     D0/A1,-(SP)     Save A1 & D0 to stack
             
 *--------------------------------------------------------------*
 
-op_JSR      JSR         print_add       ; print the address
-            MOVE.L      #14,D0
-            LEA         JSR_STR,A1
-            TRAP        #15
+op_JSR      JSR         print_add           ; print the address
+            LEA         JSR_STR,A5
+            MOVE.L      A5,(A6)+            ; add the op to the string
+            
+            **** FINDING/ADDING EA TO STRING HERE
+            
+            JSR         PRINT_init          ; print the string
             RTS
          
-op_OR       JSR         print_add       ; print the address
-            MOVE.L      #14,D0
-            LEA         OR_STR,A1
-            TRAP        #15
+op_OR       JSR         print_add           ; print the address
+            LEA         OR_STR,A5
+            MOVE.L      A5,(A6)+            ; add the op to the string
+            JSR         OR_opmode           ; find the size and add it to the string
+            
+            **** FINDING/ADDING EA TO STRING HERE
+            
+            JSR         PRINT_init          ; print the string
             RTS
             
 op_ORI      JSR         print_add           ; print the address
@@ -639,14 +675,15 @@ op_ORI      JSR         print_add           ; print the address
             
             **** FINDING/ADDING EA TO STRING HERE
             
-            JSR         PRINT_init          ; print the string            
-            
+            JSR         PRINT_init          ; print the string
             RTS
             
 op_BCLR     JSR         print_add       ; print the address
-            MOVE.L      #14,D0
-            LEA         BCLR_STR,A1     ; print the op
-            TRAP        #15
+            LEA         BCLR_STR,A5     ; add the op to the string
+            MOVE.L      A5,(A6)+
+            
+            **** FINDING/ADDING EA TO STRING HERE
+            JSR         PRINT_init
             RTS
             
 opcode_size MOVE.W      (A2),D1
@@ -706,59 +743,53 @@ PRINT_loop
 PRINT_exit
             RTS
 ***************************************************************************
-op_NEG      JSR         print_add       ; print the address
-            MOVE.L      #14,D0
-            LEA         NEG_STR,A1      ; print the op
-            TRAP        #15
-            BRA         opcode_size     ; find the size and print
-            RTS
-
-op_RTS      JSR         print_add       ; print the address
-            MOVE.L      #14,D0
-            LEA         RTS_STR,A1      ; print the op
-            TRAP        #15
+op_NEG      JSR         print_add           ; print the address
+            LEA         NEG_STR,A5
+            MOVE.L      A5,(A6)+            ; add the op to the string
+            JSR         opcode_size_str     ; find the size and add it to the string            
+            
+            **** FINDING/ADDING EA TO STRING HERE
+            
+            JSR         PRINT_init          ; print the string
             RTS
             
-op_LSL      JSR         print_add       ; print the address
-            MOVE.L      #14,D0
-            LEA         LSL_STR,A1
-            TRAP        #15             ; print the operation
+op_RTS      JSR         print_add           ; print the address
+            LEA         NEG_STR,A5
+            MOVE.L      A5,(A6)+            ; add the op to the string            
+            JSR         PRINT_init          ; print the string
+            RTS
             
-            JSR         opcode_size     ; print the size
-            
+op_LSL      JSR         print_add           ; print the address
+            LEA         LSL_STR,A5
+            MOVE.L      A5,(A6)+            ; add the op to the string
+            JSR         opcode_size_str     ; find the size and add it to the string            
             RTS
           
-op_LSR      JSR         print_add       ; print the address
-            MOVE.L      #14,D0
-            LEA         LSR_STR,A1      ; print the operation
-            TRAP        #15
-            
-            JSR         opcode_size     ; print the size
-            
+op_LSR      JSR         print_add           ; print the address
+            LEA         LSR_STR,A5
+            MOVE.L      A5,(A6)+            ; add the op to the string
+            JSR         opcode_size_str     ; find the size and add it to the string            
             RTS
             
-op_LSL_ea   JSR         print_add       ; print the address
-            MOVE.L      #14,D0
-            LEA         LSL_STR,A1
-            TRAP        #15             ; print the operation
+op_LSL_ea   **** FINDING/ADDING EA TO STRING HERE
             
+            JSR         PRINT_init          ; print the string
             RTS
             
-op_LSR_ea   JSR         print_add       ; print the address
-            MOVE.L      #14,D0
-            LEA         LSR_STR,A1
-            TRAP        #15
+op_LSR_ea   **** FINDING/ADDING EA TO STRING HERE
             
+            JSR         PRINT_init          ; print the string
             RTS
             
-op_CMPI     JSR         print_add       ; print the address
-            MOVE.L      #14,D0
-            LEA         CMPI_STR,A1
-            TRAP        #15
-            BRA         opcode_size     ; print the size
-            RTS
+op_CMPI     JSR         print_add           ; print the address
+            LEA         CMPI_STR,A5
+            MOVE.L      A5,(A6)+            ; add the op to the string
+            JSR         opcode_size_str     ; find the size and add it to the string            
             
-            *BRA         op_DATA
+            **** FINDING/ADDING EA TO STRING HERE
+            
+            JSR         PRINT_init          ; print the string
+            RTS
             
    
 *----------------------------------------*
@@ -1174,12 +1205,13 @@ IMMED_PREFIX DC.B        '#$',0
 DATA_STR     DC.B        '      DATA',CR,LF,0
 NOP_STR      DC.B        '      NOP',CR,LF,0
 MOVEB_STR    DC.B        '      MOVE.B',0
+BRA8_STR     DC.B        '      BRA - 8-bit displacement  **FINISHHHHH',0
 BRA16_STR    DC.B        '      BRA - 16-bit displacement **FINISH HIM',0
 BRA32_STR    DC.B        '      BRA - 32-bit displacement **FINISH HIM',0
 LEA_STR      DC.B        '      LEA',0
 JSR_STR      DC.B        '      JSR',0
 OR_STR       DC.B        '      OR',0
-ORI_STR      DC.B        ' ORI',0
+ORI_STR      DC.B        '      ORI',0
 NEG_STR      DC.B        '      NEG',0
 RTS_STR      DC.B        '      RTS',0
 BCLR_STR     DC.B        '      BCLR',0
