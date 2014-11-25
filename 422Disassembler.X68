@@ -42,8 +42,9 @@ START:
                 MOVE.L      #$00000000,A5
                 MOVE.L      #$00000000,A6
                 MOVE.L      #$00000000,A7       ; clear all address registers
-                * For testing         
-                MOVE.L      #$43F87000,$6000    LEA $7000,A1
+                * For testing  
+                MOVE.L      #$00450123, $6050    ORI.W  #$0123,D5      
+                MOVE.L      #$43F87000, $6000    LEA $7000,A1
 
                 MOVE.W      #$4E71, $7000       NOP 
                 MOVE.W      #$1200, $7010       MOVE.B D0,D1
@@ -342,7 +343,7 @@ op0001          *MOVEM.L     D1,-(SP)            Save what we have here in D1 ju
                 TRAP        #15
             
                         
-                JSR         OP_MODE             Find destination mode
+                JSR         FIND_OPMODE             Find destination mode
             
                 *MOVE.B      #14,D0
                 *LEA         DATA_STR,A1
@@ -446,7 +447,7 @@ op1011          BRA         op_DATA
 * Signed Multiply
 *-------------------------------------------------------------------------*            
 op1100          BRA         op_DATA
-
+                
 *-------------------------------------------------------------------------*
 * Add Address, Add
 *-------------------------------------------------------------------------*            
@@ -672,7 +673,7 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
 
                 MOVEM.L     D4,-(SP)            save contents of D4 on stack
                 MOVE.B      #1,D4               Move our An mode to D4
-                JSR         OP_MODE             Now move to our mode
+                JSR         FIND_OPMODE             Now move to our mode
             
                 JSR         PRINT_init          Print the output string
             
@@ -704,7 +705,28 @@ op_OR           JSR         print_add           ; print the address
 op_ORI          JSR         print_add           ; print the address
                 LEA         ORI_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
-                JSR         opcode_size_str     ; find the size and add it to the string            
+                JSR         opcode_size_str     ; find the size and add it to the string
+                LSR.L       #7,D1               ; shift the size bits to get the flag 
+                MOVE.L      D1,D6               ; move size bit to D6 to set flag
+                **** CHECK FOR INVALID
+                CMP.W       #%00111100,D5       ; Mode 7, Register 4 is invalid
+                BEQ         op_DATA
+                
+                CLR.L       D0
+                MOVE.W      D5,D0               ; Move the EA into D0
+                ANDI.W      #%00111000,D0       ; Separate the EA Mode into D0
+                CMP.W       #%00001000,D0       ; Compare the An Addressing mode
+                BEQ         op_DATA             ; invalid
+                
+                MOVE.W      #%111,D4            ; set mode to 7 for mode 7
+                MOVE.W      #%100,D3            ; set 
+                ADD.L       #$00000002,A2
+                
+                JSR         FIND_OPMODE
+                JSR         PRINT_COMMA
+                JSR         FIND_EAMODE
+
+                
             
                 **** FINDING/ADDING EA TO STRING HERE
             
@@ -721,12 +743,12 @@ op_BCLR         JSR         print_add           ; print the address
             
 ***************************************************************************       
 opcode_size_str MOVE.W      (A2),D1
-                ANDI.W      #%0000000011000000,D1
-                CMP.W       #%0000000000000000,D1
+                ANDI.W      #$00C0,D1
+                CMP.W       #$0000,D1
                 BEQ         print_B_str         ; its a byte
-                CMP.W       #%0000000001000000,D1
+                CMP.W       #$0040,D1
                 BEQ         print_W_str         ; its a word
-                CMP.W       #%0000000010000000,D1
+                CMP.W       #$0080,D1
                 BEQ         print_L_str         ; its a long
                 RTS
             
@@ -857,14 +879,14 @@ FIND_EAMODE     MOVE.B      D5,D2
 * D4 - is expected to carry an the op-mode
 * D3 - has the appropriate register
 *             
-OP_MODE         MOVE.B      D4,D5               Get OPMODE (this is for destination mode, reg testing)
+FIND_OPMODE     MOVE.B      D4,D5               Get OPMODE (this is for destination mode, reg testing)
                 MOVE.B      D3,D2               Get reg number then go to appropriate mode
                 JSR         MODE_SELECT
                 RTS
 
 *-----------------------------------------------------------------------
 * This goes to the appropriate mode whether we start with FIND_EAMODE
-* or OP_MODE
+* or FIND_OPMODE
 * D5 - is the mode
 * D2 - is expected to have the reg number
 *
@@ -1173,12 +1195,28 @@ IMMED_DATA      MOVEM.L     A1/D0-D1,-(SP)      Save our state
                 MOVE.L      A5,(A6)+            Add '#$' to the output string
                 *** NEED TO CONVERT D2 TO ASCII
                 MOVE.W      (A2)+,D2
-                MOVE.B      D2,(A4)+            Move the register to A4
+                
+                
+                MOVEM.L     D0-D7,-(SP)         Save state
+                
+                MOVE.L      A4,A0       Clear the output address location
+                MOVE.W      D2,D0
+                MOVE.L      #$00000002,D1
+                MOVE.L      #$00000000,D2
+                MOVE.L      #$00000000,D3
+                JSR         HEXTOASCII
+                
+                ADD.L       #$04,A4
                 MOVE.B      #$00,(A4)+          Add the string terminating character
                 MOVE.L      A4,D0
-                SUB.L       #$02,D0
+                SUB.L       #$05,D0
                 MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            Add the register to the output string
+
+                
+                MOVEM.L     (SP)+,D0-D7         Restore state
+                
+
                 
                 BRA         IM_EXIT             Exit this mode
     
@@ -1295,7 +1333,8 @@ INST_LINE       DCB.B       256,0                   String for one line of instr
 
 
 
+
 *~Font name~Courier New~
-*~Font size~10~
+*~Font size~14~
 *~Tab type~1~
 *~Tab size~4~
