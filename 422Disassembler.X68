@@ -719,12 +719,15 @@ op_ORI          JSR         print_add           ; print the address
                 BEQ         op_DATA             ; invalid
                 
                 MOVE.W      #%111,D4            ; set mode to 7 for mode 7
-                MOVE.W      #%100,D3            ; set 
-                ADD.L       #$00000002,A2
+                MOVE.W      #%100,D3            ; set register to 4 for Immediate Data
+                ADD.L       #$00000002,A2       ; move the current address forward by a word
                 
-                JSR         FIND_OPMODE
-                JSR         PRINT_COMMA
-                JSR         FIND_EAMODE
+                JSR         FIND_OPMODE         ; create the left side of the operation
+                JSR         PRINT_COMMA         ; find the comma
+                
+                MOVE.W      (A1),D5             ; Move the original operation into D5
+                ANDI.L      #$003F,D5           ; mask the last 6 bits
+                JSR         FIND_EAMODE         ; create the right side of the operation
 
                 
             
@@ -865,7 +868,7 @@ PRINT_TAB       MOVEM.L     A1/D0,-(SP)         save what we change (ALWAYS!)
 * FIND_MODE(D5:EA Bits, D7:Current instruction)
 * D2 - Contains the Register
 
-FIND_EAMODE     MOVE.B      D5,D2
+FIND_EAMODE     MOVE.L      D5,D2
                 ANDI.B      #EA_REG,D2          Get the EA register    
                 ANDI.B      #EA_MODE,D5         Get the EA Mode
                 LSR.B       #3,D5
@@ -1304,6 +1307,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
