@@ -1209,7 +1209,7 @@ GET_BYTE        LEA         IMMED_PREFIX,A5
                 MOVEM.L     D0-D7,-(SP)         Save state
                 
                 MOVE.L      A4,A0               Clear the output address location
-                MOVE.W      D2,D0               
+                MOVE.W      D2,D0               Move the word to D0 for HEXTOASCII
                 MOVE.L      #1,D1               1 byte for a byte
                 JSR         HEXTOASCII
                 
@@ -1228,12 +1228,12 @@ GET_BYTE        LEA         IMMED_PREFIX,A5
 GET_WORD        LEA         IMMED_PREFIX,A5
                 MOVE.L      A5,(A6)+            Add '#$' to the output string
                 *** NEED TO CONVERT D2 TO ASCII
-                MOVE.W      (A2)+,D2            Read the word (only looking at byte amount)
+                MOVE.W      (A2)+,D2            Read the word
                 
                 MOVEM.L     D0-D7,-(SP)         Save state
                 
                 MOVE.L      A4,A0               Clear the output address location
-                MOVE.W      D2,D0               
+                MOVE.W      D2,D0               Move the word to D0 for HEXTOASCII
                 MOVE.L      #2,D1               2 bytes for a word
                 JSR         HEXTOASCII
                 
@@ -1251,14 +1251,24 @@ GET_WORD        LEA         IMMED_PREFIX,A5
 GET_LONG        LEA         IMMED_PREFIX,A5
                 MOVE.L      A5,(A6)+            Add '#$' to the output string
                 *** NEED TO CONVERT D2 TO ASCII
-                MOVE.L      (A2)+,D2
-                MOVE.B      D2,(A4)+            Move the register to A4
+                MOVE.L      (A2)+,D2            Read the long
+                
+                MOVEM.L     D0-D7,-(SP)         Save state
+                
+                MOVE.L      A4,A0               Clear the output address location
+                MOVE.L      D2,D0               Move the long to D0 for HEXTOASCII
+                MOVE.L      #4,D1               4 bytes for a long
+                JSR         HEXTOASCII
+                
+                ADD.L       #$08,A4
                 MOVE.B      #$00,(A4)+          Add the string terminating character
                 MOVE.L      A4,D0
-                SUB.L       #$02,D0
+                SUB.L       #$09,D0             Number of hex characters to display (zero based)
                 MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            Add the register to the output string
+
                 
+                MOVEM.L     (SP)+,D0-D7         Restore state
                 BRA         IM_EXIT             Exit this mode
         
 IM_EXIT         MOVEM.L     (SP)+,A1/D0-D1      Restore the state!
