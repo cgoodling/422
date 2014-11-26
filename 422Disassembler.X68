@@ -43,7 +43,10 @@ START:
                 MOVE.L      #$00000000,A6
                 MOVE.L      #$00000000,A7       ; clear all address registers
                 * For testing  
-                MOVE.L      #$00450123, $6050    ORI.W  #$0123,D5      
+                MOVE.L      #$000200EC, $6060    ORI.B  #$EC,D2
+                MOVE.L      #$00450123, $6050    ORI.W  #$0123,D5
+                MOVE.W      #$0085, $6070        ORI.L  #$xxxxxxxx, D5
+                MOVE.L      #$12345678, $6072             12345678    
                 MOVE.L      #$43F87000, $6000    LEA $7000,A1
 
                 MOVE.W      #$4E71, $7000       NOP 
@@ -63,9 +66,6 @@ START:
                 MOVE.W      #$8B41, $8010       OR.W D5,D1 (into ea)
                 MOVE.W      #$8A81, $8020       OR.L D5,D1 (into Dn)
                 MOVE.W      #$8B81, $8030       OR.L D5,D1 (into ea)
-                MOVE.W      #$0005, $8040       ORI.B #$xx,D5
-                MOVE.W      #$0045, $8050       ORI.W #$xxxx,D5
-                MOVE.W      #$0085, $8060       ORI.L #$xxxxxxxx,D5
                 MOVE.W      #$4401, $8070       NEG.B
                 MOVE.W      #$4441, $8080       NEG.W
                 MOVE.W      #$44A1, $8090       NEG.L
@@ -213,7 +213,7 @@ ATHE_done       OR.L        D0,D4               ; OR the result to the retVal
 * Convert starting address from Hex to Ascii, stores in A0
 * D0 = value to convert, D1 = number of bytes to process, A0 = retval
 
-HEXTOASCII      ANDI.L      #$000000FF,D1
+HEXTOASCII      ANDI.L      #$000000FF,D1       ; get the byte
                 CMP.B       #4,D1
                 BGT         HTA_error           ; error if > 4 bytes
                 CMP.B       #0,D1
@@ -706,7 +706,7 @@ op_ORI          JSR         print_add           ; print the address
                 LEA         ORI_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
                 JSR         opcode_size_str     ; find the size and add it to the string
-                LSR.L       #7,D1               ; shift the size bits to get the flag 
+                LSR.L       #6,D1               ; shift the size bits to get the flag 
                 MOVE.L      D1,D6               ; move size bit to D6 to set flag
                 **** CHECK FOR INVALID
                 CMP.W       #%00111100,D5       ; Mode 7, Register 4 is invalid
@@ -1189,38 +1189,63 @@ ABS_LONGADDR    MOVEM.L     A1/D0-D1,-(SP)      Save our state
 *
 
 IMMED_DATA      MOVEM.L     A1/D0-D1,-(SP)      Save our state
-    
-                CMP.B       #0,D6
-                BNE         GET_LONG            Find out if its bigger than a word or byte
+                
+                *Find size to determine the data amount to be processed
+                CMP.B       #%00,D6
+                BEQ         GET_BYTE            
+                CMP.B       #%01,D6
+                BEQ         GET_WORD
+                CMP.B       #%10,D6
+                BEQ         GET_LONG 
+                
+                           
+
          
-         
-                LEA         IMMED_PREFIX,A5
+GET_BYTE        LEA         IMMED_PREFIX,A5
                 MOVE.L      A5,(A6)+            Add '#$' to the output string
                 *** NEED TO CONVERT D2 TO ASCII
-                MOVE.W      (A2)+,D2
-                
+                MOVE.W      (A2)+,D2            Read the word (only looking at byte amount)
                 
                 MOVEM.L     D0-D7,-(SP)         Save state
                 
-                MOVE.L      A4,A0       Clear the output address location
-                MOVE.W      D2,D0
-                MOVE.L      #$00000002,D1
-                MOVE.L      #$00000000,D2
-                MOVE.L      #$00000000,D3
+                MOVE.L      A4,A0               Clear the output address location
+                MOVE.W      D2,D0               
+                MOVE.L      #1,D1               1 byte for a byte
                 JSR         HEXTOASCII
                 
-                ADD.L       #$04,A4
+                ADD.L       #$02,A4
                 MOVE.B      #$00,(A4)+          Add the string terminating character
                 MOVE.L      A4,D0
-                SUB.L       #$05,D0
+                SUB.L       #$03,D0             Number of hex characters to display (zero based)
                 MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            Add the register to the output string
 
                 
                 MOVEM.L     (SP)+,D0-D7         Restore state
-                
+                BRA         IM_EXIT             Exit this mode
 
                 
+GET_WORD        LEA         IMMED_PREFIX,A5
+                MOVE.L      A5,(A6)+            Add '#$' to the output string
+                *** NEED TO CONVERT D2 TO ASCII
+                MOVE.W      (A2)+,D2            Read the word (only looking at byte amount)
+                
+                MOVEM.L     D0-D7,-(SP)         Save state
+                
+                MOVE.L      A4,A0               Clear the output address location
+                MOVE.W      D2,D0               
+                MOVE.L      #2,D1               2 bytes for a word
+                JSR         HEXTOASCII
+                
+                ADD.L       #$04,A4
+                MOVE.B      #$00,(A4)+          Add the string terminating character
+                MOVE.L      A4,D0
+                SUB.L       #$05,D0             Number of hex characters to display (zero based)
+                MOVE.L      D0,A5
+                MOVE.L      A5,(A6)+            Add the register to the output string
+
+                
+                MOVEM.L     (SP)+,D0-D7         Restore state
                 BRA         IM_EXIT             Exit this mode
     
 GET_LONG        LEA         IMMED_PREFIX,A5
@@ -1233,6 +1258,8 @@ GET_LONG        LEA         IMMED_PREFIX,A5
                 SUB.L       #$02,D0
                 MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            Add the register to the output string
+                
+                BRA         IM_EXIT             Exit this mode
         
 IM_EXIT         MOVEM.L     (SP)+,A1/D0-D1      Restore the state!
                 RTS                             Leave this place
@@ -1307,6 +1334,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
