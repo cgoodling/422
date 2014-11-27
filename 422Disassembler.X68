@@ -608,10 +608,12 @@ OR_opmode       CMP.W       #%0000,D4
                 CMP.W       #%0111,D4
                 BEQ         op_DATA
 
-print_add       MOVE.L      A2,D1               ; Move the current address to D1
+print_add       MOVEM.L     D0-D7,-(SP)         ; Save the state
+                MOVE.L      A2,D1               ; Move the current address to D1
                 MOVE.L      #15,D0              ; Move the I/O code to D0 to print the number in D1
                 MOVE.L      #16,D2              ; Print the number in base 16
                 TRAP        #15                 ; print
+                MOVEM.L     (SP)+,D0-D7         ; restore the state
                 RTS
             
 op_NOP          LEA         NOP_STR,A5
@@ -1315,6 +1317,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
