@@ -25,7 +25,9 @@ DEST_MODE       EQU         %00111000
 DEST_REG        EQU         %00000111
 
 *----------------------------------------------------------*
-START:                              
+START:          
+                JSR         clearTempVars       ; clear the temporary variables for the output string
+                JSR         clearOutputStr      ; clear the output string
                 CLR.L       D0
                 CLR.L       D1
                 CLR.L       D2
@@ -48,7 +50,7 @@ START:
                 MOVE.W      #$0085, $6070        ORI.L  #$xxxxxxxx, D5
                 MOVE.L      #$12345678, $6072             12345678    
                 MOVE.L      #$43F87000, $6000    LEA $7000,A1
-
+                
                 MOVE.W      #$4E71, $7000       NOP 
                 MOVE.W      #$1200, $7010       MOVE.B D0,D1
                 MOVE.W      #$1607, $7020       MOVE.B D7,D3
@@ -128,10 +130,34 @@ START:
                 LEA         $4000,A4
                 MOVE.W      A5,A6               ; move the ending address of the output string here too (empty string)
     
-                MOVE.W      (A1),D0             ; MOVEs INSTRUCTION in A1 to D0 (NOTE THIS WAS (A1)+, why?)
+                MOVE.W      (A1),D0             ; MOVEs INSTRUCTION in A1 to D0
                 JSR         opcode              ; decode the opcode
             
                 JSR         exit
+                
+******************************* CLEAR REGISTERS **************************
+* clearTempVars  - clears all of the temporary variables starting at $4000
+* clearOutputStr - clears all of the values starting at $5000
+clearTempVars   MOVE.L      #$4000,A0           ; move the first address to A0
+                BRA         CTV_loop            ; begin the loop
+               
+CTV_loop        CMP.L       #$FFFFFFFF,(A0)     ; check if the values at address A0 are all Fs
+                BEQ         CTV_exit            ; if they are, exit
+                MOVE.L      #$FFFFFFFF,(A0)+    ; otherwise, set them all to Fs and increment A0
+                BRA         CTV_loop            ; loop again
+                
+CTV_exit        RTS                             ; return to where clearTempVars was called
+
+clearOutputStr  MOVE.L      #$5000,A0           ; move the first address to A0
+                BRA         COS_loop            ; begin the loop
+                
+COS_loop        CMP.L       #$FFFFFFFF,(A0)     ; check if the values at address A0 are all Fs
+                BEQ         COS_exit            ; if they are, exit
+                MOVE.L      #$FFFFFFFF,(A0)+    ; otherwise, set them all to Fs and increment A0
+                BRA         COS_loop            ; loop again
+                
+COS_exit        RTS                             ; return to where clearOutputStr was called
+                
 
 ******************************* ASCII TO HEX *****************************
 * Convert starting address from ASCII to Hex, stores in D3
@@ -379,12 +405,11 @@ op0100          *NEG
                 CMP.W       D0,D1               ; compare D0 and D1
                 BEQ         op_NOP              ; if they're equal, the operation is NOP
             
-*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
                 *LEA
                 ANDI.W      #%1111000111000000,D1
                 CMP.W       #%0100000111000000,D1
                 BEQ         op_LEA
-*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
+
                 *JSR
                 MOVE.W      (A2),D1             ; move the original operation into D1 
                 ANDI.W      #%1111111111000000,D1
@@ -428,7 +453,6 @@ op1000          * OR
                 JSR         OR_opmode
                 RTS
 
-                * OP Code not found// prob not necessary?
                 BRA         op_DATA
 
 *-------------------------------------------------------------------------*
@@ -1290,10 +1314,10 @@ STACK_REG       MOVEM.L     D0/A1,-(SP)
 
 
             
-exit            *MOVE.L      #13,D0
-                *LEA         TAB,A1
-                *TRAP        #15                 ; print a new line before repeating prompt
-                *JSR         START
+exit            MOVE.L      #13,D0
+                LEA         TAB,A1
+                TRAP        #15                 ; print a new line before repeating prompt
+                JSR         START
                 SIMHALT                         ; halt simulator
 
 * Put variables and constants here
