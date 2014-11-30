@@ -26,24 +26,6 @@ DEST_REG        EQU         %00000111
 
 *----------------------------------------------------------*
 START:          
-                JSR         clearTempVars       ; clear the temporary variables for the output string
-                JSR         clearOutputStr      ; clear the output string
-                CLR.L       D0
-                CLR.L       D1
-                CLR.L       D2
-                CLR.L       D3
-                CLR.L       D4
-                CLR.L       D5
-                CLR.L       D6
-                CLR.L       D7                  ; clear all of the registers
-                MOVE.L      #$00000000,A0
-                MOVE.L      #$00000000,A1
-                MOVE.L      #$00000000,A2
-                MOVE.L      #$00000000,A3
-                MOVE.L      #$00000000,A4
-                MOVE.L      #$00000000,A5
-                MOVE.L      #$00000000,A6
-                MOVE.L      #$00000000,A7       ; clear all address registers
                 * For testing  
                 MOVE.L      #$00450123, $6050    ORI.W  #$0123,D5      
                 MOVE.L      #$43F87000, $6000    LEA $7000,A1
@@ -68,9 +50,49 @@ START:
                 MOVE.W      #$0005, $8040       ORI.B #$xx,D5
                 MOVE.W      #$0045, $8050       ORI.W #$xxxx,D5
                 MOVE.W      #$0085, $8060       ORI.L #$xxxxxxxx,D5
-                MOVE.W      #$4401, $8070       NEG.B
-                MOVE.W      #$4441, $8080       NEG.W
-                MOVE.W      #$44A1, $8090       NEG.L
+                *********************NEG TESTING************************
+                MOVE.W      #$4401, $8070       NEG.B D1
+                MOVE.W      #$4441, $8080       NEG.W D1
+                MOVE.W      #$4481, $8090       NEG.L D1
+                
+                MOVE.W      #$4409, $8076       DATA (mode 1)
+                MOVE.W      #$4449, $8086       DATA (mode 1)
+                MOVE.W      #$4489, $8096       DATA (mode 1)
+                
+                MOVE.W      #$4411, $9300       NEG.B (A1)
+                MOVE.W      #$4451, $9304       NEG.W (A1)
+                MOVE.W      #$4491, $9308       NEG.L (A1)
+                
+                MOVE.W      #$4419, $9412       NEG.B (A1)+
+                MOVE.W      #$4459, $9416       NEG.W (A1)+
+                MOVE.W      #$4499, $9420       NEG.L (A1)+
+                
+                MOVE.W      #$4421, $9424       NEG.B -(A1)
+                MOVE.W      #$4461, $9428       NEG.W -(A1)
+                MOVE.W      #$44A1, $9432       NEG.L -(A1)
+                
+                MOVE.W      #$4429, $9436       NEG.B (d16An)??
+                MOVE.W      #$4469, $9440       NEG.W ""
+                MOVE.W      #$44A9, $9444       NEG.L ""
+                
+                MOVE.W      #$4431, $9448       NEG.B (d8AnXn)??
+                MOVE.W      #$4471, $9452       NEG.W ""
+                MOVE.W      #$44B1, $9456       NEG.L ""
+                
+                MOVE.W      #$4438, $9460       NEG.B $AAAA (??) is this invalid?
+                MOVE.W      #$AAAA, $9464
+                MOVE.W      #$4478, $9468       NEG.W $AAAA
+                MOVE.W      #$AAAA, $9472
+                MOVE.W      #$44B8, $9476       NEG.L $AAAA ?? same
+                MOVE.W      #$AAAA, $9480
+                
+                MOVE.W      #$4439, $9484       NEG.B $AAAAAAAA ??
+                MOVE.L      #$AAAAAAAA, $9488
+                MOVE.W      #$4479, $9496       NEG.W $AAAAAAAA ??
+                MOVE.L      #$AAAAAAAA, $9500
+                MOVE.W      #$44B9, $9508       NEG.L $AAAAAAAA
+                MOVE.L      #$AAAAAAAA, $9512
+                ********************************************************
                 MOVE.W      #$4E75, $9000       RTS
                 MOVE.W      #$0B91, $9010       BCLR D5,A1 
                 MOVE.W      #$3246, $9020       MOVE.W D6,A1
@@ -93,8 +115,28 @@ START:
                 MOVE.W      #$0C01, $9200       CMPI.B #$ xx,D1
                 MOVE.W      #$0C51, $9210       CMPI.W #$ xxxx,(A1)
                 MOVE.W      #$0C99, $9220       CMPI.L #$ xxxxxxxx,(A1)+
-            
-            
+
+                JSR         clearTempVars       ; clear the temporary variables for the output string
+                JSR         clearOutputStr      ; clear the output string
+                CLR.L       D0
+                CLR.L       D1
+                CLR.L       D2
+                CLR.L       D3
+                CLR.L       D4
+                CLR.L       D5
+                CLR.L       D6
+                CLR.L       D7                  ; clear all of the registers
+                MOVE.L      #$00000000,A0
+                MOVE.L      #$00000000,A1
+                MOVE.L      #$00000000,A2
+                MOVE.L      #$00000000,A3
+                MOVE.L      #$00000000,A4
+                MOVE.L      #$00000000,A5
+                MOVE.L      #$00000000,A6
+                MOVE.L      #$00000000,A7       ; clear all address registers
+                
+                
+                
                 LEA         STACK,SP            Load the stack
             
                 MOVE.B      #14,D0
@@ -624,7 +666,7 @@ op_NOP          LEA         NOP_STR,A5
 op_DATA         MOVE.L      #14,D0
                 LEA         DATA_STR,A1
                 TRAP        #15                 ; OP code DNE
-                RTS
+                JSR         START
             
 op_BRA          MOVE.L      #%11111111,D2       ; $FF into D2
                 MOVE.L      #%00000000,D3       ; $00 into D3
@@ -802,7 +844,14 @@ op_NEG          LEA         NEG_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
                 JSR         opcode_size_str     ; find the size and add it to the string            
             
-                **** FINDING/ADDING EA TO STRING HERE
+                **** ADD TESTING
+                MOVEM.L     D5,-(SP)            ; save the state of D5
+                ANDI.B      #%00111000,D5       ; separate the EA mode
+                CMP.B       #%00001000,D5       ; check if it's mode 1
+                BEQ         op_DATA             ; if is, it's invalid
+                MOVEM.L     (SP)+,D5            ; restore D5 if it isn't
+                
+                JSR         FIND_EAMODE
             
                 JSR         PRINT_init          ; print the string
                 RTS
@@ -1318,7 +1367,9 @@ SP_REG          DC.B        'SP',0
 *------------------------------------------------------------------*
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
+
                 END         START                   ; last line of source
+
 
 
 
