@@ -963,9 +963,9 @@ MODE_SELECT     CMP.B       #0,D5               MODE ZERO Goes to DATA REG DIREC
                 CMP.B       #4,D5
                 BEQ         M_FOUR              Address Reg Indirect Pre Dec
                 CMP.B       #5,D5
-                BEQ         M_FIVE
+                BEQ         DATA
                 CMP.B       #6,D5
-                BEQ         M_SIX
+                BEQ         DATA
                 CMP.B       #7,D5
                 BEQ         M_SEVEN             Auxillary EA modes (ABS Short,Long,Immed...)
 
@@ -1091,7 +1091,7 @@ M_FOUR          MOVEM.L     D0-D7/A0-A3,-(SP)   Save our stuff real quick
                 LEA         L_PAREN,A5
                 MOVE.L      A5,(A6)+            Add the '(' to the output string
             
-                LEA         ADDR_REG,A1         
+                LEA         ADDR_REG,A5         
                 MOVE.L      A5,(A6)+            Add the 'A' to the output string
 
                 ADD.W       #$30,D2             ; convert ascii number to hex
@@ -1110,10 +1110,6 @@ M_FOUR          MOVEM.L     D0-D7/A0-A3,-(SP)   Save our stuff real quick
                 RTS                             Leave this place 
 
 
-
-M_FIVE          BRA         exit
-
-M_SIX           BRA         exit
 
 
 
@@ -1142,9 +1138,9 @@ M_SEVEN         CMP.B       #0,D2
                 CMP.B       #1,D2
                 BEQ         ABS_LONGADDR
                 CMP.B       #2,D2
-                BEQ         exit                NOT DONE
+                BEQ         DATA
                 CMP.B       #3,D2
-                BEQ         exit                NOT DONE
+                BEQ         DATA
                 CMP.B       #4,D2       
                 BEQ         IMMED_DATA
 
