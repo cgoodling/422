@@ -58,7 +58,7 @@ START:
                 ******************************* BRA TESTING ***************************
                 MOVE.W      #$6055, $7022       BRA A+55
                 MOVE.W      #$6000, $7024       BRA A+5555
-                MOVE.L      #$5555, $7026       5555 following
+                MOVE.W      #$5555, $7026       5555 following
                 MOVE.W      #$60FF, $7028       BRA A+55555555
                 MOVE.L      #$55555555, $702A   55555555 following
                 
@@ -776,25 +776,25 @@ op_DATA         MOVE.L      #14,D0
                 TRAP        #15                 ; OP code DNE
                 JSR         START
             
-op_BRA          MOVE.L      #%11111111,D2       ; $FF into D2
-                MOVE.L      #%00000000,D3       ; $00 into D3
+op_BRA          LEA         BRA_STR,A5
+                MOVE.L      A5,(A6)+
+                JSR         FIND_DISP
+                RTS
+             
+FIND_DISP       LEA         DOLLAH,A5
+                MOVE.L      A5,(A6)+
+                
+                CMP.B       #$00,D1             ; check the value of the last 8 bits against $00
+                BEQ         op_DISP16           ; if equal, it's a 16 bit displacement
             
-                CMP.B       D1,D3               ; check the value of the last 8 bits against $00
-                BEQ         op_BRA16            ; if equal, it's a 16 bit displacement
+                CMP.B       #$FF,D1             ; check the value of the last 8 bits against $FF
+                BEQ         op_DISP32           ; if equal, it's a 32 bit displacement
             
-                CMP.B       D1,D2               ; check the value of the last 8 bits against $FF
-                BEQ         op_BRA32            ; if equal, it's a 32 bit displacement
-            
-                BRA         op_BRA8
+                BRA         op_DISP8            ; otherwise, it's an 8 bit displacement
                 
                 RTS
 
-op_DISP8        LEA         BRA8_STR,A5
-                MOVE.L      A5,(A6)+            ; add the op to the string
-            
-                **** FINDING/ADDING EA TO STRING HERE
-            
-                JSR         PRINT_init          ; print the string
+op_DISP8        JSR         op_DATA             ; print the string
                 RTS
             
 op_DISP16       MOVEM.L     D0-D7,-(SP)         * Save the state
@@ -804,7 +804,7 @@ op_DISP16       MOVEM.L     D0-D7,-(SP)         * Save the state
                 MOVE.W      (A2)+,D1            * Advance pointer beyond data
                 ADD.L       D1,D0               * Add our displacement to current address
                 
-                MOVE.L      #$00000000,A0       * Clear A0
+                MOVE.L      A4,A0               * Move temp value pointer to A0
                 MOVE.L      #$00000002,D1       * prepare for ASCII output
                 CLR         D2
                 CLR         D3
@@ -830,7 +830,7 @@ op_DISP32       MOVEM.L     D0-D7,-(SP)         * Save the state
                 MOVE.L      (A2)+,D1            * Advance pointer beyond data
                 ADD.L       D1,D0               * Add our displacement to current address
                 
-                MOVE.L      #$00000000,A0       * Clear A0
+                MOVE.L      A4,A0               * Move temp value pointer to A0
                 MOVE.L      #$00000004,D1       * prepare for ASCII output
                 CLR         D2
                 CLR         D3
@@ -851,26 +851,34 @@ op_DISP32       MOVEM.L     D0-D7,-(SP)         * Save the state
 
 op_BCS          LEA         BCS_STR,A5
                 MOVE.L      A5,(A6)+
-                JSR         PRINT_init
-                RTS
+                
+                JSR         FIND_DISP
+                
+                JSR         exit                * eventually should jump to a repeat loop
                 
         
 op_BGE          LEA         BGE_STR,A5
                 MOVE.L      A5,(A6)+
-                JSR         PRINT_init
-                RTS
+                
+                JSR         FIND_DISP
+                
+                JSR         exit                * eventually should jump to a repeat loop
 
 
 op_BLT          LEA         BLT_STR,A5
                 MOVE.L      A5,(A6)+
-                JSR         PRINT_init
-                RTS
+                
+                JSR         FIND_DISP
+                
+                JSR         exit                * eventually should jump to a repeat loop
 
 
 op_BVC          LEA         BVC_STR,A5
                 MOVE.L      A5,(A6)+
-                JSR         PRINT_init
-                RTS
+                
+                JSR         FIND_DISP
+                
+                JSR         exit                * eventually should jump to a repeat loop
 
 
 *--------------------------------------------------------------*
@@ -1534,9 +1542,7 @@ IMMED_PREFIX    DC.B        '#$',0
 DATA_STR        DC.B        '      DATA',CR,LF,0
 NOP_STR         DC.B        '      NOP',CR,LF,0
 MOVEB_STR       DC.B        '      MOVE.B',0
-BRA8_STR        DC.B        '      BRA - 8-bit displacement  **FINISHHHHH',0
-BRA16_STR       DC.B        '      BRA - 16-bit displacement **FINISH HIM',0
-BRA32_STR       DC.B        '      BRA - 32-bit displacement **FINISH HIM',0
+BRA_STR         DC.B        '      BRA  ',0
 LEA_STR         DC.B        '      LEA',0
 JSR_STR         DC.B        '      JSR',0
 OR_STR          DC.B        '      OR',0
@@ -1547,10 +1553,10 @@ BCLR_STR        DC.B        '      BCLR',0
 LSL_STR         DC.B        '      LSL',0
 LSR_STR         DC.B        '      LSR',0
 CMPI_STR        DC.B        '      CMPI',0
-BCS_STR         DC.B        '      BCS',0
-BGE_STR         DC.B        '      BGE',0
-BLT_STR         DC.B        '      BLT',0
-BVC_STR         DC.B        '      BVC',0
+BCS_STR         DC.B        '      BCS  ',0
+BGE_STR         DC.B        '      BGE  ',0
+BLT_STR         DC.B        '      BLT  ',0
+BVC_STR         DC.B        '      BVC  ',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
@@ -1565,6 +1571,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
