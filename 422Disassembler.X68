@@ -1,6 +1,7 @@
 *-----------------------------------------------------------
 * Title      : Convert ASCII to hex
 * Written by : Kaley & Cole & Abby
+* Date       : 11/11/14
 * Description: Small piece of disassembler project
 *-----------------------------------------------------------
 
@@ -25,29 +26,8 @@ DEST_REG        EQU         %00000111
 
 *----------------------------------------------------------*
 START:          
-                JSR         clearTempVars       ; clear the temporary variables for the output string
-                JSR         clearOutputStr      ; clear the output string
-                CLR.L       D0
-                CLR.L       D1
-                CLR.L       D2
-                CLR.L       D3
-                CLR.L       D4
-                CLR.L       D5
-                CLR.L       D6
-                CLR.L       D7                  ; clear all of the registers
-                MOVE.L      #$00000000,A0
-                MOVE.L      #$00000000,A1
-                MOVE.L      #$00000000,A2
-                MOVE.L      #$00000000,A3
-                MOVE.L      #$00000000,A4
-                MOVE.L      #$00000000,A5
-                MOVE.L      #$00000000,A6
-                MOVE.L      #$00000000,A7       ; clear all address registers
                 * For testing  
-                MOVE.L      #$000200EC, $6060    ORI.B  #$EC,D2
-                MOVE.L      #$00450123, $6050    ORI.W  #$0123,D5
-                MOVE.W      #$0085, $6070        ORI.L  #$xxxxxxxx, D5
-                MOVE.L      #$12345678, $6072             12345678    
+                MOVE.L      #$00450123, $6050    ORI.W  #$0123,D5      
                 MOVE.L      #$43F87000, $6000    LEA $7000,A1
                 
                 MOVE.W      #$4E71, $7000       NOP 
@@ -70,9 +50,49 @@ START:
                 MOVE.W      #$0005, $8040       ORI.B #$xx,D5
                 MOVE.W      #$0045, $8050       ORI.W #$xxxx,D5
                 MOVE.W      #$0085, $8060       ORI.L #$xxxxxxxx,D5
-                MOVE.W      #$4401, $8070       NEG.B
-                MOVE.W      #$4441, $8080       NEG.W
-                MOVE.W      #$44A1, $8090       NEG.L
+                *********************NEG TESTING************************
+                MOVE.W      #$4401, $8070       NEG.B D1
+                MOVE.W      #$4441, $8080       NEG.W D1
+                MOVE.W      #$4481, $8090       NEG.L D1
+                
+                MOVE.W      #$4409, $8076       DATA (mode 1)
+                MOVE.W      #$4449, $8086       DATA (mode 1)
+                MOVE.W      #$4489, $8096       DATA (mode 1)
+                
+                MOVE.W      #$4411, $9300       NEG.B (A1)
+                MOVE.W      #$4451, $9304       NEG.W (A1)
+                MOVE.W      #$4491, $9308       NEG.L (A1)
+                
+                MOVE.W      #$4419, $9412       NEG.B (A1)+
+                MOVE.W      #$4459, $9416       NEG.W (A1)+
+                MOVE.W      #$4499, $9420       NEG.L (A1)+
+                
+                MOVE.W      #$4421, $9424       NEG.B -(A1)
+                MOVE.W      #$4461, $9428       NEG.W -(A1)
+                MOVE.W      #$44A1, $9432       NEG.L -(A1)
+                
+                MOVE.W      #$4429, $9436       NEG.B (d16An)??
+                MOVE.W      #$4469, $9440       NEG.W ""
+                MOVE.W      #$44A9, $9444       NEG.L ""
+                
+                MOVE.W      #$4431, $9448       NEG.B (d8AnXn)??
+                MOVE.W      #$4471, $9452       NEG.W ""
+                MOVE.W      #$44B1, $9456       NEG.L ""
+                
+                MOVE.W      #$4438, $9460       NEG.B $AAAA (??) is this invalid?
+                MOVE.W      #$AAAA, $9464
+                MOVE.W      #$4478, $9468       NEG.W $AAAA
+                MOVE.W      #$AAAA, $9472
+                MOVE.W      #$44B8, $9476       NEG.L $AAAA ?? same
+                MOVE.W      #$AAAA, $9480
+                
+                MOVE.W      #$4439, $9484       NEG.B $AAAAAAAA ??
+                MOVE.L      #$AAAAAAAA, $9488
+                MOVE.W      #$4479, $9496       NEG.W $AAAAAAAA ??
+                MOVE.L      #$AAAAAAAA, $9500
+                MOVE.W      #$44B9, $9508       NEG.L $AAAAAAAA
+                MOVE.L      #$AAAAAAAA, $9512
+                ********************************************************
                 MOVE.W      #$4E75, $9000       RTS
                 MOVE.W      #$0B91, $9010       BCLR D5,A1 
                 MOVE.W      #$3246, $9020       MOVE.W D6,A1
@@ -95,8 +115,28 @@ START:
                 MOVE.W      #$0C01, $9200       CMPI.B #$ xx,D1
                 MOVE.W      #$0C51, $9210       CMPI.W #$ xxxx,(A1)
                 MOVE.W      #$0C99, $9220       CMPI.L #$ xxxxxxxx,(A1)+
-            
-            
+
+                JSR         clearTempVars       ; clear the temporary variables for the output string
+                JSR         clearOutputStr      ; clear the output string
+                CLR.L       D0
+                CLR.L       D1
+                CLR.L       D2
+                CLR.L       D3
+                CLR.L       D4
+                CLR.L       D5
+                CLR.L       D6
+                CLR.L       D7                  ; clear all of the registers
+                MOVE.L      #$00000000,A0
+                MOVE.L      #$00000000,A1
+                MOVE.L      #$00000000,A2
+                MOVE.L      #$00000000,A3
+                MOVE.L      #$00000000,A4
+                MOVE.L      #$00000000,A5
+                MOVE.L      #$00000000,A6
+                MOVE.L      #$00000000,A7       ; clear all address registers
+                
+                
+                
                 LEA         STACK,SP            Load the stack
             
                 MOVE.B      #14,D0
@@ -242,7 +282,7 @@ ATHE_done       OR.L        D0,D4               ; OR the result to the retVal
 * Convert starting address from Hex to Ascii, stores in A0
 * D0 = value to convert, D1 = number of bytes to process, A0 = retval
 
-HEXTOASCII      ANDI.L      #$000000FF,D1       ; get the byte
+HEXTOASCII      ANDI.L      #$000000FF,D1
                 CMP.B       #4,D1
                 BGT         HTA_error           ; error if > 4 bytes
                 CMP.B       #0,D1
@@ -626,7 +666,7 @@ op_NOP          LEA         NOP_STR,A5
 op_DATA         MOVE.L      #14,D0
                 LEA         DATA_STR,A1
                 TRAP        #15                 ; OP code DNE
-                RTS
+                JSR         START
             
 op_BRA          MOVE.L      #%11111111,D2       ; $FF into D2
                 MOVE.L      #%00000000,D3       ; $00 into D3
@@ -724,7 +764,7 @@ op_OR           LEA         OR_STR,A5
 op_ORI          LEA         ORI_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
                 JSR         opcode_size_str     ; find the size and add it to the string
-                LSR.L       #6,D1               ; shift the size bits to get the flag 
+                LSR.L       #7,D1               ; shift the size bits to get the flag 
                 MOVE.L      D1,D6               ; move size bit to D6 to set flag
                 **** CHECK FOR INVALID
                 CMP.W       #%00111100,D5       ; Mode 7, Register 4 is invalid
@@ -804,7 +844,14 @@ op_NEG          LEA         NEG_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
                 JSR         opcode_size_str     ; find the size and add it to the string            
             
-                **** FINDING/ADDING EA TO STRING HERE
+                **** ADD TESTING
+                MOVEM.L     D5,-(SP)            ; save the state of D5
+                ANDI.B      #%00111000,D5       ; separate the EA mode
+                CMP.B       #%00001000,D5       ; check if it's mode 1
+                BEQ         op_DATA             ; if is, it's invalid
+                MOVEM.L     (SP)+,D5            ; restore D5 if it isn't
+                
+                JSR         FIND_EAMODE
             
                 JSR         PRINT_init          ; print the string
                 RTS
@@ -1203,87 +1250,50 @@ ABS_LONGADDR    MOVEM.L     A1/D0-D1,-(SP)      Save our state
 *
 
 IMMED_DATA      MOVEM.L     A1/D0-D1,-(SP)      Save our state
-                
-                *Find size to determine the data amount to be processed
-                CMP.B       #%00,D6
-                BEQ         GET_BYTE            
-                CMP.B       #%01,D6
-                BEQ         GET_WORD
-                CMP.B       #%10,D6
-                BEQ         GET_LONG 
-                
-                           
-
+    
+                CMP.B       #0,D6
+                BNE         GET_LONG            Find out if its bigger than a word or byte
          
-GET_BYTE        LEA         IMMED_PREFIX,A5
+         
+                LEA         IMMED_PREFIX,A5
                 MOVE.L      A5,(A6)+            Add '#$' to the output string
                 *** NEED TO CONVERT D2 TO ASCII
-                MOVE.W      (A2)+,D2            Read the word (only looking at byte amount)
+                MOVE.W      (A2)+,D2
+                
                 
                 MOVEM.L     D0-D7,-(SP)         Save state
                 
                 MOVE.L      A4,A0               Clear the output address location
-                MOVE.W      D2,D0               Move the word to D0 for HEXTOASCII
-                MOVE.L      #1,D1               1 byte for a byte
-                JSR         HEXTOASCII
-                
-                ADD.L       #$02,A4
-                MOVE.B      #$00,(A4)+          Add the string terminating character
-                MOVE.L      A4,D0
-                SUB.L       #$03,D0             Number of hex characters to display (zero based)
-                MOVE.L      D0,A5
-                MOVE.L      A5,(A6)+            Add the register to the output string
-
-                
-                MOVEM.L     (SP)+,D0-D7         Restore state
-                BRA         IM_EXIT             Exit this mode
-
-                
-GET_WORD        LEA         IMMED_PREFIX,A5
-                MOVE.L      A5,(A6)+            Add '#$' to the output string
-                *** NEED TO CONVERT D2 TO ASCII
-                MOVE.W      (A2)+,D2            Read the word
-                
-                MOVEM.L     D0-D7,-(SP)         Save state
-                
-                MOVE.L      A4,A0               Clear the output address location
-                MOVE.W      D2,D0               Move the word to D0 for HEXTOASCII
-                MOVE.L      #2,D1               2 bytes for a word
+                MOVE.W      D2,D0
+                MOVE.L      #$00000002,D1
+                MOVE.L      #$00000000,D2
+                MOVE.L      #$00000000,D3
                 JSR         HEXTOASCII
                 
                 ADD.L       #$04,A4
                 MOVE.B      #$00,(A4)+          Add the string terminating character
                 MOVE.L      A4,D0
-                SUB.L       #$05,D0             Number of hex characters to display (zero based)
+                SUB.L       #$05,D0
                 MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            Add the register to the output string
 
                 
                 MOVEM.L     (SP)+,D0-D7         Restore state
+                
+
+                
                 BRA         IM_EXIT             Exit this mode
     
 GET_LONG        LEA         IMMED_PREFIX,A5
                 MOVE.L      A5,(A6)+            Add '#$' to the output string
                 *** NEED TO CONVERT D2 TO ASCII
-                MOVE.L      (A2)+,D2            Read the long
-                
-                MOVEM.L     D0-D7,-(SP)         Save state
-                
-                MOVE.L      A4,A0               Clear the output address location
-                MOVE.L      D2,D0               Move the long to D0 for HEXTOASCII
-                MOVE.L      #4,D1               4 bytes for a long
-                JSR         HEXTOASCII
-                
-                ADD.L       #$08,A4
+                MOVE.L      (A2)+,D2
+                MOVE.B      D2,(A4)+            Move the register to A4
                 MOVE.B      #$00,(A4)+          Add the string terminating character
                 MOVE.L      A4,D0
-                SUB.L       #$09,D0             Number of hex characters to display (zero based)
+                SUB.L       #$02,D0
                 MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            Add the register to the output string
-
-                
-                MOVEM.L     (SP)+,D0-D7         Restore state
-                BRA         IM_EXIT             Exit this mode
         
 IM_EXIT         MOVEM.L     (SP)+,A1/D0-D1      Restore the state!
                 RTS                             Leave this place
@@ -1356,6 +1366,7 @@ SP_REG          DC.B        'SP',0
 
 *------------------------------------------------------------------*
 INST_LINE       DCB.B       256,0                   String for one line of instruction
+
 
                 END         START                   ; last line of source
 
