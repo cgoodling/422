@@ -519,14 +519,26 @@ op0110          *BRA
                 CLR.L       D0
                 MOVE.W      (A2),D0
                 ANDI.W      #%1111111100000000,D0
-                LSR.L       #8,D0               ; separate the first 6 bits (bits 8-15)
+                LSR.L       #8,D0               ; separate the first 8 bits (bits 8-15)
                 CLR.L       D1
                 MOVE.W      (A2),D1
                 ANDI.W      #%0000000011111111,D1
                 CMP.W       #%01100000,D0       ; standard first 8 bits of a BRA op
                 BEQ         op_BRA              ; if they're equal, OP code is BRA
+                                            
+                CMP.W       #%01100101,D0         * Check for BCS
+                BEQ         op_BCS
+                
+                CMP.W       #%01101100,D0         * Check for BGE
+                BEQ         op_BGE
 
-                BRA         op_DATA
+                CMP.W       #%01101101,D0         * Check for BLT
+                BEQ         op_BLT
+                
+                CMP.W       #%01101000,D0         * Check for BVC
+                BEQ         op_BVC
+
+                BRA         op_DATA             * Otherwise branch to data
             
 op0111          BRA         op_DATA
 
@@ -749,7 +761,7 @@ op_BRA          MOVE.L      #%11111111,D2       ; $FF into D2
                 
                 RTS
 
-op_BRA8         LEA         BRA8_STR,A5
+op_DISP8        LEA         BRA8_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
             
                 **** FINDING/ADDING EA TO STRING HERE
@@ -757,20 +769,79 @@ op_BRA8         LEA         BRA8_STR,A5
                 JSR         PRINT_init          ; print the string
                 RTS
             
-op_BRA16        LEA         BRA16_STR,A5
-                MOVE.L      A5,(A6)+            ; add the op to the string
-            
-                **** FINDING/ADDING EA TO STRING HERE
+op_DISP16       MOVEM.L     D0-D7,-(SP)         * Save the state
+
+                MOVE.L      A2,D0               * Move current address in
+                ADD.W       #$02,A2             * Advance the pointer
+                MOVE.W      (A2)+,D1            * Advance pointer beyond data
+                ADD.L       D1,D0               * Add our displacement to current address
                 
-                JSR         PRINT_init          ; print the string
+                MOVE.L      #$00000000,A0       * Clear A0
+                MOVE.L      #$00000002,D1       * prepare for ASCII output
+                CLR         D2
+                CLR         D3
+                JSR         HEXTOASCII
+                
+                MOVEM.L     (SP)+,D0-D7         * Restore previous state
+                
+                ADD.L       #$04,A4             * Prep temp variables
+                MOVE.B      #$00,(A4)+          * Add terminating character
+                MOVE.L      A4,D0               * Print displacement
+                SUB.L       #$05,D0
+                MOVE.L      D0,A5
+                MOVE.L      A5,(A6)+
+                JSR         PRINT_init
+                RTS
+           
+           
+
+op_DISP32       MOVEM.L     D0-D7,-(SP)         * Save the state
+
+                MOVE.L      A2,D0               * Move current address in
+                ADD.W       #$02,A2             * Advance the pointer
+                MOVE.L      (A2)+,D1            * Advance pointer beyond data
+                ADD.L       D1,D0               * Add our displacement to current address
+                
+                MOVE.L      #$00000000,A0       * Clear A0
+                MOVE.L      #$00000004,D1       * prepare for ASCII output
+                CLR         D2
+                CLR         D3
+                JSR         HEXTOASCII
+                
+                MOVEM.L     (SP)+,D0-D7         * Restore previous state
+                
+                ADD.L       #$08,A4             * Prep temp variables
+                MOVE.B      #$00,(A4)+          * Add terminating character
+                MOVE.L      A4,D0               * Print displacement
+                SUB.L       #$09,D0
+                MOVE.L      D0,A5
+                MOVE.L      A5,(A6)+
+                JSR         PRINT_init
                 RTS
 
-op_BRA32        LEA         BRA32_STR,A5
-                MOVE.L      A5,(A6)+            ; add the op to the string
-            
-                **** FINDING/ADDING EA TO STRING HERE
-            
-                JSR         PRINT_init          ; print the string
+
+
+op_BCS          LEA         BCS_STR,A5
+                MOVE.L      A5,(A6)+
+                JSR         PRINT_init
+                RTS
+                
+        
+op_BGE          LEA         BGE_STR,A5
+                MOVE.L      A5,(A6)+
+                JSR         PRINT_init
+                RTS
+
+
+op_BLT          LEA         BLT_STR,A5
+                MOVE.L      A5,(A6)+
+                JSR         PRINT_init
+                RTS
+
+
+op_BVC          LEA         BVC_STR,A5
+                MOVE.L      A5,(A6)+
+                JSR         PRINT_init
                 RTS
 
 
@@ -1448,6 +1519,10 @@ BCLR_STR        DC.B        '      BCLR',0
 LSL_STR         DC.B        '      LSL',0
 LSR_STR         DC.B        '      LSR',0
 CMPI_STR        DC.B        '      CMPI',0
+BCS_STR         DC.B        '      BCS',0
+BGE_STR         DC.B        '      BGE',0
+BLT_STR         DC.B        '      BLT',0
+BVC_STR         DC.B        '      BVC',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
