@@ -70,9 +70,43 @@ START:
                 MOVE.W      #$0005, $8040       ORI.B #$xx,D5
                 MOVE.W      #$0045, $8050       ORI.W #$xxxx,D5
                 MOVE.W      #$0085, $8060       ORI.L #$xxxxxxxx,D5
-                MOVE.W      #$4401, $8070       NEG.B
-                MOVE.W      #$4441, $8080       NEG.W
-                MOVE.W      #$44A1, $8090       NEG.L
+                  *********************NEG TESTING************************
+                MOVE.W      #$4401, $8070       NEG.B D1
+                MOVE.W      #$4441, $8080       NEG.W D1
+                MOVE.W      #$4481, $8090       NEG.L D1
+                
+                MOVE.W      #$4409, $8076       DATA (mode 1)
+                MOVE.W      #$4449, $8086       DATA (mode 1)
+                MOVE.W      #$4489, $8096       DATA (mode 1)
+                
+                MOVE.W      #$4411, $9300       NEG.B (A1)
+                MOVE.W      #$4451, $9304       NEG.W (A1)
+                MOVE.W      #$4491, $9308       NEG.L (A1)
+                
+                MOVE.W      #$4419, $9412       NEG.B (A1)+
+                MOVE.W      #$4459, $9416       NEG.W (A1)+
+                MOVE.W      #$4499, $9420       NEG.L (A1)+
+                
+                MOVE.W      #$4421, $9424       NEG.B -(A1)
+                MOVE.W      #$4461, $9428       NEG.W -(A1)
+                MOVE.W      #$44A1, $9432       NEG.L -(A1)
+                
+
+                MOVE.W      #$4438, $9460       NEG.B $AAAA 
+                MOVE.W      #$AAAA, $9462
+                MOVE.W      #$4478, $9468       NEG.W $AAAA
+                MOVE.W      #$AAAA, $946A
+                MOVE.W      #$44B8, $9476       NEG.L $AAAA
+                MOVE.W      #$AAAA, $9478
+                
+                MOVE.W      #$4439, $9484       NEG.B $AAAAAAAA
+                MOVE.L      #$AAAAAAAA, $9486
+                MOVE.W      #$4479, $9496       NEG.W $AAAAAAAA
+                MOVE.L      #$AAAAAAAA, $9498
+                MOVE.W      #$44B9, $9508       NEG.L $AAAAAAAA
+                MOVE.L      #$AAAAAAAA, $950A
+                ********************************************************
+
                 MOVE.W      #$4E75, $9000       RTS
                 MOVE.W      #$0B91, $9010       BCLR D5,A1 
                 MOVE.W      #$3246, $9020       MOVE.W D6,A1
@@ -626,7 +660,7 @@ op_NOP          LEA         NOP_STR,A5
 op_DATA         MOVE.L      #14,D0
                 LEA         DATA_STR,A1
                 TRAP        #15                 ; OP code DNE
-                RTS
+                JSR         START
             
 op_BRA          MOVE.L      #%11111111,D2       ; $FF into D2
                 MOVE.L      #%00000000,D3       ; $00 into D3
@@ -804,7 +838,16 @@ op_NEG          LEA         NEG_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
                 JSR         opcode_size_str     ; find the size and add it to the string            
             
-                **** FINDING/ADDING EA TO STRING HERE
+                **** ADD TESTING
+                MOVEM.L     D5,-(SP)            ; save the state of D5
+                ANDI.B      #%00111000,D5       ; separate the EA mode
+                CMP.B       #%00001000,D5       ; check if it's mode 1
+                BEQ         op_DATA             ; if is, it's invalid
+                MOVEM.L     (SP)+,D5            ; restore D5 if it isn't
+                
+                ADD.W       #$02,A2
+                
+                JSR         FIND_EAMODE
             
                 JSR         PRINT_init          ; print the string
                 RTS
@@ -1358,6 +1401,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
