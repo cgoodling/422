@@ -116,7 +116,7 @@ START:
                 *** NO EA ***
                 * LSL COUNT *
                 MOVE.W      #$E70D, $9030       LSL.B #3,D5
-                MOVE.W      #$E70D, $9040       LSL.W #3,D5
+                MOVE.W      #$E74D, $9040       LSL.W #3,D5
                 MOVE.W      #$E78D, $9050       LSL.L #3,D5
                 * LSL REGISTER *
                 MOVE.W      #$E72D, $9060       LSL.B D3,D5
@@ -170,8 +170,8 @@ START:
                 MOVE.W      #$E2F9, $9624
                 MOVE.L      #$AAAAAAAA, $9626
                 * LSL (xxx).L *
-                MOVE.W      #$E3F9, $9628
-                MOVE.L      #$AAAAAAAA, $962A
+                MOVE.W      #$E3F9, $962A
+                MOVE.L      #$AAAAAAAA, $962C
 
                 *******************************************************
                 
@@ -594,12 +594,15 @@ LSL_ea          LEA         LSL_STR,A5
                 JSR         opcode_size_str     ; find the size and add it to the string 
                 BRA         op_LS_EA
 
-LSR_ea          LEA         LSL_STR,A5
+LSR_ea          LEA         LSR_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
                 JSR         opcode_size_str     ; find the size and add it to the string
                 BRA         op_LS_EA
                 
-op_LS_EA        CMP.W       #%00111100,D5       ; mode 7, reg 4 invalid
+op_LS_EA        LEA         TAB,A5
+                MOVE.L      A5,(A6)+   
+                
+                CMP.W       #%00111100,D5       ; mode 7, reg 4 invalid
                 BEQ         op_DATA
                 
                 MOVEM.L     D0/D5,-(SP)         ; store D0 on the stack
@@ -1459,6 +1462,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
