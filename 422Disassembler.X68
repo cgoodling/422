@@ -540,12 +540,18 @@ op1110          *LSL/LSR
             
 op1111          BRA         op_DATA
 
-LSL_ea          JSR         op_LSL_ea
-                *** NEEDS TO BE FINISHED
+*************************************** OPS *************************************
+LSL_ea          *** NOT ALLOWED
+                
+                
+                
+                JSR         PRINT_init
                 RTS
             
-LSR_ea          JSR         op_LSR_ea
-                *** NEEDS TO BE FINITO
+LSR_ea          *** NEEDS TO BE FINITO
+
+
+                JSR         PRINT_init
                 RTS
             
 LS_no_ea        MOVE.L      D1,D0
@@ -868,15 +874,6 @@ op_LSR          LEA         LSR_STR,A5
                 JSR         opcode_size_str     ; find the size and add it to the string            
                 RTS
             
-op_LSL_ea       **** FINDING/ADDING EA TO STRING HERE
-                
-                JSR         PRINT_init          ; print the string
-                RTS
-            
-op_LSR_ea       **** FINDING/ADDING EA TO STRING HERE
-            
-                JSR         PRINT_init          ; print the string
-                RTS
             
 op_CMPI         LEA         CMPI_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
@@ -1398,6 +1395,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
