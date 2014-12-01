@@ -1,6 +1,7 @@
 *-----------------------------------------------------------
 * Title      : Convert ASCII to hex
 * Written by : Kaley & Cole & Abby
+* Date       : 11/11/14
 * Description: Small piece of disassembler project
 *-----------------------------------------------------------
 
@@ -110,21 +111,69 @@ START:
                 MOVE.W      #$4E75, $9000       RTS
                 MOVE.W      #$0B91, $9010       BCLR D5,A1 
                 MOVE.W      #$3246, $9020       MOVE.W D6,A1
+                
+                **********************LSL/LSR TESTING*******************
+                *** NO EA ***
+                * LSL COUNT *
                 MOVE.W      #$E70D, $9030       LSL.B #3,D5
                 MOVE.W      #$E70D, $9040       LSL.W #3,D5
                 MOVE.W      #$E78D, $9050       LSL.L #3,D5
-            
+                * LSL REGISTER *
                 MOVE.W      #$E72D, $9060       LSL.B D3,D5
                 MOVE.W      #$E76D, $9070       LSL.W D3,D5
                 MOVE.W      #$E7AD, $9080       LSL.L D3,D5
-            
+                * LSR COUNT *
                 MOVE.W      #$E60D, $9090       LSR.B #3,D5
                 MOVE.W      #$E64D, $9100       LSR.W #3,D5
                 MOVE.W      #$E68D, $9110       LSR.L #3,D5
-            
+                * LSR REGISTER *
                 MOVE.W      #$E62D, $9120       LSR.B D3,D5
                 MOVE.W      #$E66D, $9130       LSR.W D3,D5
                 MOVE.W      #$E6AD, $9140       LSR.L D3,D5
+                
+                *** EA MODES ***
+                * LSR Dn * -- INVALID
+                MOVE.W      #$E2C5, $9600
+                * LSL Dn * -- INVALID
+                MOVE.W      #$E3C5, $9602
+                * LSR An * -- INVALID
+                MOVE.W      #$E2CD, $9604
+                * LSL An * -- INVALID
+                MOVE.W      #$E3CD, $9606
+                * LSR (An) *
+                MOVE.W      #$E2D5, $9608
+                * LSL (An) *
+                MOVE.W      #$E3D5, $960A
+                * LSR (An)+ *
+                MOVE.W      #$E2DD, $960C
+                * LSL (An)+ *
+                MOVE.W      #$E3DD, $960E
+                * LSR -(An) *
+                MOVE.W      #$E2E5, $9610
+                * LSL -(An) *
+                MOVE.W      #$E3E5, $9612
+                * LSR (d16,An) *
+                MOVE.W      #$E2ED, $9614
+                * LSL (d16,An) *
+                MOVE.W      #$E3ED, $9616
+                * LSR (d8,An,Xn) *
+                MOVE.W      #$E2F5, $9618
+                * LSL (d8,An,Xn) *
+                MOVE.W      #$E3F5, $961A
+                * LSR (xxx).W *
+                MOVE.W      #$E2F8, $961C
+                MOVE.W      #$AAAA, $961E
+                * LSL (xxx).W *
+                MOVE.W      #$E3F8, $9620
+                MOVE.W      #$AAAA, $9622
+                * LSR (xxx).L *
+                MOVE.W      #$E2F9, $9624
+                MOVE.L      #$AAAAAAAA, $9626
+                * LSL (xxx).L *
+                MOVE.W      #$E3F9, $9628
+                MOVE.L      #$AAAAAAAA, $962A
+
+                *******************************************************
                 
                 MOVE.W      #$0C01, $9200       CMPI.B #$ xx,D1
                 MOVE.W      #$0C51, $9210       CMPI.W #$ xxxx,(A1)
@@ -539,12 +588,33 @@ op1110          *LSL/LSR
             
 op1111          BRA         op_DATA
 
-LSL_ea          JSR         op_LSL_ea
-                *** NEEDS TO BE FINISHED
-                RTS
-            
-LSR_ea          JSR         op_LSR_ea
-                *** NEEDS TO BE FINITO
+*************************************** OPS *************************************
+LSL_ea          LEA         LSL_STR,A5
+                MOVE.L      A5,(A6)+            ; add the op to the string
+                JSR         opcode_size_str     ; find the size and add it to the string 
+                BRA         op_LS_EA
+
+LSR_ea          LEA         LSL_STR,A5
+                MOVE.L      A5,(A6)+            ; add the op to the string
+                JSR         opcode_size_str     ; find the size and add it to the string
+                BRA         op_LS_EA
+                
+op_LS_EA        CMP.W       #%00111100,D5       ; mode 7, reg 4 invalid
+                BEQ         op_DATA
+                
+                MOVEM.L     D0/D5,-(SP)         ; store D0 on the stack
+                MOVE.L      D5,D0               ; move D5 to D0 to change it
+                ANDI.L      #%00111000,D0       ; separate the mode
+                CMP.W       #%00000000,D0       ; check if its mode 0
+                BEQ         op_DATA                ; if it is, it's invalid
+                CMP.W       #%00001000,D0       ; check if its mode 1
+                BEQ         op_DATA                ; if it is, it's invalid
+                MOVEM.L     (SP)+,D0/D5
+                
+                ADD.W       #$02,A2             ; move to the next instruction
+                JSR         FIND_EAMODE
+                
+                JSR         PRINT_init
                 RTS
             
 LS_no_ea        MOVE.L      D1,D0
@@ -553,15 +623,16 @@ LS_no_ea        MOVE.L      D1,D0
                 BEQ         op_LSL
                 CMP.W       #%0000000000000000,D0
                 BEQ         op_LSR
-                RTS
+                
+                BRA         op_DATA
 
-                LEA         OR_STR,A5
-                MOVE.L      A5,(A6)+            ; add the op to the string
-                JSR         OR_opmode           ; find the size and add it to the string
+                *LEA         OR_STR,A5
+                *MOVE.L      A5,(A6)+            ; add the op to the string
+                *JSR         OR_opmode           ; find the size and add it to the string
             
                 **** FINDING/ADDING EA TO STRING HERE
             
-                JSR         PRINT_init          ; print the string
+                *JSR         PRINT_init          ; print the string
 
 LS_count        LEA         POUND,A5
                 MOVE.L      A5,(A6)+            ; add # to the string
@@ -867,15 +938,6 @@ op_LSR          LEA         LSR_STR,A5
                 JSR         opcode_size_str     ; find the size and add it to the string            
                 RTS
             
-op_LSL_ea       **** FINDING/ADDING EA TO STRING HERE
-                
-                JSR         PRINT_init          ; print the string
-                RTS
-            
-op_LSR_ea       **** FINDING/ADDING EA TO STRING HERE
-            
-                JSR         PRINT_init          ; print the string
-                RTS
             
 op_CMPI         LEA         CMPI_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
@@ -963,9 +1025,9 @@ MODE_SELECT     CMP.B       #0,D5               MODE ZERO Goes to DATA REG DIREC
                 CMP.B       #4,D5
                 BEQ         M_FOUR              Address Reg Indirect Pre Dec
                 CMP.B       #5,D5
-                BEQ         DATA
+                BEQ         op_DATA
                 CMP.B       #6,D5
-                BEQ         DATA
+                BEQ         op_DATA
                 CMP.B       #7,D5
                 BEQ         M_SEVEN             Auxillary EA modes (ABS Short,Long,Immed...)
 
@@ -1138,9 +1200,9 @@ M_SEVEN         CMP.B       #0,D2
                 CMP.B       #1,D2
                 BEQ         ABS_LONGADDR
                 CMP.B       #2,D2
-                BEQ         DATA
+                BEQ         op_DATA
                 CMP.B       #3,D2
-                BEQ         DATA
+                BEQ         op_DATA
                 CMP.B       #4,D2       
                 BEQ         IMMED_DATA
 
@@ -1397,6 +1459,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
