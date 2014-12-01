@@ -54,10 +54,38 @@ START:
                 MOVE.W      #$4E71, $7000       NOP 
                 MOVE.W      #$1200, $7010       MOVE.B D0,D1
                 MOVE.W      #$1607, $7020       MOVE.B D7,D3
-                MOVE.W      #$6000, $7030       BRA 16bit
-                MOVE.W      #$5555, $7032       ; 55 following
-                MOVE.W      #$60FF, $7040       BRA 32bit
-                MOVE.L      #$55555555, $7042   ; 5555 following
+                
+                ******************************* BRA TESTING ***************************
+                MOVE.W      #$6055, $7022       BRA A+55
+                MOVE.W      #$6000, $7024       BRA A+5555
+                MOVE.L      #$5555, $7026       5555 following
+                MOVE.W      #$60FF, $7028       BRA A+55555555
+                MOVE.L      #$55555555, $702A   55555555 following
+                
+                MOVE.W      #$6555, $702E       BCS A+55
+                MOVE.W      #$6500, $7030       BCS A+5555
+                MOVE.W      #$5555, $7032       5555 following
+                MOVE.W      #$65FF, $7034       BCS A+55555555
+                MOVE.L      #$55555555, $7036   55555555 following
+                
+                MOVE.W      #$6C55, $703A       BGE A+55
+                MOVE.W      #$6C00, $703C       BGE A+5555
+                MOVE.W      #$5555, $703E       5555 following
+                MOVE.W      #$6CFF, $7040       BGE A+55555555
+                MOVE.L      #$55555555, $7042   55555555 following
+                
+                MOVE.W      #$6D55, $7044       BLT A+55
+                MOVE.W      #$6D00, $7046       BLT A+5555
+                MOVE.W      #$5555, $7048       5555 following
+                MOVE.W      #$6DFF, $704A       BLT A+55555555
+                MOVE.L      #$55555555, $704C   55555555 following
+                
+                MOVE.W      #$6855, $7050       BVC A+55
+                MOVE.W      #$6800, $7052       BVC A+5555
+                MOVE.W      #$5555, $7054       5555 following
+                MOVE.W      #$68FF, $7056       BVC A+55555555
+                MOVE.L      #$55555555, $7058   55555555 following
+                ***********************************************************************
             
                 MOVE.W      #$4BD1, $7050       LEA (A1) with A5
                 
@@ -1462,6 +1490,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
