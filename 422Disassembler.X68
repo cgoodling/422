@@ -794,7 +794,26 @@ FIND_DISP       LEA         DOLLAH,A5
                 
                 RTS
 
-op_DISP8        JSR         op_DATA             ; print the string
+op_DISP8        MOVEM.L     D0-D7,-(SP)         * Save the state
+
+                MOVE.L      A2,D0               * Move current address in
+                ADD.L       D1,D0               * Add our displacement to current address
+                
+                MOVE.L      A4,A0               * Move temp value pointer to A0
+                MOVE.L      #$00000004,D1       * prepare for ASCII output
+                CLR         D2
+                CLR         D3
+                JSR         HEXTOASCII
+                
+                MOVEM.L     (SP)+,D0-D7         * Restore previous state
+                
+                ADD.L       #$08,A4             * Prep temp variables
+                MOVE.B      #$00,(A4)+          * Add terminating character
+                MOVE.L      A4,D0               * Print displacement
+                SUB.L       #$09,D0
+                MOVE.L      D0,A5
+                MOVE.L      A5,(A6)+
+                JSR         PRINT_init
                 RTS
             
 op_DISP16       MOVEM.L     D0-D7,-(SP)         * Save the state
@@ -805,17 +824,17 @@ op_DISP16       MOVEM.L     D0-D7,-(SP)         * Save the state
                 ADD.L       D1,D0               * Add our displacement to current address
                 
                 MOVE.L      A4,A0               * Move temp value pointer to A0
-                MOVE.L      #$00000002,D1       * prepare for ASCII output
+                MOVE.L      #$00000004,D1       * prepare for ASCII output
                 CLR         D2
                 CLR         D3
                 JSR         HEXTOASCII
                 
                 MOVEM.L     (SP)+,D0-D7         * Restore previous state
                 
-                ADD.L       #$04,A4             * Prep temp variables
+                ADD.L       #$08,A4             * Prep temp variables
                 MOVE.B      #$00,(A4)+          * Add terminating character
                 MOVE.L      A4,D0               * Print displacement
-                SUB.L       #$05,D0
+                SUB.L       #$09,D0
                 MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+
                 JSR         PRINT_init
@@ -1571,6 +1590,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
