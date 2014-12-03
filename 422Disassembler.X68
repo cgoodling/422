@@ -1086,7 +1086,7 @@ op_DISP32       MOVEM.L     D0-D7,-(SP)         * Save the state
                 MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+
                 JSR         PRINT_init
-                ADD.L       #%10,A2
+                ADD.L       #%100,A2
                 RTS
 
 
@@ -1905,6 +1905,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
