@@ -25,9 +25,7 @@ DEST_MODE       EQU         %00111000
 DEST_REG        EQU         %00000111
 
 *----------------------------------------------------------*
-START:          
-                JSR         clearTempVars       ; clear the temporary variables for the output string
-                JSR         clearOutputStr      ; clear the output string
+START:                              
                 CLR.L       D0
                 CLR.L       D1
                 CLR.L       D2
@@ -46,273 +44,53 @@ START:
                 MOVE.L      #$00000000,A7       ; clear all address registers
                 * For testing  
                 MOVE.L      #$000200EC, $6060    ORI.B  #$EC,D2
-                MOVE.L      #$00450123, $6050    ORI.W  #$0123,D5              RETURN IS WRONG
-                MOVE.W      #$0085, $6070        ORI.L  #$xxxxxxxx, D5         RETURN IS WRONG
+                MOVE.L      #$00450123, $6050    ORI.W  #$0123,D5
+                MOVE.W      #$0085, $6070        ORI.L  #$xxxxxxxx, D5
                 MOVE.L      #$12345678, $6072             12345678    
                 MOVE.L      #$43F87000, $6000    LEA $7000,A1
-                
-                MOVE.W      #$4E71, $7000       NOP                             Extra blank line after return
-                MOVE.W      #$1200, $7010       MOVE.B D0,D1                    WRONG
-                MOVE.W      #$1607, $7020       MOVE.B D7,D3                    WRONG
-                
-                ******************************* BRA TESTING ***************************
-                MOVE.W      #$6055, $7022       BRA A+55
-                MOVE.W      #$6000, $7024       BRA A+5555
-                MOVE.W      #$5555, $7026       5555 following
-                MOVE.W      #$60FF, $7028       BRA A+55555555
-                MOVE.L      #$55555555, $702A   55555555 following
-                
-                MOVE.W      #$6555, $702E       BCS A+55
-                MOVE.W      #$6500, $7030       BCS A+5555
-                MOVE.W      #$5555, $7032       5555 following
-                MOVE.W      #$65FF, $7034       BCS A+55555555
-                MOVE.L      #$55555555, $7036   55555555 following
-                
-                MOVE.W      #$6C55, $703A       BGE A+55
-                MOVE.W      #$6C00, $703C       BGE A+5555
-                MOVE.W      #$5555, $703E       5555 following
-                MOVE.W      #$6CFF, $7040       BGE A+55555555
-                MOVE.L      #$55555555, $7042   55555555 following
-                
-                MOVE.W      #$6D55, $7044       BLT A+55
-                MOVE.W      #$6D00, $7046       BLT A+5555
-                MOVE.W      #$5555, $7048       5555 following
-                MOVE.W      #$6DFF, $704A       BLT A+55555555
-                MOVE.L      #$55555555, $704C   55555555 following
-                
-                MOVE.W      #$6855, $7050       BVC A+55                WRONG OUTPUT = overwritten with LEA just below
-                MOVE.W      #$6800, $7052       BVC A+5555
-                MOVE.W      #$5555, $7054       5555 following
-                MOVE.W      #$68FF, $7056       BVC A+55555555
-                MOVE.L      #$55555555, $7058   55555555 following
-                ***********************************************************************
+
+                MOVE.W      #$4E71, $7000       NOP 
+                MOVE.W      #$1200, $7010       MOVE.B D0,D1
+                MOVE.W      #$1607, $7020       MOVE.B D7,D3
+                MOVE.W      #$6000, $7030       BRA 16bit
+                MOVE.W      #$5555, $7032       ; 55 following
+                MOVE.W      #$60FF, $7040       BRA 32bit
+                MOVE.L      #$55555555, $7042   ; 5555 following
             
                 MOVE.W      #$4BD1, $7050       LEA (A1) with A5
                 
                 MOVE.W      #$4E80, $7070       JSR
-                MOVE.W      #$8A41, $7080       OR.W D5,D1 (into Dn)        Only showing OR.W
-                MOVE.W      #$8A01, $7090       OR.B D5,D1 (into Dn)        *
-                MOVE.W      #$8B01, $8000       OR.B D5,D1 (into ea)        *
-                MOVE.W      #$8B41, $8010       OR.W D5,D1 (into ea)        *
-                MOVE.W      #$8A81, $8020       OR.L D5,D1 (into Dn)        *
-                MOVE.W      #$8B81, $8030       OR.L D5,D1 (into ea)        *
-                MOVE.W      #$0005, $8040       ORI.B #$xx,D5
-                MOVE.W      #$0045, $8050       ORI.W #$xxxx,D5             WRONG OUTPUT
-                MOVE.W      #$0085, $8060       ORI.L #$xxxxxxxx,D5         WRONG OUTPUT
-                  *********************NEG TESTING************************
-                MOVE.W      #$4401, $8070       NEG.B D1
-                MOVE.W      #$4441, $8080       NEG.W D1
-                MOVE.W      #$4481, $8090       NEG.L D1
-                
-                MOVE.W      #$4409, $8076       DATA (mode 1)
-                MOVE.W      #$4449, $8086       DATA (mode 1)
-                MOVE.W      #$4489, $8096       DATA (mode 1)
-                
-                MOVE.W      #$4411, $9300       NEG.B (A1)
-                MOVE.W      #$4451, $9304       NEG.W (A1)
-                MOVE.W      #$4491, $9308       NEG.L (A1)
-                
-                MOVE.W      #$4419, $9412       NEG.B (A1)+
-                MOVE.W      #$4459, $9416       NEG.W (A1)+
-                MOVE.W      #$4499, $9420       NEG.L (A1)+
-                
-                MOVE.W      #$4421, $9424       NEG.B -(A1)
-                MOVE.W      #$4461, $9428       NEG.W -(A1)
-                MOVE.W      #$44A1, $9432       NEG.L -(A1)
-                
-
-                MOVE.W      #$4438, $9460       NEG.B $AAAA 
-                MOVE.W      #$AAAA, $9462
-                MOVE.W      #$4478, $9468       NEG.W $AAAA
-                MOVE.W      #$AAAA, $946A
-                MOVE.W      #$44B8, $9476       NEG.L $AAAA
-                MOVE.W      #$AAAA, $9478
-                
-                MOVE.W      #$4439, $9484       NEG.B $AAAAAAAA
-                MOVE.L      #$AAAAAAAA, $9486
-                MOVE.W      #$4479, $9496       NEG.W $AAAAAAAA
-                MOVE.L      #$AAAAAAAA, $9498
-                MOVE.W      #$44B9, $9508       NEG.L $AAAAAAAA
-                MOVE.L      #$AAAAAAAA, $950A
-                ********************************************************
-
-                MOVE.W      #$4E75, $9000       RTS                     WRONG OUTPUT
-                MOVE.W      #$0B91, $9010       BCLR D5,A1              ONLY showing BCLR
-                MOVE.W      #$3246, $9020       MOVE.W D6,A1            WRONG OUTPUT
-                
-                **********************LSL/LSR TESTING*******************
-                *** NO EA ***
-                * LSL COUNT *
+                MOVE.W      #$8A41, $7080       OR.W D5,D1 (into Dn)
+                MOVE.W      #$8A01, $7090       OR.B D5,D1 (into Dn)
+                MOVE.W      #$8B01, $8000       OR.B D5,D1 (into ea)
+                MOVE.W      #$8B41, $8010       OR.W D5,D1 (into ea)
+                MOVE.W      #$8A81, $8020       OR.L D5,D1 (into Dn)
+                MOVE.W      #$8B81, $8030       OR.L D5,D1 (into ea)
+                MOVE.W      #$4401, $8070       NEG.B
+                MOVE.W      #$4441, $8080       NEG.W
+                MOVE.W      #$44A1, $8090       NEG.L
+                MOVE.W      #$4E75, $9000       RTS
+                MOVE.W      #$0B91, $9010       BCLR D5,A1 
+                MOVE.W      #$3246, $9020       MOVE.W D6,A1
                 MOVE.W      #$E70D, $9030       LSL.B #3,D5
-                MOVE.W      #$E74D, $9040       LSL.W #3,D5
+                MOVE.W      #$E70D, $9040       LSL.W #3,D5
                 MOVE.W      #$E78D, $9050       LSL.L #3,D5
-                * LSL REGISTER *
+            
                 MOVE.W      #$E72D, $9060       LSL.B D3,D5
                 MOVE.W      #$E76D, $9070       LSL.W D3,D5
                 MOVE.W      #$E7AD, $9080       LSL.L D3,D5
-                * LSR COUNT *
+            
                 MOVE.W      #$E60D, $9090       LSR.B #3,D5
                 MOVE.W      #$E64D, $9100       LSR.W #3,D5
                 MOVE.W      #$E68D, $9110       LSR.L #3,D5
-                * LSR REGISTER *
+            
                 MOVE.W      #$E62D, $9120       LSR.B D3,D5
                 MOVE.W      #$E66D, $9130       LSR.W D3,D5
                 MOVE.W      #$E6AD, $9140       LSR.L D3,D5
                 
-                *** EA MODES ***
-                * LSR Dn * -- INVALID
-                MOVE.W      #$E2C5, $9600
-                * LSL Dn * -- INVALID
-                MOVE.W      #$E3C5, $9602
-                * LSR An * -- INVALID
-                MOVE.W      #$E2CD, $9604
-                * LSL An * -- INVALID
-                MOVE.W      #$E3CD, $9606
-                * LSR (An) *
-                MOVE.W      #$E2D5, $9608
-                * LSL (An) *
-                MOVE.W      #$E3D5, $960A
-                * LSR (An)+ *
-                MOVE.W      #$E2DD, $960C
-                * LSL (An)+ *
-                MOVE.W      #$E3DD, $960E
-                * LSR -(An) *
-                MOVE.W      #$E2E5, $9610
-                * LSL -(An) *
-                MOVE.W      #$E3E5, $9612
-                * LSR (d16,An) *
-                MOVE.W      #$E2ED, $9614
-                * LSL (d16,An) *
-                MOVE.W      #$E3ED, $9616
-                * LSR (d8,An,Xn) *
-                MOVE.W      #$E2F5, $9618
-                * LSL (d8,An,Xn) *
-                MOVE.W      #$E3F5, $961A
-                * LSR (xxx).W *
-                MOVE.W      #$E2F8, $961C
-                MOVE.W      #$AAAA, $961E
-                * LSL (xxx).W *
-                MOVE.W      #$E3F8, $9620
-                MOVE.W      #$AAAA, $9622
-                * LSR (xxx).L *
-                MOVE.W      #$E2F9, $9624
-                MOVE.L      #$AAAAAAAA, $9626
-                * LSL (xxx).L *
-                MOVE.W      #$E3F9, $962A
-                MOVE.L      #$AAAAAAAA, $962C
-
-                *******************************************************
-                
                 MOVE.W      #$0C01, $9200       CMPI.B #$ xx,D1
                 MOVE.W      #$0C51, $9210       CMPI.W #$ xxxx,(A1)
                 MOVE.W      #$0C99, $9220       CMPI.L #$ xxxxxxxx,(A1)+
-               
-                **********************ROL/ROR TESTING*******************
-                *** NO EA ***
-                * ROL COUNT *
-                MOVE.W      #$E71D, $9630       ROL.B #3,D5
-                MOVE.W      #$E75D, $9632       ROL.W #3,D5
-                MOVE.W      #$E79D, $9634       ROL.L #3,D5
-                * ROL REGISTER *
-                MOVE.W      #$E73D, $9636       ROL.B D3,D5
-                MOVE.W      #$E77D, $9638       ROL.W D3,D5
-                MOVE.W      #$E7BD, $963A       ROL.L D3,D5
-                * ROR COUNT *
-                MOVE.W      #$E61D, $963C       ROR.B #3,D5
-                MOVE.W      #$E65D, $963E       ROR.W #3,D5
-                MOVE.W      #$E69D, $9640       ROR.L #3,D5
-                * ROR REGISTER *
-                MOVE.W      #$E63D, $9642       ROR.B D3,D5
-                MOVE.W      #$E67D, $9644       ROR.W D3,D5
-                MOVE.W      #$E6BD, $9646       ROR.L D3,D5
-                
-                *** EA MODES ***
-                * ROR Dn * -- INVALID
-                MOVE.W      #$E6C5, $9648
-                * ROL Dn * -- INVALID
-                MOVE.W      #$E7C5, $964A
-                * ROR An * -- INVALID
-                MOVE.W      #$E6CD, $964C
-                * ROL An * -- INVALID
-                MOVE.W      #$E7CD, $964E
-                * ROR (An) *
-                MOVE.W      #$E6D5, $9650
-                * ROL (An) *
-                MOVE.W      #$E7D5, $9652
-                * ROR (An)+ *
-                MOVE.W      #$E6DD, $9654
-                * ROL (An)+ *
-                MOVE.W      #$E7DD, $9656
-                * ROR -(An) *
-                MOVE.W      #$E6E5, $9658
-                * ROL -(An) *
-                MOVE.W      #$E7E5, $965A
-                * ROR (d16,An) *
-                MOVE.W      #$E6ED, $965C
-                * ROL (d16,An) *
-                MOVE.W      #$E7ED, $965E
-                * ROR (d8,An,Xn) *
-                MOVE.W      #$E6F5, $9660
-                * ROL (d8,An,Xn) *
-                MOVE.W      #$E7F5, $9662
-                * ROR (xxx).W *
-                MOVE.W      #$E6F8, $9664
-                MOVE.W      #$AAAA, $9666
-                * ROL (xxx).W *
-                MOVE.W      #$E7F8, $9668
-                MOVE.W      #$AAAA, $966A
-                * ROR (xxx).L *
-                MOVE.W      #$E6F9, $966C
-                MOVE.L      #$AAAAAAAA, $966E
-                * ROL (xxx).L *
-                MOVE.W      #$E7F9, $9672
-                MOVE.L      #$AAAAAAAA, $9674
-
-                *******************************************************
-
-                
-                MOVE.W      #$0C01, $9200       CMPI.B #$ xx,D1             ONLY CMPI
-                MOVE.W      #$0C51, $9210       CMPI.W #$ xxxx,(A1)         ONLY CMPI
-                MOVE.W      #$0C99, $9220       CMPI.L #$ xxxxxxxx,(A1)+    ONLY CMPI
-            
-                *******************************************************
-                * JSR TESTS    
-                *        
-    
-                MOVE.L      #$4EB86000,$9630    JSR $6000
-                MOVE.W      #$4E91,$9634        JSR (A1)
-                MOVE.W      #$4E93,$9636        JSR (A3)
-                MOVE.L      #$4EB90000,$9638    JSR $00008000
-                MOVE.W      #$8000,$963C
-                
-                MOVE.W      #$4E80,$963E        Attempt JSR D0
-                MOVE.W      #$4E88,$9640        Attempt JSR A0
-                MOVE.W      #$4E98,$9642        Attempt JSR (A1)+
-                MOVE.W      #$4EA0,$9644        Attempt JSR -(A1)
-                MOVE.W      #$4EBC,$9646        Attempt JSR #(DATA)
-                
-                *******************************************************
-                * LEA Tests
-                *
-                
-                MOVE.W      #$43D5,$9648        LEA (A5),A1
-                MOVE.W      #$4DF8,$964A        LEA  $4000,A6
-                MOVE.W      #$4000,$964C
-
-                MOVE.W      #$49F9,$964E        LEA  $8000,A4
-                MOVE.L      #$00008000,$9650                                
-                
-                MOVE.W      #$47F9,$9654        LEA  $000505AB,A3
-                MOVE.L      #$000505AB,$9656     
-                
-                MOVE.W      #$41C0,$965A        Attempt LEA Dn,A0
-                MOVE.W      #$41C8,$965C        Attempt LEA An,A0
-                MOVE.W      #$41D8,$965E        Attempt LEA (An)+,A0
-                MOVE.W      #$41E0,$9660        Attempt LEA -(An),A0
-                MOVE.W      #$41F0,$9662        Attempt LEA #(DATA),A0
-                    
-                *******************************************************
-            
             
             
                 LEA         STACK,SP            Load the stack
@@ -350,35 +128,10 @@ START:
                 LEA         $4000,A4
                 MOVE.W      A5,A6               ; move the ending address of the output string here too (empty string)
     
-                MOVE.W      (A1),D0             ; MOVEs INSTRUCTION in A1 to D0
-                JSR         print_add           ; print the address
+                MOVE.W      (A1),D0             ; MOVEs INSTRUCTION in A1 to D0 (NOTE THIS WAS (A1)+, why?)
                 JSR         opcode              ; decode the opcode
             
                 JSR         exit
-                
-******************************* CLEAR REGISTERS **************************
-* clearTempVars  - clears all of the temporary variables starting at $4000
-* clearOutputStr - clears all of the values starting at $5000
-clearTempVars   MOVE.L      #$4000,A0           ; move the first address to A0
-                BRA         CTV_loop            ; begin the loop
-               
-CTV_loop        CMP.L       #$FFFFFFFF,(A0)     ; check if the values at address A0 are all Fs
-                BEQ         CTV_exit            ; if they are, exit
-                MOVE.L      #$FFFFFFFF,(A0)+    ; otherwise, set them all to Fs and increment A0
-                BRA         CTV_loop            ; loop again
-                
-CTV_exit        RTS                             ; return to where clearTempVars was called
-
-clearOutputStr  MOVE.L      #$5000,A0           ; move the first address to A0
-                BRA         COS_loop            ; begin the loop
-                
-COS_loop        CMP.L       #$FFFFFFFF,(A0)     ; check if the values at address A0 are all Fs
-                BEQ         COS_exit            ; if they are, exit
-                MOVE.L      #$FFFFFFFF,(A0)+    ; otherwise, set them all to Fs and increment A0
-                BRA         COS_loop            ; loop again
-                
-COS_exit        RTS                             ; return to where clearOutputStr was called
-                
 
 ******************************* ASCII TO HEX *****************************
 * Convert starting address from ASCII to Hex, stores in D3
@@ -569,6 +322,7 @@ op0000          *ORI
 * Move Byte
 *-------------------------------------------------------------------------*
 op0001          *MOVEM.L     D1,-(SP)            Save what we have here in D1 just in case
+                JSR         print_add
                 MOVE.W      (A2)+,D7            Get instruction, advance pointer
             
                 MOVE.B      #14,D0              Place MOVE.B string
@@ -625,11 +379,12 @@ op0100          *NEG
                 CMP.W       D0,D1               ; compare D0 and D1
                 BEQ         op_NOP              ; if they're equal, the operation is NOP
             
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
                 *LEA
                 ANDI.W      #%1111000111000000,D1
                 CMP.W       #%0100000111000000,D1
                 BEQ         op_LEA
-
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
                 *JSR
                 MOVE.W      (A2),D1             ; move the original operation into D1 
                 ANDI.W      #%1111111111000000,D1
@@ -654,26 +409,14 @@ op0110          *BRA
                 CLR.L       D0
                 MOVE.W      (A2),D0
                 ANDI.W      #%1111111100000000,D0
-                LSR.L       #8,D0               ; separate the first 8 bits (bits 8-15)
+                LSR.L       #8,D0               ; separate the first 6 bits (bits 8-15)
                 CLR.L       D1
                 MOVE.W      (A2),D1
                 ANDI.W      #%0000000011111111,D1
                 CMP.W       #%01100000,D0       ; standard first 8 bits of a BRA op
                 BEQ         op_BRA              ; if they're equal, OP code is BRA
-                                            
-                CMP.W       #%01100101,D0         * Check for BCS
-                BEQ         op_BCS
-                
-                CMP.W       #%01101100,D0         * Check for BGE
-                BEQ         op_BGE
 
-                CMP.W       #%01101101,D0         * Check for BLT
-                BEQ         op_BLT
-                
-                CMP.W       #%01101000,D0         * Check for BVC
-                BEQ         op_BVC
-
-                BRA         op_DATA             * Otherwise branch to data
+                BRA         op_DATA
             
 op0111          BRA         op_DATA
 
@@ -685,6 +428,7 @@ op1000          * OR
                 JSR         OR_opmode
                 RTS
 
+                * OP Code not found// prob not necessary?
                 BRA         op_DATA
 
 *-------------------------------------------------------------------------*
@@ -713,182 +457,58 @@ op1101          BRA         op_DATA
 * Arithmetic Shift Left, Arithmetic Shift Right, Logical Shift Left, 
 * Logical Shift Right, Rotate Left, Rotate Right
 *-------------------------------------------------------------------------*            
-op1110          MOVE.W      (A2),D0             * move original op into D0
-                ANDI.W      #$00C0,D0           * mask to find if it's an EA shift
-                CMP.W       #$00C0,D0           * check for EA shifts
-                BEQ         SHIFT_ea
+op1110          *LSL/LSR
+                MOVE.W      (A2),D1
+                ANDI.W      #%1111111111000000,D1
+                CMP.W       #%1110001111000000,D1
+                BEQ         LSL_ea
+                CMP.W       #%1110001011000000,D1
+                BEQ         LSR_ea
+                MOVE.W      (A2),D1
+            
+                JSR         LS_no_ea
 
-                BRA         SHIFT_no_ea
-                            
+                MOVE.W      (A2),D1
+                ANDI.W      #%1111000000111000,D1
+                CMP.W       #%1110000000001000,D1
+                BEQ         LS_count
+                CMP.W       #%1110000000101000,D1
+                BEQ         LS_reg
+            
+                BRA         op_DATA
+            
 op1111          BRA         op_DATA
 
-*************************************** OPS *************************************
-SHIFT_ea        MOVE.W      (A2),D0             * move original op into D0
-                MOVE.W      (A2),D2             * move the original op into D2
-
-                ANDI.W      #$0E00,D0           * mask to find out which shift it is
-                *LSL/LSR
-                CMP.W       #$0200,D0           * check for LSL/LSR
-                BEQ         op_LS
-                
-                *ASL/ASR
-                CMP.W       #$0000,D0           * check for ASL/ASR
-                *BEQ         op_AS
-                
-                *ROL/ROR
-                CMP.W       #$0600,D0           * check for ROL/ROR
-                BEQ         op_RO
-                
-                BRA         op_DATA
-                
-SHIFT_no_ea     MOVE.W      (A2),D0             * move the original op into D0
-                MOVE.W      (A2),D1             * move the original op into D1
-                MOVE.W      (A2),D2             * move the original op into D2
-                MOVE.W      (A2),D3             * move the original op into D3
-                MOVE.W      (A2),D4             * move the original op into D4
-                MOVE.W      (A2),D5             * move the original op into D5
-                MOVE.W      (A2),D6
-                AND.L       #$0E00,D1           * move the count/register into D1
-                AND.L       #$0018,D2           * move the type of shift to D2
-                AND.L       #$0020,D4           * move the i/r field into D4
-                AND.L       #$0007,D5           * move the register into D5
-                AND.L       #$00C0,D3           * move the size into D3
-                
-                CMP.W       #$0000,D2           * check for Arithmetic shift
-                *BEQ        AS_NO_EA
-                
-                CMP.W       #$0018,D2           * check for Rotate
-                BEQ         RO_NO_EA
-                
-                CMP.W       #$0008,D2           * check for Logical shift
-                BEQ         LS_NO_EA
-                
-                BRA         op_DATA
-                
-AS_NO_EA        JSR         AS_FIND_DIR
-                JSR         SHIFT_IR
-                RTS
-                
-AS_FIND_DIR     AND.L       #$0100,D6           * move the direction into D2
-                CMP.L       #$0100,D6           * check for left rotate
-                BEQ         op_ASL_STR
-                CMP.L       #$0000,D6           * check for right rotate
-                BEQ         op_ASR_STR
-
-op_ASL_STR      LEA         ASL_STR,A5
-                MOVE.L      A5,(A6)+            * add the op to the string
-                RTS
-                
-op_ASR_STR      LEA         ASR_STR,A5
-                MOVE.L      A5,(A6)+            * add the op to the string
-                RTS
-
-RO_NO_EA        JSR         RO_FIND_DIR
-                JSR         SHIFT_IR
-                RTS
-                
-RO_FIND_DIR     AND.L       #$0100,D6           * move the direction into D3
-                CMP.L       #$0100,D6           * check for left rotate
-                BEQ         op_ROL_STR
-                CMP.L       #$0000,D6           * check for right rotate
-                BEQ         op_ROR_STR
-
-op_ROL_STR      LEA         ROL_STR,A5
-                MOVE.L      A5,(A6)+            * add the op to the string
-                RTS
-                
-op_ROR_STR      LEA         ROR_STR,A5
-                MOVE.L      A5,(A6)+            * add the op to the string
-                RTS
-
-LS_NO_EA        JSR         LS_FIND_DIR
-                JSR         SHIFT_IR
-                RTS
-
-LS_FIND_DIR     ANDI.W      #$0100,D6
-                CMP.W       #$0100,D6
-                BEQ         op_LSL_STR
-                CMP.W       #$0000,D6
-                BEQ         op_LSR_STR
-                
-op_LSL_STR      LEA         LSL_STR,A5
-                MOVE.L      A5,(A6)+            * add the op to the string
-                RTS
-                
-op_LSR_STR      LEA         LSR_STR,A5
-                MOVE.L      A5,(A6)+            * add the op to the string
-                RTS
-                
-op_RO           MOVE.W      (A2),D0             * move the original op into D0
-                MOVE.W      (A2),D1             * move the original op into D1
-                MOVE.W      (A2),D2             * move the original op into D2
-                MOVE.W      (A2),D3             * move the original op into D3
-                MOVE.W      (A2),D4             * move the original op into D4
-                MOVE.W      (A2),D5             * move the original op into D5
-                MOVE.W      (A2),D6             * move the original op into D6
-                JSR         RO_FIND_DIR         * find the direction of the operation
-
-                JSR         op_SHIFT_EA
-                
-                RTS
-                
-op_AS           MOVE.W      (A2),D0             * move the original op into D0
-                MOVE.W      (A2),D1             * move the original op into D1
-                MOVE.W      (A2),D2             * move the original op into D2
-                MOVE.W      (A2),D3             * move the original op into D3
-                MOVE.W      (A2),D4             * move the original op into D4
-                MOVE.W      (A2),D5             * move the original op into D5
-                JSR         AS_FIND_DIR         * find the direction of the operation
-               
-                JSR         op_SHIFT_EA
-                
-                RTS
-                
-op_LS           MOVE.W      (A2),D0             * move the original op into D0
-                MOVE.W      (A2),D1             * move the original op into D1
-                MOVE.W      (A2),D2             * move the original op into D2
-                MOVE.W      (A2),D3             * move the original op into D3
-                MOVE.W      (A2),D4             * move the original op into D4
-                MOVE.W      (A2),D5             * move the original op into D5
-                JSR         LS_FIND_DIR         * find the direction of the operation
-               
-                JSR         op_SHIFT_EA
-                
+LSL_ea          JSR         op_LSL_ea
+                *** NEEDS TO BE FINISHED
                 RTS
             
-                
-SHIFT_IR        JSR         opcode_size_str     * add the size to the string
-                CMP.W       #$0000,D4           * check for count shift
-                BEQ         SHIFT_count
-                CMP.W       #$0020,D4           * check for register shift
-                BEQ         SHIFT_reg
-                
-op_SHIFT_EA     LEA         TAB,A5
-                MOVE.L      A5,(A6)+   
-                
-                CMP.W       #%00111100,D5       ; mode 7, reg 4 invalid
-                BEQ         op_DATA
-                
-                MOVEM.L     D0/D5,-(SP)         ; store D0 on the stack
-                MOVE.L      D5,D0               ; move D5 to D0 to change it
-                ANDI.L      #%00111000,D0       ; separate the mode
-                CMP.W       #%00000000,D0       ; check if its mode 0
-                BEQ         op_DATA             * if it is, it's invalid
-                CMP.W       #%00001000,D0       ; check if its mode 1
-                BEQ         op_DATA             * if it is, it's invalid
-                MOVEM.L     (SP)+,D0/D5
-                
-                ADD.W       #$02,A2             ; move to the next instruction
-                JSR         FIND_EAMODE
-                
-                JSR         PRINT_init
+LSR_ea          JSR         op_LSR_ea
+                *** NEEDS TO BE FINITO
+                RTS
+            
+LS_no_ea        MOVE.L      D1,D0
+                ANDI.W      #%0000000100000000,D0
+                CMP.W       #%0000000100000000,D0
+                BEQ         op_LSL
+                CMP.W       #%0000000000000000,D0
+                BEQ         op_LSR
                 RTS
 
-SHIFT_count     LEA         POUND,A5
+                JSR         print_add           ; print the address
+                LEA         OR_STR,A5
+                MOVE.L      A5,(A6)+            ; add the op to the string
+                JSR         OR_opmode           ; find the size and add it to the string
+            
+                **** FINDING/ADDING EA TO STRING HERE
+            
+                JSR         PRINT_init          ; print the string
+
+LS_count        LEA         POUND,A5
                 MOVE.L      A5,(A6)+            ; add # to the string
             
                 MOVE.W      (A2),D1
-                ANDI.W      #$0E00,D1
+                ANDI.W      #%0000111000000000,D1
                 LSR.L       #8,D1
                 LSR.L       #1,D1               ; shift to get the register
                 ADD.W       #$30,D1             ; convert ascii number to hex
@@ -905,7 +525,7 @@ SHIFT_count     LEA         POUND,A5
                 MOVE.L      A5,(A6)+            ; add a 'D' to the string
                         
                 MOVE.W      (A2),D1
-                ANDI.W      #$0007,D1
+                ANDI.W      #%0000000000000111,D1
                 ADD.W       #$30,D1             ; convert the register to hex
 
                 MOVE.B      D1,$4002            ; move the register to address $4002
@@ -917,11 +537,11 @@ SHIFT_count     LEA         POUND,A5
             
                 RTS
 
-SHIFT_reg       LEA         DATA_REG,A5
+LS_reg          LEA         DATA_REG,A5
                 MOVE.L      A5,(A6)+            ; add 'D'y to the string
             
                 MOVE.W      (A2),D1
-                ANDI.W      #$0E00,D1
+                ANDI.W      #%0000111000000000,D1
                 LSR.L       #8,D1
                 LSR.L       #1,D1               ; shift to get the register
                 ADD.W       #$30,D1             ; convert ascii number to hex
@@ -938,7 +558,7 @@ SHIFT_reg       LEA         DATA_REG,A5
                 MOVE.L      A5,(A6)+            ; add a 'D' to the string
                         
                 MOVE.W      (A2),D1
-                ANDI.W      #$0007,D1
+                ANDI.W      #%0000000000000111,D1
                 ADD.W       #$30,D1             ; convert the register to hex
 
                 MOVE.B      D1,$4002            ; move the register to address $4002
@@ -965,15 +585,14 @@ OR_opmode       CMP.W       #%0000,D4
                 CMP.W       #%0111,D4
                 BEQ         op_DATA
 
-print_add       MOVEM.L     D0-D7,-(SP)         ; Save the state
-                MOVE.L      A2,D1               ; Move the current address to D1
+print_add       MOVE.L      A2,D1               ; Move the current address to D1
                 MOVE.L      #15,D0              ; Move the I/O code to D0 to print the number in D1
                 MOVE.L      #16,D2              ; Print the number in base 16
                 TRAP        #15                 ; print
-                MOVEM.L     (SP)+,D0-D7         ; restore the state
                 RTS
             
-op_NOP          LEA         NOP_STR,A5
+op_NOP          JSR         print_add           ; print the address
+                LEA         NOP_STR,A5
                 MOVE.L      A5,(A6)+            ; add the operation to the string
                 BRA         PRINT_init          ; print the string
                 RTS
@@ -981,130 +600,47 @@ op_NOP          LEA         NOP_STR,A5
 op_DATA         MOVE.L      #14,D0
                 LEA         DATA_STR,A1
                 TRAP        #15                 ; OP code DNE
-                JSR         START
-            
-op_BRA          LEA         BRA_STR,A5
-                MOVE.L      A5,(A6)+
-                JSR         FIND_DISP
-                RTS
-             
-FIND_DISP       LEA         DOLLAH,A5
-                MOVE.L      A5,(A6)+
-                
-                CMP.B       #$00,D1             ; check the value of the last 8 bits against $00
-                BEQ         op_DISP16           ; if equal, it's a 16 bit displacement
-            
-                CMP.B       #$FF,D1             ; check the value of the last 8 bits against $FF
-                BEQ         op_DISP32           ; if equal, it's a 32 bit displacement
-            
-                BRA         op_DISP8            ; otherwise, it's an 8 bit displacement
-                
-                RTS
-
-op_DISP8        MOVEM.L     D0-D7,-(SP)         * Save the state
-
-                MOVE.L      A2,D0               * Move current address in
-                ADD.L       D1,D0               * Add our displacement to current address
-                
-                MOVE.L      A4,A0               * Move temp value pointer to A0
-                MOVE.L      #$00000004,D1       * prepare for ASCII output
-                CLR         D2
-                CLR         D3
-                JSR         HEXTOASCII
-                
-                MOVEM.L     (SP)+,D0-D7         * Restore previous state
-                
-                ADD.L       #$08,A4             * Prep temp variables
-                MOVE.B      #$00,(A4)+          * Add terminating character
-                MOVE.L      A4,D0               * Print displacement
-                SUB.L       #$09,D0
-                MOVE.L      D0,A5
-                MOVE.L      A5,(A6)+
-                JSR         PRINT_init
                 RTS
             
-op_DISP16       MOVEM.L     D0-D7,-(SP)         * Save the state
-
-                MOVE.L      A2,D0               * Move current address in
-                ADD.W       #$02,A2             * Advance the pointer
-                MOVE.W      (A2)+,D1            * Advance pointer beyond data
-                ADD.L       D1,D0               * Add our displacement to current address
+op_BRA          MOVE.L      #%11111111,D2       ; $FF into D2
+                MOVE.L      #%00000000,D3       ; $00 into D3
+            
+                CMP.B       D1,D3               ; check the value of the last 8 bits against $00
+                BEQ         op_BRA16            ; if equal, it's a 16 bit displacement
+            
+                CMP.B       D1,D2               ; check the value of the last 8 bits against $FF
+                BEQ         op_BRA32            ; if equal, it's a 32 bit displacement
+            
+                BRA         op_BRA8
                 
-                MOVE.L      A4,A0               * Move temp value pointer to A0
-                MOVE.L      #$00000004,D1       * prepare for ASCII output
-                CLR         D2
-                CLR         D3
-                JSR         HEXTOASCII
-                
-                MOVEM.L     (SP)+,D0-D7         * Restore previous state
-                
-                ADD.L       #$08,A4             * Prep temp variables
-                MOVE.B      #$00,(A4)+          * Add terminating character
-                MOVE.L      A4,D0               * Print displacement
-                SUB.L       #$09,D0
-                MOVE.L      D0,A5
-                MOVE.L      A5,(A6)+
-                JSR         PRINT_init
-                RTS
-           
-           
-
-op_DISP32       MOVEM.L     D0-D7,-(SP)         * Save the state
-
-                MOVE.L      A2,D0               * Move current address in
-                ADD.W       #$02,A2             * Advance the pointer
-                MOVE.L      (A2)+,D1            * Advance pointer beyond data
-                ADD.L       D1,D0               * Add our displacement to current address
-                
-                MOVE.L      A4,A0               * Move temp value pointer to A0
-                MOVE.L      #$00000004,D1       * prepare for ASCII output
-                CLR         D2
-                CLR         D3
-                JSR         HEXTOASCII
-                
-                MOVEM.L     (SP)+,D0-D7         * Restore previous state
-                
-                ADD.L       #$08,A4             * Prep temp variables
-                MOVE.B      #$00,(A4)+          * Add terminating character
-                MOVE.L      A4,D0               * Print displacement
-                SUB.L       #$09,D0
-                MOVE.L      D0,A5
-                MOVE.L      A5,(A6)+
-                JSR         PRINT_init
                 RTS
 
+op_BRA8         JSR         print_add           ; print the address
+                LEA         BRA8_STR,A5
+                MOVE.L      A5,(A6)+            ; add the op to the string
+            
+                **** FINDING/ADDING EA TO STRING HERE
+            
+                JSR         PRINT_init          ; print the string
+                RTS
+            
+op_BRA16        JSR         print_add           ; print the address
+                LEA         BRA16_STR,A5
+                MOVE.L      A5,(A6)+            ; add the op to the string
+            
+                **** FINDING/ADDING EA TO STRING HERE
+                
+                JSR         PRINT_init          ; print the string
+                RTS
 
-
-op_BCS          LEA         BCS_STR,A5
-                MOVE.L      A5,(A6)+
-                
-                JSR         FIND_DISP
-                
-                JSR         exit                * eventually should jump to a repeat loop
-                
-        
-op_BGE          LEA         BGE_STR,A5
-                MOVE.L      A5,(A6)+
-                
-                JSR         FIND_DISP
-                
-                JSR         exit                * eventually should jump to a repeat loop
-
-
-op_BLT          LEA         BLT_STR,A5
-                MOVE.L      A5,(A6)+
-                
-                JSR         FIND_DISP
-                
-                JSR         exit                * eventually should jump to a repeat loop
-
-
-op_BVC          LEA         BVC_STR,A5
-                MOVE.L      A5,(A6)+
-                
-                JSR         FIND_DISP
-                
-                JSR         exit                * eventually should jump to a repeat loop
+op_BRA32        JSR         print_add           ; print the address
+                LEA         BRA32_STR,A5
+                MOVE.L      A5,(A6)+            ; add the op to the string
+            
+                **** FINDING/ADDING EA TO STRING HERE
+            
+                JSR         PRINT_init          ; print the string
+                RTS
 
 
 *--------------------------------------------------------------*
@@ -1113,6 +649,8 @@ op_BVC          LEA         BVC_STR,A5
 * D4 - has the REGISTER NUMBER (A-N)
 *         
 op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
+
+                JSR         print_add           ; print the address
             
                 LEA         LEA_STR,A5
                 MOVE.L      A5,(A6)+
@@ -1126,28 +664,9 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
                 * something to an address register An we can pass
                 * our mode as 010 in D4 for Address Reg Direct
             
-                
+                CMP.W       (A2)+,A1            MOVE TO JUST AHEAD OF THE INSTRUCTION (this is important for correct EA mode 7)
             
                 *---NEED TO INSERT INCORRECT EA-MODE CHECKS HERE---*
-                CMP.W       #%00111100,D5       Check for illegal #(data) mode
-                BEQ         op_DATA         
-                
-                MOVEM.L     D0,-(SP)            Just in case store whatever is in D)
-                MOVE.W      D5,D0               Move D5 to D0
-                ANDI.W      #%00111000,D0       Mask EA mode-bits
-                CMP.W       #%00000000,D0       Check for illegal Dn mode
-                BEQ         op_DATA
-                CMP.W       #%00001000,D0       Check for illegal An mode
-                BEQ         op_DATA 
-                CMP.W       #%00011000,D0       Check for illegal (An)+ mode
-                BEQ         op_DATA 
-                CMP.W       #%00100000,D0       Check for illegal -(An) mode
-                BEQ         op_DATA 
-                
-                MOVEM.L     (SP)+,D0            Pop off the stack
-
-                ADD.W       #$02,A2             MOVE TO JUST AHEAD OF THE INSTRUCTION (this is important for correct EA mode 7)
-                
                 JSR         FIND_EAMODE         We have our EA-bits in D5
 
                 JSR         PRINT_COMMA         Print the comma
@@ -1163,44 +682,18 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
                 BRA         exit
             
 *--------------------------------------------------------------*
-* Jump to Subroutine 
-*
-*
 
-op_JSR          LEA         JSR_STR,A5
+op_JSR          JSR         print_add           ; print the address
+                LEA         JSR_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
             
-                JSR         PRINT_TAB           Print the tab
-
-                
-                CMP.W       #%00111100,D5       Check for illegal #(data) mode
-                BEQ         op_DATA         
-                
-                MOVEM.L     D0,-(SP)            Just in case store whatever is in D)
-                MOVE.W      D5,D0               Move D5 to D0
-                ANDI.W      #%00111000,D0       Mask EA mode-bits
-                CMP.W       #%00000000,D0       Check for illegal Dn mode
-                BEQ         op_DATA
-                CMP.W       #%00001000,D0       Check for illegal An mode
-                BEQ         op_DATA 
-                CMP.W       #%00011000,D0       Check for illegal (An)+ mode
-                BEQ         op_DATA 
-                CMP.W       #%00100000,D0       Check for illegal -(An) mode
-                BEQ         op_DATA 
-                
-                MOVEM.L     (SP)+,D0            Pop off the stack
-                
-                ADD.W       #$02,A2             Advance pointer beyond instruction
-                
-                JSR         FIND_EAMODE         Find EA mode
-                
+                **** FINDING/ADDING EA TO STRING HERE
+            
                 JSR         PRINT_init          ; print the string
                 RTS
-
-*---------------------------------------------------------------*
-
-
-op_OR           LEA         OR_STR,A5
+         
+op_OR           JSR         print_add           ; print the address
+                LEA         OR_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
                 JSR         OR_opmode           ; find the size and add it to the string
             
@@ -1209,10 +702,9 @@ op_OR           LEA         OR_STR,A5
                 JSR         PRINT_init          ; print the string
                 RTS
             
-op_ORI          LEA         ORI_STR,A5
+op_ORI          JSR         print_add           ; print the address
+                LEA         ORI_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
-                MOVE.W      (A2),D3
-                ANDI.L      #$00C0,D3           * move the size into D3  
                 JSR         opcode_size_str     ; find the size and add it to the string
                 LSR.L       #6,D1               ; shift the size bits to get the flag 
                 MOVE.L      D1,D6               ; move size bit to D6 to set flag
@@ -1244,7 +736,8 @@ op_ORI          LEA         ORI_STR,A5
                 JSR         PRINT_init          ; print the string
                 RTS
             
-op_BCLR         LEA         BCLR_STR,A5         ; add the op to the string
+op_BCLR         JSR         print_add           ; print the address
+                LEA         BCLR_STR,A5         ; add the op to the string
                 MOVE.L      A5,(A6)+
             
                 **** FINDING/ADDING EA TO STRING HERE
@@ -1252,11 +745,13 @@ op_BCLR         LEA         BCLR_STR,A5         ; add the op to the string
                 RTS
             
 ***************************************************************************       
-opcode_size_str CMP.W       #$0000,D3
+opcode_size_str MOVE.W      (A2),D1
+                ANDI.W      #$00C0,D1
+                CMP.W       #$0000,D1
                 BEQ         print_B_str         ; its a byte
-                CMP.W       #$0040,D3
+                CMP.W       #$0040,D1
                 BEQ         print_W_str         ; its a word
-                CMP.W       #$0080,D3
+                CMP.W       #$0080,D1
                 BEQ         print_L_str         ; its a long
                 RTS
             
@@ -1288,56 +783,47 @@ PRINT_loop      CMP.L       #$FFFFFFFF,(A5)     ; if the value at A5 is all F's,
 
 PRINT_exit      RTS
 ***************************************************************************
-op_NEG          LEA         NEG_STR,A5
+op_NEG          JSR         print_add           ; print the address
+                LEA         NEG_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
-                MOVE.W      (A2),D3
-                ANDI.L      #$00C0,D3           * move the size into D3  
                 JSR         opcode_size_str     ; find the size and add it to the string            
             
-                **** ADD TESTING
-                MOVEM.L     D5,-(SP)            ; save the state of D5
-                ANDI.B      #%00111000,D5       ; separate the EA mode
-                CMP.B       #%00001000,D5       ; check if it's mode 1
-                BEQ         op_DATA             ; if is, it's invalid
-                MOVEM.L     (SP)+,D5            ; restore D5 if it isn't
-                
-                ADD.W       #$02,A2             Advance just ahead of instruction
-                
-                JSR         FIND_EAMODE
+                **** FINDING/ADDING EA TO STRING HERE
             
                 JSR         PRINT_init          ; print the string
                 RTS
-*---------------------------------------------------------------------------------*
-* RTS: Return From Subroutine
-*
-*
-op_RTS          LEA         RTS_STR,A5
+            
+op_RTS          JSR         print_add           ; print the address
+                LEA         NEG_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string            
                 JSR         PRINT_init          ; print the string
-                ADD.W       #02,A2              Advance pointer just after instruction
                 RTS
-
-*---------------------------------------------------------------------------------*
-
-op_LSL          LEA         LSL_STR,A5
+            
+op_LSL          JSR         print_add           ; print the address
+                LEA         LSL_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
-                MOVE.W      (A2),D3
-                ANDI.L      #$00C0,D3           * move the size into D3         
                 JSR         opcode_size_str     ; find the size and add it to the string            
                 RTS
           
-op_LSR          LEA         LSR_STR,A5
+op_LSR          JSR         print_add           ; print the address
+                LEA         LSR_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
-                MOVE.W      (A2),D3
-                ANDI.L      #$00C0,D3           * move the size into D3  
                 JSR         opcode_size_str     ; find the size and add it to the string            
                 RTS
             
+op_LSL_ea       **** FINDING/ADDING EA TO STRING HERE
+                
+                JSR         PRINT_init          ; print the string
+                RTS
             
-op_CMPI         LEA         CMPI_STR,A5
+op_LSR_ea       **** FINDING/ADDING EA TO STRING HERE
+            
+                JSR         PRINT_init          ; print the string
+                RTS
+            
+op_CMPI         JSR         print_add           ; print the address
+                LEA         CMPI_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
-                MOVE.W      (A2),D3
-                ANDI.L      #$00C0,D3           * move the size into D3  
                 JSR         opcode_size_str     ; find the size and add it to the string            
             
                 **** FINDING/ADDING EA TO STRING HERE
@@ -1372,7 +858,7 @@ PRINT_TAB       MOVEM.L     A1/D0,-(SP)         save what we change (ALWAYS!)
 
 *------------------------------------------------------------------*
 * Determine EA MODE 
-* This will determine what effective addressing mode to do
+* This will deterine what effective addressing mode to do
 *
 * 
 * D5 - Contains the EA bits
@@ -1391,16 +877,14 @@ FIND_EAMODE     MOVE.L      D5,D2
 
 *------------------------------------------------------------------------*
 * This Subroutine performs the same way as EA, only we get the 
-* Destination reg and mode (mainly for testing simpler commands where
+* Desination reg and mode (mainly for testing simpler commands where
 * we know the what register and mode are, 
 * D4 - is expected to carry an the op-mode
 * D3 - has the appropriate register
 *             
-FIND_OPMODE     MOVEM.L     D2/D5,-(SP)         Save the state of Registers D2 & D5
-                MOVE.B      D4,D5               Get OPMODE (this is for destination mode, reg testing)
+FIND_OPMODE     MOVE.B      D4,D5               Get OPMODE (this is for destination mode, reg testing)
                 MOVE.B      D3,D2               Get reg number then go to appropriate mode
                 JSR         MODE_SELECT
-                MOVEM.L     (SP)+,D2/D5         Restore before we jump back
                 RTS
 
 *-----------------------------------------------------------------------
@@ -1422,9 +906,9 @@ MODE_SELECT     CMP.B       #0,D5               MODE ZERO Goes to DATA REG DIREC
                 CMP.B       #4,D5
                 BEQ         M_FOUR              Address Reg Indirect Pre Dec
                 CMP.B       #5,D5
-                BEQ         op_DATA
+                BEQ         M_FIVE
                 CMP.B       #6,D5
-                BEQ         op_DATA
+                BEQ         M_SIX
                 CMP.B       #7,D5
                 BEQ         M_SEVEN             Auxillary EA modes (ABS Short,Long,Immed...)
 
@@ -1550,7 +1034,7 @@ M_FOUR          MOVEM.L     D0-D7/A0-A3,-(SP)   Save our stuff real quick
                 LEA         L_PAREN,A5
                 MOVE.L      A5,(A6)+            Add the '(' to the output string
             
-                LEA         ADDR_REG,A5         
+                LEA         ADDR_REG,A1         
                 MOVE.L      A5,(A6)+            Add the 'A' to the output string
 
                 ADD.W       #$30,D2             ; convert ascii number to hex
@@ -1569,6 +1053,10 @@ M_FOUR          MOVEM.L     D0-D7/A0-A3,-(SP)   Save our stuff real quick
                 RTS                             Leave this place 
 
 
+
+M_FIVE          BRA         exit
+
+M_SIX           BRA         exit
 
 
 
@@ -1597,9 +1085,9 @@ M_SEVEN         CMP.B       #0,D2
                 CMP.B       #1,D2
                 BEQ         ABS_LONGADDR
                 CMP.B       #2,D2
-                BEQ         op_DATA
+                BEQ         exit                NOT DONE
                 CMP.B       #3,D2
-                BEQ         op_DATA
+                BEQ         exit                NOT DONE
                 CMP.B       #4,D2       
                 BEQ         IMMED_DATA
 
@@ -1624,7 +1112,7 @@ ABS_SHORTADDR   MOVEM.L     A1/D0-D1,-(SP)      Save our state
                 
                 MOVEM.L     D0-D7,-(SP)         Save state
                 
-                MOVE.L      A4,A0               Clear the output address location
+                MOVE.L      A4,A0       Clear the output address location
                 MOVE.W      D2,D0
                 MOVE.L      #$00000002,D1
                 MOVE.L      #$00000000,D2
@@ -1668,7 +1156,7 @@ ABS_LONGADDR    MOVEM.L     A1/D0-D1,-(SP)      Save our state
                 **** NEED TO CONVERT D2 to ASCII
                 MOVEM.L     D0-D7,-(SP)         Save state
                 
-                MOVE.L      A4,A0               Clear the output address location
+                MOVE.L      A4,A0       Clear the output address location
                 MOVE.L      D2,D0
                 MOVE.L      #$00000004,D1
                 MOVE.L      #$00000000,D2
@@ -1802,10 +1290,10 @@ STACK_REG       MOVEM.L     D0/A1,-(SP)
 
 
             
-exit            MOVE.L      #13,D0
-                LEA         TAB,A1
-                TRAP        #15                 ; print a new line before repeating prompt
-                JSR         START
+exit            *MOVE.L      #13,D0
+                *LEA         TAB,A1
+                *TRAP        #15                 ; print a new line before repeating prompt
+                *JSR         START
                 SIMHALT                         ; halt simulator
 
 * Put variables and constants here
@@ -1829,7 +1317,9 @@ IMMED_PREFIX    DC.B        '#$',0
 DATA_STR        DC.B        '      DATA',CR,LF,0
 NOP_STR         DC.B        '      NOP',CR,LF,0
 MOVEB_STR       DC.B        '      MOVE.B',0
-BRA_STR         DC.B        '      BRA  ',0
+BRA8_STR        DC.B        '      BRA - 8-bit displacement  **FINISHHHHH',0
+BRA16_STR       DC.B        '      BRA - 16-bit displacement **FINISH HIM',0
+BRA32_STR       DC.B        '      BRA - 32-bit displacement **FINISH HIM',0
 LEA_STR         DC.B        '      LEA',0
 JSR_STR         DC.B        '      JSR',0
 OR_STR          DC.B        '      OR',0
@@ -1840,14 +1330,6 @@ BCLR_STR        DC.B        '      BCLR',0
 LSL_STR         DC.B        '      LSL',0
 LSR_STR         DC.B        '      LSR',0
 CMPI_STR        DC.B        '      CMPI',0
-BCS_STR         DC.B        '      BCS  ',0
-BGE_STR         DC.B        '      BGE  ',0
-BLT_STR         DC.B        '      BLT  ',0
-BVC_STR         DC.B        '      BVC  ',0
-ROL_STR         DC.B        '      ROL',0
-ROR_STR         DC.B        '      ROR',0
-ASL_STR         DC.B        '      ASL',0
-ASR_STR         DC.B        '      ASR',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
@@ -1862,15 +1344,6 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
-
-
-
-
-
-
-
-
-
 
 
 
