@@ -45,275 +45,320 @@ START:
                 MOVE.L      #$00000000,A6
                 MOVE.L      #$00000000,A7       ; clear all address registers
                 * For testing  
-                MOVE.L      #$000200EC, $6060    ORI.B  #$EC,D2
-                MOVE.L      #$00450123, $6050    ORI.W  #$0123,D5              RETURN IS WRONG
-                MOVE.W      #$0085, $6070        ORI.L  #$xxxxxxxx, D5         RETURN IS WRONG
-                MOVE.L      #$12345678, $6072             12345678    
-                MOVE.L      #$43F87000, $6000    LEA $7000,A1
+                MOVE.L      #$000200EC, $6000    ORI.B  #$EC,D2
+                MOVE.L      #$00450123, $6004    ORI.W  #$0123,D5
+                MOVE.W      #$0085, $6008        ORI.L  #$xxxxxxxx, D5
+                MOVE.L      #$12345678, $600A             12345678    
+                MOVE.L      #$43F87000, $600E    LEA $7000,A1
                 
-                MOVE.W      #$4E71, $7000       NOP                             Extra blank line after return
-                MOVE.W      #$1200, $7010       MOVE.B D0,D1                    WRONG
-                MOVE.W      #$1607, $7020       MOVE.B D7,D3                    WRONG
+                MOVE.W      #$4E71, $6012       NOP                             Extra blank line after return
+                MOVE.W      #$1200, $6014       MOVE.B D0,D1                    WRONG
+                MOVE.W      #$1607, $6016       MOVE.B D7,D3                    WRONG
                 
-                ******************************* BRA TESTING ***************************
-                MOVE.W      #$6055, $7022       BRA A+55
-                MOVE.W      #$6000, $7024       BRA A+5555
-                MOVE.W      #$5555, $7026       5555 following
-                MOVE.W      #$60FF, $7028       BRA A+55555555
-                MOVE.L      #$55555555, $702A   55555555 following
+                ******************************* BRA TESTING *************************** 6018-6040
+                MOVE.W      #$6055, $6018       BRA A+55
+                MOVE.W      #$6000, $601A       BRA A+5555
+                MOVE.W      #$5555, $601C       5555 following
+                MOVE.W      #$60FF, $601E       BRA A+55555555
+                MOVE.L      #$55555555, $6020   55555555 following
                 
-                MOVE.W      #$6555, $702E       BCS A+55
-                MOVE.W      #$6500, $7030       BCS A+5555
-                MOVE.W      #$5555, $7032       5555 following
-                MOVE.W      #$65FF, $7034       BCS A+55555555
-                MOVE.L      #$55555555, $7036   55555555 following
+                MOVE.W      #$6555, $6024       BCS A+55
+                MOVE.W      #$6500, $6026       BCS A+5555
+                MOVE.W      #$5555, $6028       5555 following
+                MOVE.W      #$65FF, $602A       BCS A+55555555
+                MOVE.L      #$55555555,$602C   55555555 following
                 
-                MOVE.W      #$6C55, $703A       BGE A+55
-                MOVE.W      #$6C00, $703C       BGE A+5555
-                MOVE.W      #$5555, $703E       5555 following
-                MOVE.W      #$6CFF, $7040       BGE A+55555555
-                MOVE.L      #$55555555, $7042   55555555 following
+                MOVE.W      #$6C55, $6030       BGE A+55
+                MOVE.W      #$6C00, $6032       BGE A+5555
+                MOVE.W      #$5555, $6034       5555 following
+                MOVE.W      #$6CFF, $6036       BGE A+55555555
+                MOVE.L      #$55555555, $6038   55555555 following
                 
-                MOVE.W      #$6D55, $7044       BLT A+55
-                MOVE.W      #$6D00, $7046       BLT A+5555
-                MOVE.W      #$5555, $7048       5555 following
-                MOVE.W      #$6DFF, $704A       BLT A+55555555
-                MOVE.L      #$55555555, $704C   55555555 following
+                MOVE.W      #$6D55, $603C       BLT A+55
+                MOVE.W      #$6D00, $603E       BLT A+5555
+                MOVE.W      #$5555, $6040       5555 following
+                MOVE.W      #$6DFF, $6042       BLT A+55555555
+                MOVE.L      #$55555555, $6044   55555555 following
                 
-                MOVE.W      #$6855, $7050       BVC A+55                WRONG OUTPUT = overwritten with LEA just below
-                MOVE.W      #$6800, $7052       BVC A+5555
-                MOVE.W      #$5555, $7054       5555 following
-                MOVE.W      #$68FF, $7056       BVC A+55555555
-                MOVE.L      #$55555555, $7058   55555555 following
+                MOVE.W      #$6855, $6048       BVC A+55
+                MOVE.W      #$6800, $604A       BVC A+5555
+                MOVE.W      #$5555, $604C       5555 following
+                MOVE.W      #$68FF, $604E       BVC A+55555555
+                MOVE.L      #$55555555, $6040   55555555 following
                 ***********************************************************************
+                *** 6044 TO 6064 OPEN FOR TESTS ***
             
-                MOVE.W      #$4BD1, $7050       LEA (A1) with A5
+            
+            
+            
+                MOVE.W      #$4BD1, $6064       LEA (A1) with A5
+                MOVE.W      #$4E80, $6066       JSR
+                  *********************NEG TESTING************************ 607A-6110
+                MOVE.W      #$4401, $607A       NEG.B D1
+                MOVE.W      #$4441, $607C       NEG.W D1
+                MOVE.W      #$4481, $607E       NEG.L D1
                 
-                MOVE.W      #$4E80, $7070       JSR
-                MOVE.W      #$8A41, $7080       OR.W D5,D1 (into Dn)        Only showing OR.W
-                MOVE.W      #$8A01, $7090       OR.B D5,D1 (into Dn)        *
-                MOVE.W      #$8B01, $8000       OR.B D5,D1 (into ea)        *
-                MOVE.W      #$8B41, $8010       OR.W D5,D1 (into ea)        *
-                MOVE.W      #$8A81, $8020       OR.L D5,D1 (into Dn)        *
-                MOVE.W      #$8B81, $8030       OR.L D5,D1 (into ea)        *
-                MOVE.W      #$0005, $8040       ORI.B #$xx,D5
-                MOVE.W      #$0045, $8050       ORI.W #$xxxx,D5             WRONG OUTPUT
-                MOVE.W      #$0085, $8060       ORI.L #$xxxxxxxx,D5         WRONG OUTPUT
-                  *********************NEG TESTING************************
-                MOVE.W      #$4401, $8070       NEG.B D1
-                MOVE.W      #$4441, $8080       NEG.W D1
-                MOVE.W      #$4481, $8090       NEG.L D1
+                MOVE.W      #$4409, $6080       DATA (mode 1)
+                MOVE.W      #$4449, $6082       DATA (mode 1)
+                MOVE.W      #$4489, $6084       DATA (mode 1)
                 
-                MOVE.W      #$4409, $8076       DATA (mode 1)
-                MOVE.W      #$4449, $8086       DATA (mode 1)
-                MOVE.W      #$4489, $8096       DATA (mode 1)
+                MOVE.W      #$4411, $6086       NEG.B (A1)
+                MOVE.W      #$4451, $6088       NEG.W (A1)
+                MOVE.W      #$4491, $608A       NEG.L (A1)
+              
+                MOVE.W      #$4419, $608C       NEG.B (A1)+
+                MOVE.W      #$4459, $608E       NEG.W (A1)+
+                MOVE.W      #$4499, $6090       NEG.L (A1)+
                 
-                MOVE.W      #$4411, $9300       NEG.B (A1)
-                MOVE.W      #$4451, $9304       NEG.W (A1)
-                MOVE.W      #$4491, $9308       NEG.L (A1)
-                
-                MOVE.W      #$4419, $9412       NEG.B (A1)+
-                MOVE.W      #$4459, $9416       NEG.W (A1)+
-                MOVE.W      #$4499, $9420       NEG.L (A1)+
-                
-                MOVE.W      #$4421, $9424       NEG.B -(A1)
-                MOVE.W      #$4461, $9428       NEG.W -(A1)
-                MOVE.W      #$44A1, $9432       NEG.L -(A1)
-                
+                MOVE.W      #$4421, $6092       NEG.B -(A1)
+                MOVE.W      #$4461, $6094       NEG.W -(A1)
+                MOVE.W      #$44A1, $6096       NEG.L -(A1)
+               
 
-                MOVE.W      #$4438, $9460       NEG.B $AAAA 
-                MOVE.W      #$AAAA, $9462
-                MOVE.W      #$4478, $9468       NEG.W $AAAA
-                MOVE.W      #$AAAA, $946A
-                MOVE.W      #$44B8, $9476       NEG.L $AAAA
-                MOVE.W      #$AAAA, $9478
+                MOVE.W      #$4438, $6098       NEG.B $AAAA 
+                MOVE.W      #$AAAA, $609A
+                MOVE.W      #$4478, $609C       NEG.W $AAAA
+                MOVE.W      #$AAAA, $609E
+                MOVE.W      #$44B8, $60A0       NEG.L $AAAA
+                MOVE.W      #$AAAA, $60A2
                 
-                MOVE.W      #$4439, $9484       NEG.B $AAAAAAAA
-                MOVE.L      #$AAAAAAAA, $9486
-                MOVE.W      #$4479, $9496       NEG.W $AAAAAAAA
-                MOVE.L      #$AAAAAAAA, $9498
-                MOVE.W      #$44B9, $9508       NEG.L $AAAAAAAA
-                MOVE.L      #$AAAAAAAA, $950A
+                MOVE.W      #$4439, $60A4       NEG.B $AAAAAAAA
+                MOVE.L      #$AAAAAAAA, $60A6
+                MOVE.W      #$4479, $60AA       NEG.W $AAAAAAAA
+                MOVE.L      #$AAAAAAAA, $60AC
+                MOVE.W      #$44B9, $60AE       NEG.L $AAAAAAAA
+                MOVE.L      #$AAAAAAAA, $60A0
                 ********************************************************
-
-                MOVE.W      #$4E75, $9000       RTS                     WRONG OUTPUT
-                MOVE.W      #$0B91, $9010       BCLR D5,A1              ONLY showing BCLR
-                MOVE.W      #$3246, $9020       MOVE.W D6,A1            WRONG OUTPUT
                 
-                **********************LSL/LSR TESTING*******************
+                *** 60A4 TO 6114 EMPTY IN MEMORY - OPEN FOR TESTING ***
+                ************************** OR TESTING ************************
+                ** EA Source ** .B
+                MOVE.W      #$8A03, $60A4       OR.B D3,D5
+                MOVE.W      #$8A0B, $60A6       OR.B A3,D5 ---- INVALID, DATA
+                MOVE.W      #$8A13, $60A8       OR.B (A3),D5
+                MOVE.W      #$8A1B, $60AA       OR.B (A3)+,D5
+                MOVE.W      #$8A23, $60AC       OR.B -(A3),D5
+                MOVE.W      #$8A2B, $60AE       OR.B (D16,AN) ?
+                MOVE.W      #$8A33, $60B0       OR.B (D8,AN,XN) ?
+                MOVE.L      #$8A38AAAA, $60B2   OR.B #$AAAA,D5
+                MOVE.L      #$8A39AAAA, $60B6   OR.B #$AAAAAAAA,D5
+                MOVE.W      #$AAAA, $60BA
+                MOVE.L      #$8A3CABCD, $60BC   OR.B #$ABCD,D5 ...???                
+                
+                ** EA Destination ** .B
+                MOVE.W      #$8B03, $60BE       OR.B D5,D3 ---- INVALID, DATA
+                MOVE.W      #$8B0B, $60C0       OR.B D5,A3 ---- INVALID, DATA
+                MOVE.W      #$8B13, $60C2       OR.B D5,(A3)
+                MOVE.W      #$8B1B, $60C4       OR.B D5,(A3)+
+                MOVE.W      #$8B23, $60C6       OR.B D5,-(A3)
+                MOVE.W      #$8B2B, $60C8       OR.B (D16,AN) ?
+                MOVE.W      #$8B33, $60CA       OR.B (D8,AN,XN) ?
+                MOVE.L      #$8B38AAAA, $60CC   OR.B D5,#$AAAA
+                MOVE.L      #$8B39AAAA, $60D0   OR.B D5,#$AAAAAAAA
+                MOVE.W      #$AAAA, $60D4
+                MOVE.L      #$8B3CABCD, $60D6   OR.B D5,#$ABCD ---- INVALID, DATA
+                *****************************************************************
+
+                MOVE.W      #$4E75, $6114       RTS                     WRONG OUTPUT
+                MOVE.W      #$0B91, $6116       BCLR D5,A1              ONLY showing BCLR
+                MOVE.W      #$3246, $6118       MOVE.W D6,A1            WRONG OUTPUT
+                
+                **********************LSL/LSR TESTING******************* 611A-615E
                 *** NO EA ***
                 * LSL COUNT *
-                MOVE.W      #$E70D, $9030       LSL.B #3,D5
-                MOVE.W      #$E74D, $9040       LSL.W #3,D5
-                MOVE.W      #$E78D, $9050       LSL.L #3,D5
+                MOVE.W      #$E70D, $611A       LSL.B #3,D5
+                MOVE.W      #$E74D, $611C       LSL.W #3,D5
+                MOVE.W      #$E78D, $611E       LSL.L #3,D5
                 * LSL REGISTER *
-                MOVE.W      #$E72D, $9060       LSL.B D3,D5
-                MOVE.W      #$E76D, $9070       LSL.W D3,D5
-                MOVE.W      #$E7AD, $9080       LSL.L D3,D5
+                MOVE.W      #$E72D, $6120       LSL.B D3,D5
+                MOVE.W      #$E76D, $6122       LSL.W D3,D5
+                MOVE.W      #$E7AD, $6124       LSL.L D3,D5
                 * LSR COUNT *
-                MOVE.W      #$E60D, $9090       LSR.B #3,D5
-                MOVE.W      #$E64D, $9100       LSR.W #3,D5
-                MOVE.W      #$E68D, $9110       LSR.L #3,D5
+                MOVE.W      #$E60D, $6126       LSR.B #3,D5
+                MOVE.W      #$E64D, $6128       LSR.W #3,D5
+                MOVE.W      #$E68D, $612A       LSR.L #3,D5
                 * LSR REGISTER *
-                MOVE.W      #$E62D, $9120       LSR.B D3,D5
-                MOVE.W      #$E66D, $9130       LSR.W D3,D5
-                MOVE.W      #$E6AD, $9140       LSR.L D3,D5
+                MOVE.W      #$E62D, $612C       LSR.B D3,D5
+                MOVE.W      #$E66D, $612E       LSR.W D3,D5
+                MOVE.W      #$E6AD, $6130       LSR.L D3,D5
                 
                 *** EA MODES ***
                 * LSR Dn * -- INVALID
-                MOVE.W      #$E2C5, $9600
+                MOVE.W      #$E2C5, $6132
                 * LSL Dn * -- INVALID
-                MOVE.W      #$E3C5, $9602
+                MOVE.W      #$E3C5, $6134
                 * LSR An * -- INVALID
-                MOVE.W      #$E2CD, $9604
+                MOVE.W      #$E2CD, $6136
                 * LSL An * -- INVALID
-                MOVE.W      #$E3CD, $9606
+                MOVE.W      #$E3CD, $6138
                 * LSR (An) *
-                MOVE.W      #$E2D5, $9608
+                MOVE.W      #$E2D5, $613A
                 * LSL (An) *
-                MOVE.W      #$E3D5, $960A
+                MOVE.W      #$E3D5, $613C
                 * LSR (An)+ *
-                MOVE.W      #$E2DD, $960C
+                MOVE.W      #$E2DD, $613E
                 * LSL (An)+ *
-                MOVE.W      #$E3DD, $960E
+                MOVE.W      #$E3DD, $6140
                 * LSR -(An) *
-                MOVE.W      #$E2E5, $9610
+                MOVE.W      #$E2E5, $6142
                 * LSL -(An) *
-                MOVE.W      #$E3E5, $9612
+                MOVE.W      #$E3E5, $6144
                 * LSR (d16,An) *
-                MOVE.W      #$E2ED, $9614
+                MOVE.W      #$E2ED, $6146
                 * LSL (d16,An) *
-                MOVE.W      #$E3ED, $9616
+                MOVE.W      #$E3ED, $6148
                 * LSR (d8,An,Xn) *
-                MOVE.W      #$E2F5, $9618
+                MOVE.W      #$E2F5, $614A
                 * LSL (d8,An,Xn) *
-                MOVE.W      #$E3F5, $961A
+                MOVE.W      #$E3F5, $614C
                 * LSR (xxx).W *
-                MOVE.W      #$E2F8, $961C
-                MOVE.W      #$AAAA, $961E
+                MOVE.W      #$E2F8, $614E
+                MOVE.W      #$AAAA, $6150
                 * LSL (xxx).W *
-                MOVE.W      #$E3F8, $9620
-                MOVE.W      #$AAAA, $9622
+                MOVE.W      #$E3F8, $6152
+                MOVE.W      #$AAAA, $6154
                 * LSR (xxx).L *
-                MOVE.W      #$E2F9, $9624
-                MOVE.L      #$AAAAAAAA, $9626
+                MOVE.W      #$E2F9, $6156
+                MOVE.L      #$AAAAAAAA, $6158
                 * LSL (xxx).L *
-                MOVE.W      #$E3F9, $962A
-                MOVE.L      #$AAAAAAAA, $962C
+                MOVE.W      #$E3F9, $615C
+                MOVE.L      #$AAAAAAAA, $615E
 
                 *******************************************************
                 
-                MOVE.W      #$0C01, $9200       CMPI.B #$ xx,D1
-                MOVE.W      #$0C51, $9210       CMPI.W #$ xxxx,(A1)
-                MOVE.W      #$0C99, $9220       CMPI.L #$ xxxxxxxx,(A1)+
-               
-                **********************ROL/ROR TESTING*******************
+                **********************ASL/ASR TESTING******************* 6162-6206
+                *** NO EA ***
+                * ASL COUNT *
+                MOVE.W      #$E705, $6162       ASL.B #3,D5
+                MOVE.W      #$E745, $6164       ASL.W #3,D5
+                MOVE.W      #$E785, $6166       ASL.L #3,D5
+                * ASL REGISTER *
+                MOVE.W      #$E725, $6168       ASL.B D3,D5
+                MOVE.W      #$E765, $616A       ASL.W D3,D5
+                MOVE.W      #$E7A5, $616C       ASL.L D3,D5
+                * ASR COUNT *
+                MOVE.W      #$E605, $616E       ASR.B #3,D5
+                MOVE.W      #$E645, $6170       ASR.W #3,D5
+                MOVE.W      #$E685, $6172       ASR.L #3,D5
+                * ASR REGISTER *
+                MOVE.W      #$E625, $6174       ASR.B D3,D5
+                MOVE.W      #$E665, $6176       ASR.W D3,D5
+                MOVE.W      #$E6A5, $6178       ASR.L D3,D5
+                
+                *** EA MODES ***
+                * ASR Dn * -- INVALID
+                MOVE.W      #$E0C5, $617A
+                * ASL Dn * -- INVALID
+                MOVE.W      #$E1C5, $617C
+                * ASR An * -- INVALID
+                MOVE.W      #$E0CD, $617E
+                * ASL An * -- INVALID
+                MOVE.W      #$E1CD, $6180
+                * ASR (An) *
+                MOVE.W      #$E0D5, $6182
+                * ASL (An) *
+                MOVE.W      #$E1D5, $6184
+                * ASR (An)+ *
+                MOVE.W      #$E0DD, $6186
+                * ASL (An)+ *
+                MOVE.W      #$E1DD, $6188
+                * ASR -(An) *
+                MOVE.W      #$E0E5, $618A
+                * ASL -(An) *
+                MOVE.W      #$E1E5, $618C
+                * ASR (d16,An) *
+                MOVE.W      #$E0ED, $618E
+                * ASL (d16,An) *
+                MOVE.W      #$E1ED, $6190
+                * ASR (d8,An,Xn) *
+                MOVE.W      #$E0F5, $6192
+                * ASL (d8,An,Xn) *
+                MOVE.W      #$E1F5, $6194
+                * ASR (xxx).W *
+                MOVE.W      #$E0F8, $6196
+                MOVE.W      #$AAAA, $6198
+                * ASL (xxx).W *
+                MOVE.W      #$E1F8, $619A
+                MOVE.W      #$AAAA, $619C
+                * ASR (xxx).L *
+                MOVE.W      #$E0F9, $619E
+                MOVE.L      #$AAAAAAAA, $61A0
+                * ASL (xxx).L *
+                MOVE.W      #$E1F9, $61A4
+                MOVE.L      #$AAAAAAAA, $61A6
+
+                *******************************************************
+
+                
+                **********************ROL/ROR TESTING******************* 6208 - 624C
                 *** NO EA ***
                 * ROL COUNT *
-                MOVE.W      #$E71D, $9630       ROL.B #3,D5
-                MOVE.W      #$E75D, $9632       ROL.W #3,D5
-                MOVE.W      #$E79D, $9634       ROL.L #3,D5
+                MOVE.W      #$E71D, $61A8       ROL.B #3,D5
+                MOVE.W      #$E75D, $61AA       ROL.W #3,D5
+                MOVE.W      #$E79D, $61AC       ROL.L #3,D5
                 * ROL REGISTER *
-                MOVE.W      #$E73D, $9636       ROL.B D3,D5
-                MOVE.W      #$E77D, $9638       ROL.W D3,D5
-                MOVE.W      #$E7BD, $963A       ROL.L D3,D5
+                MOVE.W      #$E73D, $61AE       ROL.B D3,D5
+                MOVE.W      #$E77D, $61B0       ROL.W D3,D5
+                MOVE.W      #$E7BD, $61B2       ROL.L D3,D5
                 * ROR COUNT *
-                MOVE.W      #$E61D, $963C       ROR.B #3,D5
-                MOVE.W      #$E65D, $963E       ROR.W #3,D5
-                MOVE.W      #$E69D, $9640       ROR.L #3,D5
+                MOVE.W      #$E61D, $61B4       ROR.B #3,D5
+                MOVE.W      #$E65D, $61B6       ROR.W #3,D5
+                MOVE.W      #$E69D, $61B8       ROR.L #3,D5
                 * ROR REGISTER *
-                MOVE.W      #$E63D, $9642       ROR.B D3,D5
-                MOVE.W      #$E67D, $9644       ROR.W D3,D5
-                MOVE.W      #$E6BD, $9646       ROR.L D3,D5
+                MOVE.W      #$E63D, $61BA       ROR.B D3,D5
+                MOVE.W      #$E67D, $61BC       ROR.W D3,D5
+                MOVE.W      #$E6BD, $61BE       ROR.L D3,D5
                 
                 *** EA MODES ***
                 * ROR Dn * -- INVALID
-                MOVE.W      #$E6C5, $9648
+                MOVE.W      #$E6C5, $61C0
                 * ROL Dn * -- INVALID
-                MOVE.W      #$E7C5, $964A
+                MOVE.W      #$E7C5, $61C2
                 * ROR An * -- INVALID
-                MOVE.W      #$E6CD, $964C
+                MOVE.W      #$E6CD, $61C4
                 * ROL An * -- INVALID
-                MOVE.W      #$E7CD, $964E
+                MOVE.W      #$E7CD, $61C6
                 * ROR (An) *
-                MOVE.W      #$E6D5, $9650
+                MOVE.W      #$E6D5, $61C8
                 * ROL (An) *
-                MOVE.W      #$E7D5, $9652
+                MOVE.W      #$E7D5, $61CA
                 * ROR (An)+ *
-                MOVE.W      #$E6DD, $9654
+                MOVE.W      #$E6DD, $61CC
                 * ROL (An)+ *
-                MOVE.W      #$E7DD, $9656
+                MOVE.W      #$E7DD, $61CE
                 * ROR -(An) *
-                MOVE.W      #$E6E5, $9658
+                MOVE.W      #$E6E5, $61D0
                 * ROL -(An) *
-                MOVE.W      #$E7E5, $965A
+                MOVE.W      #$E7E5, $61D2
                 * ROR (d16,An) *
-                MOVE.W      #$E6ED, $965C
+                MOVE.W      #$E6ED, $61D4
                 * ROL (d16,An) *
-                MOVE.W      #$E7ED, $965E
+                MOVE.W      #$E7ED, $61D6
                 * ROR (d8,An,Xn) *
-                MOVE.W      #$E6F5, $9660
+                MOVE.W      #$E6F5, $61D8
                 * ROL (d8,An,Xn) *
-                MOVE.W      #$E7F5, $9662
+                MOVE.W      #$E7F5, $61DA
                 * ROR (xxx).W *
-                MOVE.W      #$E6F8, $9664
-                MOVE.W      #$AAAA, $9666
+                MOVE.W      #$E6F8, $61DC
+                MOVE.W      #$AAAA, $61DE
                 * ROL (xxx).W *
-                MOVE.W      #$E7F8, $9668
-                MOVE.W      #$AAAA, $966A
+                MOVE.W      #$E7F8, $61E0
+                MOVE.W      #$AAAA, $61E2
                 * ROR (xxx).L *
-                MOVE.W      #$E6F9, $966C
-                MOVE.L      #$AAAAAAAA, $966E
+                MOVE.W      #$E6F9, $61E4
+                MOVE.L      #$AAAAAAAA, $61E6
                 * ROL (xxx).L *
-                MOVE.W      #$E7F9, $9672
-                MOVE.L      #$AAAAAAAA, $9674
+                MOVE.W      #$E7F9, $61EA
+                MOVE.L      #$AAAAAAAA, $61EC
 
                 *******************************************************
 
+                *** 61EC TO 6250 EMPTY - ROOM AVAILABLE FOR TESTING ***
                 
-                MOVE.W      #$0C01, $9200       CMPI.B #$ xx,D1             ONLY CMPI
-                MOVE.W      #$0C51, $9210       CMPI.W #$ xxxx,(A1)         ONLY CMPI
-                MOVE.W      #$0C99, $9220       CMPI.L #$ xxxxxxxx,(A1)+    ONLY CMPI
-            
-                *******************************************************
-                * JSR TESTS    
-                *        
-    
-                MOVE.L      #$4EB86000,$9630    JSR $6000
-                MOVE.W      #$4E91,$9634        JSR (A1)
-                MOVE.W      #$4E93,$9636        JSR (A3)
-                MOVE.L      #$4EB90000,$9638    JSR $00008000
-                MOVE.W      #$8000,$963C
-                
-                MOVE.W      #$4E80,$963E        Attempt JSR D0
-                MOVE.W      #$4E88,$9640        Attempt JSR A0
-                MOVE.W      #$4E98,$9642        Attempt JSR (A1)+
-                MOVE.W      #$4EA0,$9644        Attempt JSR -(A1)
-                MOVE.W      #$4EBC,$9646        Attempt JSR #(DATA)
-                
-                *******************************************************
-                * LEA Tests
-                *
-                
-                MOVE.W      #$43D5,$9648        LEA (A5),A1
-                MOVE.W      #$4DF8,$964A        LEA  $4000,A6
-                MOVE.W      #$4000,$964C
-
-                MOVE.W      #$49F9,$964E        LEA  $8000,A4
-                MOVE.L      #$00008000,$9650                                
-                
-                MOVE.W      #$47F9,$9654        LEA  $000505AB,A3
-                MOVE.L      #$000505AB,$9656     
-                
-                MOVE.W      #$41C0,$965A        Attempt LEA Dn,A0
-                MOVE.W      #$41C8,$965C        Attempt LEA An,A0
-                MOVE.W      #$41D8,$965E        Attempt LEA (An)+,A0
-                MOVE.W      #$41E0,$9660        Attempt LEA -(An),A0
-                MOVE.W      #$41F0,$9662        Attempt LEA #(DATA),A0
-                    
-                *******************************************************
-            
-            
+                MOVE.W      #$0C01, $6250       CMPI.B #$ xx,D1             ONLY CMPI
+                MOVE.W      #$0C51, $6252       CMPI.W #$ xxxx,(A1)         ONLY CMPI
+                MOVE.W      #$0C99, $6254       CMPI.L #$ xxxxxxxx,(A1)+    ONLY CMPI
+           
             
                 LEA         STACK,SP            Load the stack
             
@@ -682,8 +727,6 @@ op0111          BRA         op_DATA
 *-------------------------------------------------------------------------*             
 op1000          * OR
                 JSR         op_OR
-                JSR         OR_opmode
-                RTS
 
                 BRA         op_DATA
 
@@ -1126,28 +1169,9 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
                 * something to an address register An we can pass
                 * our mode as 010 in D4 for Address Reg Direct
             
-                
+                CMP.W       (A2)+,A1            MOVE TO JUST AHEAD OF THE INSTRUCTION (this is important for correct EA mode 7)
             
                 *---NEED TO INSERT INCORRECT EA-MODE CHECKS HERE---*
-                CMP.W       #%00111100,D5       Check for illegal #(data) mode
-                BEQ         op_DATA         
-                
-                MOVEM.L     D0,-(SP)            Just in case store whatever is in D)
-                MOVE.W      D5,D0               Move D5 to D0
-                ANDI.W      #%00111000,D0       Mask EA mode-bits
-                CMP.W       #%00000000,D0       Check for illegal Dn mode
-                BEQ         op_DATA
-                CMP.W       #%00001000,D0       Check for illegal An mode
-                BEQ         op_DATA 
-                CMP.W       #%00011000,D0       Check for illegal (An)+ mode
-                BEQ         op_DATA 
-                CMP.W       #%00100000,D0       Check for illegal -(An) mode
-                BEQ         op_DATA 
-                
-                MOVEM.L     (SP)+,D0            Pop off the stack
-
-                ADD.W       #$02,A2             MOVE TO JUST AHEAD OF THE INSTRUCTION (this is important for correct EA mode 7)
-                
                 JSR         FIND_EAMODE         We have our EA-bits in D5
 
                 JSR         PRINT_COMMA         Print the comma
@@ -1163,52 +1187,75 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
                 BRA         exit
             
 *--------------------------------------------------------------*
-* Jump to Subroutine 
-*
-*
 
 op_JSR          LEA         JSR_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
-            
-                JSR         PRINT_TAB           Print the tab
-
-                
-                CMP.W       #%00111100,D5       Check for illegal #(data) mode
-                BEQ         op_DATA         
-                
-                MOVEM.L     D0,-(SP)            Just in case store whatever is in D)
-                MOVE.W      D5,D0               Move D5 to D0
-                ANDI.W      #%00111000,D0       Mask EA mode-bits
-                CMP.W       #%00000000,D0       Check for illegal Dn mode
-                BEQ         op_DATA
-                CMP.W       #%00001000,D0       Check for illegal An mode
-                BEQ         op_DATA 
-                CMP.W       #%00011000,D0       Check for illegal (An)+ mode
-                BEQ         op_DATA 
-                CMP.W       #%00100000,D0       Check for illegal -(An) mode
-                BEQ         op_DATA 
-                
-                MOVEM.L     (SP)+,D0            Pop off the stack
-                
-                ADD.W       #$02,A2             Advance pointer beyond instruction
-                
-                JSR         FIND_EAMODE         Find EA mode
-                
-                JSR         PRINT_init          ; print the string
-                RTS
-
-*---------------------------------------------------------------*
-
-
-op_OR           LEA         OR_STR,A5
-                MOVE.L      A5,(A6)+            ; add the op to the string
-                JSR         OR_opmode           ; find the size and add it to the string
             
                 **** FINDING/ADDING EA TO STRING HERE
             
                 JSR         PRINT_init          ; print the string
                 RTS
+         
+op_OR           LEA         OR_STR,A5
+                MOVE.L      A5,(A6)+            ; add the op to the string
+                JSR         OR_opmode           ; find the size and add it to the string
             
+                ** CHECK IF EA IS THE DESTINATION **
+                CMPI.W      #$0000,D4
+                BEQ         op_OR_SRC
+                CMPI.W      #$0001,D4
+                BEQ         op_OR_SRC
+                CMPI.W      #$0002,D4
+                BEQ         op_OR_SRC
+                
+                ** CHECK IF EA IS THE SOURCE **
+                CMPI.W      #$0004,D4
+                BEQ         op_OR_DEST
+                CMPI.W      #$0005,D4
+                BEQ         op_OR_DEST
+                CMPI.W      #$0006,D4
+                BEQ         op_OR_DEST
+            
+                JSR         PRINT_init          * print the string
+                JSR         exit
+                
+op_OR_DEST      CMPI.W      #$003C,D5           * mode 7, register 4 is invalid
+                BEQ         op_DATA
+                MOVE.L      D5,D0
+                ANDI.W      #$0038,D0           * mask the mode
+                CMPI.W      #$0000,D0           * mode 0 is invalid
+                BEQ         op_DATA
+                CMPI.W      #$0008,D0           * mode 1 is invalid
+                BEQ         op_DATA
+                
+                MOVE.L      #$00000000,D4       * set mode to 0
+                JSR         FIND_OPMODE         * create the LEFT side of the operation
+                
+                JSR         PRINT_COMMA
+
+                ADD.W       #$0002,A2           * increment the current address
+                JSR         FIND_EAMODE         * create the RIGHT side of the operation
+                
+                JSR         PRINT_init
+                
+                JSR         exit
+
+op_OR_SRC       MOVE.L      D5,D0
+                ANDI.W      #$0038,D0           * mask the mode
+                CMPI.W      #$0008,D0           * mode 1 is invalid
+                BEQ         op_DATA
+                
+                ADD.W       #$0002,A2           * increment the current address
+                JSR         FIND_EAMODE         * create the left side of the operation
+
+                JSR         PRINT_COMMA
+                
+                MOVE.L      #$00000000,D4       * set mode to 0                
+                JSR         FIND_OPMODE         * create the right side of the operation    
+                JSR         PRINT_init
+                
+                JSR         exit
+
 op_ORI          LEA         ORI_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
                 MOVE.W      (A2),D3
@@ -1303,24 +1350,18 @@ op_NEG          LEA         NEG_STR,A5
                 BEQ         op_DATA             ; if is, it's invalid
                 MOVEM.L     (SP)+,D5            ; restore D5 if it isn't
                 
-                ADD.W       #$02,A2             Advance just ahead of instruction
+                ADD.W       #$02,A2
                 
                 JSR         FIND_EAMODE
             
                 JSR         PRINT_init          ; print the string
                 RTS
-*---------------------------------------------------------------------------------*
-* RTS: Return From Subroutine
-*
-*
-op_RTS          LEA         RTS_STR,A5
+            
+op_RTS          LEA         NEG_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string            
                 JSR         PRINT_init          ; print the string
-                ADD.W       #02,A2              Advance pointer just after instruction
                 RTS
-
-*---------------------------------------------------------------------------------*
-
+            
 op_LSL          LEA         LSL_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
                 MOVE.W      (A2),D3
@@ -1374,7 +1415,7 @@ PRINT_TAB       MOVEM.L     A1/D0,-(SP)         save what we change (ALWAYS!)
 
 *------------------------------------------------------------------*
 * Determine EA MODE 
-* This will determine what effective addressing mode to do
+* This will deterine what effective addressing mode to do
 *
 * 
 * D5 - Contains the EA bits
@@ -1393,7 +1434,7 @@ FIND_EAMODE     MOVE.L      D5,D2
 
 *------------------------------------------------------------------------*
 * This Subroutine performs the same way as EA, only we get the 
-* Destination reg and mode (mainly for testing simpler commands where
+* Desination reg and mode (mainly for testing simpler commands where
 * we know the what register and mode are, 
 * D4 - is expected to carry an the op-mode
 * D3 - has the appropriate register
