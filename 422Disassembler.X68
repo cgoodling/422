@@ -46,12 +46,12 @@ START:
                 MOVE.L      #$00000000,A7       ; clear all address registers
                 * For testing  
                 MOVE.L      #$000200EC, $6060    ORI.B  #$EC,D2
-                MOVE.L      #$00450123, $6050    ORI.W  #$0123,D5              RETURN IS WRONG
-                MOVE.W      #$0085, $6070        ORI.L  #$xxxxxxxx, D5         RETURN IS WRONG
+                MOVE.L      #$00450123, $6050    ORI.W  #$0123,D5              
+                MOVE.W      #$0085, $6070        ORI.L  #$xxxxxxxx, D5         
                 MOVE.L      #$12345678, $6072             12345678    
                 MOVE.L      #$43F87000, $6000    LEA $7000,A1
                 
-                MOVE.W      #$4E71, $7000       NOP                             Extra blank line after return
+                MOVE.W      #$4E71, $7000       NOP                             
                 MOVE.W      #$1200, $7010       MOVE.B D0,D1                    WRONG
                 MOVE.W      #$1607, $7020       MOVE.B D7,D3                    WRONG
                 
@@ -350,12 +350,13 @@ START:
                 LEA         $5000,A5            ; move the starting address of the output string to A1
                 LEA         $4000,A4
                 MOVE.W      A5,A6               ; move the ending address of the output string here too (empty string)
+                BRA         loop_start          ; start the loop
                 
 loop_start
                 CMP.L       A3,A2               ; check to see if end is reached
-                BGE         exit                ; nothing left, exit program
-                
-                MOVE.L      #$3000, A0           ; Move address of count into A0
+                BGT         exit                ; nothing left, exit program
+                       
+                MOVE.L      #$3000, A0          ; Move address of count into A0
                 ADD.W       #%01,(A0)           ; increment count by one
                 CMP.W       #$001E,(A0)         ; check to see if count is 30
                 BEQ         next_page           ; if over 30, go to next page
@@ -975,7 +976,9 @@ OR_opmode       CMP.W       #%0000,D4
                 CMP.W       #%0111,D4
                 BEQ         op_DATA
 
-print_add       MOVEM.L     D0-D7,-(SP)         ; Save the state
+print_add       
+                
+                MOVEM.L     D0-D7,-(SP)         ; Save the state
                 MOVE.L      A2,D1               ; Move the current address to D1
                 MOVE.L      #15,D0              ; Move the I/O code to D0 to print the number in D1
                 MOVE.L      #16,D2              ; Print the number in base 16
@@ -1031,6 +1034,7 @@ op_DISP8        MOVEM.L     D0-D7,-(SP)         * Save the state
                 MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+
                 JSR         PRINT_init
+                ADD.L       #%10,A2
                 RTS
             
 op_DISP16       MOVEM.L     D0-D7,-(SP)         * Save the state
@@ -1055,6 +1059,7 @@ op_DISP16       MOVEM.L     D0-D7,-(SP)         * Save the state
                 MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+
                 JSR         PRINT_init
+                ADD.L       #%10,A2
                 RTS
            
            
@@ -1081,6 +1086,7 @@ op_DISP32       MOVEM.L     D0-D7,-(SP)         * Save the state
                 MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+
                 JSR         PRINT_init
+                ADD.L       #%10,A2
                 RTS
 
 
@@ -1286,7 +1292,7 @@ print_L_str     LEA         L_STR,A5            ; Add the address of .L to the s
             
 PRINT_init      LEA         $5000,A5            ; load the beginning of the string
                 BRA         PRINT_loop          ; enter the print loop
-                RTS
+
             
 PRINT_loop      CMP.L       #$FFFFFFFF,(A5)     ; if the value at A5 is all F's, you've reached the end
                 BEQ         PRINT_exit          ; exit
@@ -1295,10 +1301,13 @@ PRINT_loop      CMP.L       #$FFFFFFFF,(A5)     ; if the value at A5 is all F's,
                 TRAP        #15                 ; print what the address points to
                 ADDA.L      #$00000004,A5       ; increment A5 by a long
                 BRA         PRINT_loop          ; loop
-                
                 RTS
 
-PRINT_exit      RTS
+PRINT_exit      
+                MOVE.B      #14,D0
+                LEA         new_line,A1
+                TRAP        #15
+                RTS
 ***************************************************************************
 op_NEG          LEA         NEG_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
@@ -1831,12 +1840,10 @@ next_page       CMP.L       A3,A2               ; check if end address has been 
                 
                 
 
-loop_exit       MOVE.L      #13,D0
-                LEA         TAB,A1
-                TRAP        #15                 ; print a new line before repeating prompt
-                
+loop_exit       ADD.L       #%10,A2
+                MOVE.L      #$000000,A1
                 CMP.L       A3,A2               ; check to see if end address has been reached
-                BGE         exit                ; if reached, end the program
+                BGT         exit                ; if reached, end the program
                 BRA         loop_start          ; go back to the start of the loop
     
 exit            
@@ -1848,6 +1855,7 @@ prompt_end      DC.B        'What is the ending address?',CR,LF,0
 prompt_new      DC.B        'Press enter to continue',CR,LF,0
 input           DCB.B       256,0
 invalidAdd      DC.B        'ERROR',0
+new_line        DC.B        '',CR,LF,0
 COMMA           DC.B        ',',0
 TAB             DC.B        '    ',0
 B_STR           DC.B        '.B ',0
@@ -1862,7 +1870,7 @@ DOLLAH          DC.B        '$',0
 IMMED_PREFIX    DC.B        '#$',0
 *------------------------------------------------------------------*
 DATA_STR        DC.B        '      DATA',CR,LF,0
-NOP_STR         DC.B        '      NOP',CR,LF,0
+NOP_STR         DC.B        '      NOP',0
 MOVEB_STR       DC.B        '      MOVE.B',0
 BRA_STR         DC.B        '      BRA  ',0
 LEA_STR         DC.B        '      LEA',0
