@@ -1124,6 +1124,8 @@ op_ORI          LEA         ORI_STR,A5
                 MOVE.W      (A2),D3
                 ANDI.L      #$00C0,D3           * move the size into D3  
                 JSR         opcode_size_str     ; find the size and add it to the string
+                
+                MOVE.W      (A2),D1
                 LSR.L       #6,D1               ; shift the size bits to get the flag 
                 MOVE.L      D1,D6               ; move size bit to D6 to set flag
                 **** CHECK FOR INVALID
