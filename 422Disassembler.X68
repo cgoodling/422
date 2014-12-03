@@ -203,6 +203,10 @@ START:
 
                 *******************************************************
                 
+                MOVE.W      #$0C01, $9200       CMPI.B #$ xx,D1
+                MOVE.W      #$0C51, $9210       CMPI.W #$ xxxx,(A1)
+                MOVE.W      #$0C99, $9220       CMPI.L #$ xxxxxxxx,(A1)+
+               
                 **********************ROL/ROR TESTING*******************
                 *** NO EA ***
                 * ROL COUNT *
@@ -270,6 +274,45 @@ START:
                 MOVE.W      #$0C01, $9200       CMPI.B #$ xx,D1             ONLY CMPI
                 MOVE.W      #$0C51, $9210       CMPI.W #$ xxxx,(A1)         ONLY CMPI
                 MOVE.W      #$0C99, $9220       CMPI.L #$ xxxxxxxx,(A1)+    ONLY CMPI
+            
+                *******************************************************
+                * JSR TESTS    
+                *        
+    
+                MOVE.L      #$4EB86000,$9630    JSR $6000
+                MOVE.W      #$4E91,$9634        JSR (A1)
+                MOVE.W      #$4E93,$9636        JSR (A3)
+                MOVE.L      #$4EB90000,$9638    JSR $00008000
+                MOVE.W      #$8000,$963C
+                
+                MOVE.W      #$4E80,$963E        Attempt JSR D0
+                MOVE.W      #$4E88,$9640        Attempt JSR A0
+                MOVE.W      #$4E98,$9642        Attempt JSR (A1)+
+                MOVE.W      #$4EA0,$9644        Attempt JSR -(A1)
+                MOVE.W      #$4EBC,$9646        Attempt JSR #(DATA)
+                
+                *******************************************************
+                * LEA Tests
+                *
+                
+                MOVE.W      #$43D5,$9648        LEA (A5),A1
+                MOVE.W      #$4DF8,$964A        LEA  $4000,A6
+                MOVE.W      #$4000,$964C
+
+                MOVE.W      #$49F9,$964E        LEA  $8000,A4
+                MOVE.L      #$00008000,$9650                                
+                
+                MOVE.W      #$47F9,$9654        LEA  $000505AB,A3
+                MOVE.L      #$000505AB,$9656     
+                
+                MOVE.W      #$41C0,$965A        Attempt LEA Dn,A0
+                MOVE.W      #$41C8,$965C        Attempt LEA An,A0
+                MOVE.W      #$41D8,$965E        Attempt LEA (An)+,A0
+                MOVE.W      #$41E0,$9660        Attempt LEA -(An),A0
+                MOVE.W      #$41F0,$9662        Attempt LEA #(DATA),A0
+                    
+                *******************************************************
+            
             
             
                 LEA         STACK,SP            Load the stack
@@ -1083,9 +1126,28 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
                 * something to an address register An we can pass
                 * our mode as 010 in D4 for Address Reg Direct
             
-                CMP.W       (A2)+,A1            MOVE TO JUST AHEAD OF THE INSTRUCTION (this is important for correct EA mode 7)
+                
             
                 *---NEED TO INSERT INCORRECT EA-MODE CHECKS HERE---*
+                CMP.W       #%00111100,D5       Check for illegal #(data) mode
+                BEQ         op_DATA         
+                
+                MOVEM.L     D0,-(SP)            Just in case store whatever is in D)
+                MOVE.W      D5,D0               Move D5 to D0
+                ANDI.W      #%00111000,D0       Mask EA mode-bits
+                CMP.W       #%00000000,D0       Check for illegal Dn mode
+                BEQ         op_DATA
+                CMP.W       #%00001000,D0       Check for illegal An mode
+                BEQ         op_DATA 
+                CMP.W       #%00011000,D0       Check for illegal (An)+ mode
+                BEQ         op_DATA 
+                CMP.W       #%00100000,D0       Check for illegal -(An) mode
+                BEQ         op_DATA 
+                
+                MOVEM.L     (SP)+,D0            Pop off the stack
+
+                ADD.W       #$02,A2             MOVE TO JUST AHEAD OF THE INSTRUCTION (this is important for correct EA mode 7)
+                
                 JSR         FIND_EAMODE         We have our EA-bits in D5
 
                 JSR         PRINT_COMMA         Print the comma
@@ -1101,15 +1163,43 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
                 BRA         exit
             
 *--------------------------------------------------------------*
+* Jump to Subroutine 
+*
+*
 
 op_JSR          LEA         JSR_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
             
-                **** FINDING/ADDING EA TO STRING HERE
-            
+                JSR         PRINT_TAB           Print the tab
+
+                
+                CMP.W       #%00111100,D5       Check for illegal #(data) mode
+                BEQ         op_DATA         
+                
+                MOVEM.L     D0,-(SP)            Just in case store whatever is in D)
+                MOVE.W      D5,D0               Move D5 to D0
+                ANDI.W      #%00111000,D0       Mask EA mode-bits
+                CMP.W       #%00000000,D0       Check for illegal Dn mode
+                BEQ         op_DATA
+                CMP.W       #%00001000,D0       Check for illegal An mode
+                BEQ         op_DATA 
+                CMP.W       #%00011000,D0       Check for illegal (An)+ mode
+                BEQ         op_DATA 
+                CMP.W       #%00100000,D0       Check for illegal -(An) mode
+                BEQ         op_DATA 
+                
+                MOVEM.L     (SP)+,D0            Pop off the stack
+                
+                ADD.W       #$02,A2             Advance pointer beyond instruction
+                
+                JSR         FIND_EAMODE         Find EA mode
+                
                 JSR         PRINT_init          ; print the string
                 RTS
-         
+
+*---------------------------------------------------------------*
+
+
 op_OR           LEA         OR_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
                 JSR         OR_opmode           ; find the size and add it to the string
@@ -1211,18 +1301,24 @@ op_NEG          LEA         NEG_STR,A5
                 BEQ         op_DATA             ; if is, it's invalid
                 MOVEM.L     (SP)+,D5            ; restore D5 if it isn't
                 
-                ADD.W       #$02,A2
+                ADD.W       #$02,A2             Advance just ahead of instruction
                 
                 JSR         FIND_EAMODE
             
                 JSR         PRINT_init          ; print the string
                 RTS
-            
-op_RTS          LEA         NEG_STR,A5
+*---------------------------------------------------------------------------------*
+* RTS: Return From Subroutine
+*
+*
+op_RTS          LEA         RTS_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string            
                 JSR         PRINT_init          ; print the string
+                ADD.W       #02,A2              Advance pointer just after instruction
                 RTS
-            
+
+*---------------------------------------------------------------------------------*
+
 op_LSL          LEA         LSL_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
                 MOVE.W      (A2),D3
@@ -1276,7 +1372,7 @@ PRINT_TAB       MOVEM.L     A1/D0,-(SP)         save what we change (ALWAYS!)
 
 *------------------------------------------------------------------*
 * Determine EA MODE 
-* This will deterine what effective addressing mode to do
+* This will determine what effective addressing mode to do
 *
 * 
 * D5 - Contains the EA bits
@@ -1295,7 +1391,7 @@ FIND_EAMODE     MOVE.L      D5,D2
 
 *------------------------------------------------------------------------*
 * This Subroutine performs the same way as EA, only we get the 
-* Desination reg and mode (mainly for testing simpler commands where
+* Destination reg and mode (mainly for testing simpler commands where
 * we know the what register and mode are, 
 * D4 - is expected to carry an the op-mode
 * D3 - has the appropriate register
