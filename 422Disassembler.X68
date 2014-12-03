@@ -326,13 +326,13 @@ START:
                 TRAP #15                        ; store user input
             
                 JSR         asciiToHexS         ; convert user input from start address to hex
-                *MOVE.B      #14,D0
-                *LEA         prompt_end,A1
-                *TRAP        #15                 ; prompt for ending address
-                *MOVE.B      #2,D0
-                *LEA         input,A1
-                *TRAP        #15                 ; store user input
-                *JSR         asciiToHexE         ; convert user input for end address to hex
+                MOVE.B      #14,D0
+                LEA         prompt_end,A1
+                TRAP        #15                 ; prompt for ending address
+                MOVE.B      #2,D0
+                LEA         input,A1
+                TRAP        #15                 ; store user input
+                JSR         asciiToHexE         ; convert user input for end address to hex
             
                 MOVE.L      D3,A1               ; move the start address into A1
                 MOVE.L      D3,A2               ; also move it into A2
@@ -345,16 +345,26 @@ START:
                 CLR.L       D5
                 CLR.L       D6
                 CLR.L       D7                  ; clear all of the registers
-            
+                
+                MOVE.W      #$0000,$3000        ; set counter to 0
                 LEA         $5000,A5            ; move the starting address of the output string to A1
                 LEA         $4000,A4
                 MOVE.W      A5,A6               ; move the ending address of the output string here too (empty string)
-    
+                
+loop_start
+                CMP.L       A3,A2               ; check to see if end is reached
+                BGE         exit                ; nothing left, exit program
+                
+                MOVE.L      #$3000, A0           ; Move address of count into A0
+                ADD.W       #%01,(A0)           ; increment count by one
+                CMP.W       #$001E,(A0)         ; check to see if count is 30
+                BEQ         next_page           ; if over 30, go to next page
+                
                 MOVE.W      (A1),D0             ; MOVEs INSTRUCTION in A1 to D0
                 JSR         print_add           ; print the address
                 JSR         opcode              ; decode the opcode
             
-                JSR         exit
+                BRA         loop_exit
                 
 ******************************* CLEAR REGISTERS **************************
 * clearTempVars  - clears all of the temporary variables starting at $4000
@@ -976,17 +986,17 @@ print_add       MOVEM.L     D0-D7,-(SP)         ; Save the state
 op_NOP          LEA         NOP_STR,A5
                 MOVE.L      A5,(A6)+            ; add the operation to the string
                 BRA         PRINT_init          ; print the string
-                RTS
+                BRA         loop_exit
             
 op_DATA         MOVE.L      #14,D0
                 LEA         DATA_STR,A1
                 TRAP        #15                 ; OP code DNE
-                JSR         START
+                BRA         loop_exit
             
 op_BRA          LEA         BRA_STR,A5
                 MOVE.L      A5,(A6)+
                 JSR         FIND_DISP
-                RTS
+                BRA         loop_exit
              
 FIND_DISP       LEA         DOLLAH,A5
                 MOVE.L      A5,(A6)+
@@ -1080,7 +1090,7 @@ op_BCS          LEA         BCS_STR,A5
                 
                 JSR         FIND_DISP
                 
-                JSR         exit                * eventually should jump to a repeat loop
+                BRA         loop_exit                * eventually should jump to a repeat loop
                 
         
 op_BGE          LEA         BGE_STR,A5
@@ -1088,7 +1098,7 @@ op_BGE          LEA         BGE_STR,A5
                 
                 JSR         FIND_DISP
                 
-                JSR         exit                * eventually should jump to a repeat loop
+                BRA         loop_exit                * eventually should jump to a repeat loop
 
 
 op_BLT          LEA         BLT_STR,A5
@@ -1096,7 +1106,7 @@ op_BLT          LEA         BLT_STR,A5
                 
                 JSR         FIND_DISP
                 
-                JSR         exit                * eventually should jump to a repeat loop
+                BRA         loop_exit                * eventually should jump to a repeat loop
 
 
 op_BVC          LEA         BVC_STR,A5
@@ -1104,7 +1114,7 @@ op_BVC          LEA         BVC_STR,A5
                 
                 JSR         FIND_DISP
                 
-                JSR         exit                * eventually should jump to a repeat loop
+                BRA         loop_exit                * eventually should jump to a repeat loop
 
 
 *--------------------------------------------------------------*
@@ -1803,16 +1813,39 @@ STACK_REG       MOVEM.L     D0/A1,-(SP)
 *-------------------------------------------*
 
 
-            
-exit            MOVE.L      #13,D0
+next_page       CMP.L       A3,A2               ; check if end address has been reached
+                BEQ         exit                ; exit the program
+                
+                MOVE.B      #14,D0
+                LEA         prompt_new,A1
+                TRAP #15                        ; prompt user to press enter
+                
+                MOVE.B      #2,D0
+                LEA         input,A1
+                TRAP #15                        ; input used to wait for enter
+                
+                MOVE.L      #$0000,$3000        ; set counter to 0
+                BRA         loop_start          ; go back to start of the loop
+                
+                
+                
+                
+
+loop_exit       MOVE.L      #13,D0
                 LEA         TAB,A1
                 TRAP        #15                 ; print a new line before repeating prompt
-                JSR         START
+                
+                CMP.L       A3,A2               ; check to see if end address has been reached
+                BGE         exit                ; if reached, end the program
+                BRA         loop_start          ; go back to the start of the loop
+    
+exit            
                 SIMHALT                         ; halt simulator
 
 * Put variables and constants here
 prompt_start    DC.B        'What is the starting address?',CR,LF,0
 prompt_end      DC.B        'What is the ending address?',CR,LF,0
+prompt_new      DC.B        'Press enter to continue',CR,LF,0
 input           DCB.B       256,0
 invalidAdd      DC.B        'ERROR',0
 COMMA           DC.B        ',',0
@@ -1864,6 +1897,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
