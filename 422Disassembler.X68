@@ -26,7 +26,6 @@ DEST_REG        EQU         %00000111
 
 *----------------------------------------------------------*
 START:          
-                
                 MOVE.L      #$00000000,A0
                 MOVE.L      #$00000000,A1
                 MOVE.L      #$00000000,A2
@@ -464,6 +463,16 @@ START:
                 MOVE.W      #$4E71, $624E       NOP                             Extra blank line after return
                 MOVE.W      #$1200, $6250       MOVE.B D0,D1                    WRONG
                 MOVE.W      #$1607, $6252       MOVE.B D7,D3                    WRONG
+                MOVE.W      #$B501, $6254       EOR.B	D2,D1
+                MOVE.W      #$B178, $6256       EOR.W	D0,$XXXX
+                MOVE.W      #$4000, $6258            	    4000
+                MOVE.W      #$B7B9, $625A       EOR.L  D3,$XXXXXXXX
+                MOVE.W      #$1234, $625C                  1234
+                MOVE.W      #$5678, $625E                      5678
+                MOVE.W      #$B79A, $6260       EOR.L  D3,(A2)+
+
+                
+                
             
 ************************** END OF TESTING *******************************************************************
                 LEA         STACK,SP            Load the stack
@@ -857,7 +866,17 @@ op1010          BRA         op_DATA
 *-------------------------------------------------------------------------*
 * Exclusive Or, Compare
 *-------------------------------------------------------------------------*             
-op1011          BRA         op_DATA
+op1011          
+                *EOR
+	            MOVE.W	(A2),D0                   * copy op for compare
+	            ANDI.W	#%1111000100000000,D0   * grab identifier bits
+	            CMP.W	#%1011000100000000,D0   * check to see if EOR
+                BEQ     op_EOR
+                
+                *CMP
+
+
+                BRA         op_DATA
 
 *-------------------------------------------------------------------------*
 * Signed Multiply
@@ -1132,6 +1151,15 @@ SHIFT_reg       LEA         DATA_REG,A5
             
                 BRA         loop_exit
 
+EOR_opmode      CMP.W       #%0100,D4           ; check if byte
+                BEQ         print_B_str         ; go add .B to string
+                CMP.W       #%0101,D4           ; check if word
+                BEQ         print_W_str         ; go add .W to string
+                CMP.W       #%0110,D4           ; check if long
+                BEQ         print_L_str         ; go add .L to string
+                BRA         op_DATA
+                
+
 OR_opmode       CMP.W       #%0000,D4
                 BEQ         print_B_str
                 CMP.W       #%0100,D4
@@ -1370,6 +1398,28 @@ op_JSR          LEA         JSR_STR,A5
                 BRA         loop_exit
 
 *---------------------------------------------------------------*
+op_EOR          LEA         EOR_STR,A5
+                MOVE.L      A5,(A6)+
+                JSR         EOR_opmode          ; find the size and add it to the string
+                
+                MOVE.L      D5,D0
+                ANDI.W      #$0038,D0         ; mask the mode
+                ** CHECK IF MODE IS INVALID **
+                CMPI.W      #$0008,D0           ; check for invalid mode 1   
+                BEQ         op_DATA             ; mode 1, An, is invalid
+                CMPI.W      #$003C,D0           ; check for invalid mode 7 reg 4
+                BEQ         op_DATA             ; mode 7 reg 4, #<data>, is invalid
+                
+                MOVE.L      #$00000000,D4       * set mode to 0
+                JSR         FIND_OPMODE
+                JSR         PRINT_COMMA
+
+                ADD.W       #$0002,A2           * increment the current address
+                JSR         FIND_EAMODE         * create the RIGHT side of the operation
+                JSR         PRINT_init
+                BRA         loop_exit
+                
+
 op_OR           LEA         OR_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
                 JSR         OR_opmode           ; find the size and add it to the string
@@ -2090,6 +2140,7 @@ MOVEB_STR       DC.B        '      MOVE.B',0
 BRA_STR         DC.B        '      BRA  ',0
 LEA_STR         DC.B        '      LEA',0
 JSR_STR         DC.B        '      JSR',0
+EOR_STR         DC.B        '      EOR',0
 OR_STR          DC.B        '      OR',0
 ORI_STR         DC.B        '      ORI',0
 NEG_STR         DC.B        '      NEG',0
@@ -2121,6 +2172,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
