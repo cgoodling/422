@@ -443,6 +443,53 @@ START:
                 MOVE.W      #$41F0, $622A            Attempt LEA #(DATA),A0
                     
                 *******************************************************
+                * ADDA Tests
+                
+                MOVE.W      #$D0C9,$9664        ADDA.W    A1,A0     
+                MOVE.W      #$D2C3,$9666        ADDA.W    D3,A1  
+                MOVE.W      #$D4D3,$9668        ADDA.W    (A3),A2      
+                MOVE.W      #$D6DD,$966A        ADDA.W    (A5)+,A3
+                MOVE.W      #$D8E6,$966C        ADDA.W    -(A6),A4
+                MOVE.L      #$DAE90190,$966E    ADDA.W    (400,A1),A5 (Attempt)  
+                MOVE.L      #$DCF85000,$9672    ADDA.W    $5000,A6
+                MOVE.W      #$DEF9,$9676        ADDA.W    $8000,A7
+                MOVE.L      #$00008000,$9678    
+                MOVE.L      #$DEFC8000,$967C    ADDA.W    #$8000,A7  
+                
+                MOVE.W      #$D1C9,$9680        ADDA.L    A1,A0     
+                MOVE.W      #$D3C3,$9682        ADDA.L    D3,A1  
+                MOVE.W      #$D5D3,$9684        ADDA.L    (A3),A2      
+                MOVE.W      #$D7DD,$9686        ADDA.L    (A5)+,A3
+                MOVE.W      #$D9E6,$9688        ADDA.L    -(A6),A4
+                MOVE.L      #$DBE90190,$968A    ADDA.L    (400,A1),A5 (Attempt)  
+                MOVE.L      #$DDF85000,$968E    ADDA.L    $5000,A6
+                MOVE.W      #$DFF9,$9692        ADDA.L    $8000,A7
+                MOVE.L      #$00008000,$9694    
+                MOVE.W      #$DFFC,$9698        ADDA.L    #$8000,A7  
+                MOVE.L      #$00008000,$969A     
+
+                * ADD & ADDA TESTS
+                *******************************************************
+                * <EA> -> Dn ADD Tests
+                *
+                * ADD.B  
+                
+                MOVE.L      #$D9385530,$969E   ADD.B D4,$5530
+                MOVE.L      #$DA380044,$96A2   ADD.B $44,D5
+                   
+                * ADD.W
+                
+                * ADD.L
+                
+                *******************************************************
+                * Dn -> <EA> Tests
+                
+                * ADD.B
+                
+                * ADD.W
+
+                * ADD.L
+                *******************************************************
             
                 MOVE.W      #$0C01, $622C       CMPI.B #$ xx,D1             ONLY CMPI
                 MOVE.W      #$0C51, $622E       CMPI.W #$ xxxx,(A1)         ONLY CMPI
@@ -709,7 +756,7 @@ JUMPTABLE       JMP         op0000              ORI, BCLR
                 JMP         op1010
                 JMP         op1011
                 JMP         op1100
-                JMP         op1101
+                JMP         op1101              ADD,ADDA
                 JMP         op1110
                 JMP         op1111
 
@@ -760,11 +807,11 @@ op0001          *MOVEM.L     D1,-(SP)            Save what we have here in D1 ju
                 TRAP        #15
             
                         
-                JSR         FIND_OPMODE             Find destination mode
+                JSR         FIND_OPMODE         Find destination mode
             
                 *MOVE.B      #14,D0
                 *LEA         DATA_STR,A1
-                *TRAP        #15                 ; OP code DNE
+                *TRAP        #15                 OP code DNE
            
                 RTS
             
@@ -859,7 +906,19 @@ op1000          * OR
 *-------------------------------------------------------------------------*
 * Subtract
 *-------------------------------------------------------------------------*             
-op1001          BRA         op_DATA
+op1001          MOVE.W      (A2),D1                 Move operation into D1 
+                ANDI.W      #%1111000000000000,D1   MASK for SUB operation
+                CMP.W       #%1001000000000000,D1
+                BEQ         op_SUB                  
+
+                
+                BRA         op_DATA
+
+
+
+*-------------------------------------------------------------------------*
+*
+*-------------------------------------------------------------------------*
             
 op1010          BRA         op_DATA
 
@@ -889,7 +948,7 @@ op1100          CMP.B       #$07,D4             * check for Signed Multiply Word
 *-------------------------------------------------------------------------*
 * Add Address, Add
 *-------------------------------------------------------------------------*            
-op1101          BRA         op_DATA
+op1101          BRA         op_ADD  Jump to Add operation
 
 *-------------------------------------------------------------------------*
 * Arithmetic Shift Left, Arithmetic Shift Right, Logical Shift Left, 
@@ -1616,8 +1675,243 @@ op_CMPI         LEA         CMPI_STR,A5
                 **** FINDING/ADDING EA TO STRING HERE
             
                 JSR         PRINT_init          ; print the string
-                BRA         loop_exit
+                RTS
+                
+                
+                
+*------------------------------------------------------------------*
+* op_SUB & op_ADDA
+*
+op_SUB         LEA      SUB_STR,A5      Go to SUB mode
+               MOVE.L   A5,(A6)+        Load SUB String
+
+
+               CMP.B    #3,D4           ADDA.W
+               BEQ      OP_ADDRESS     Go to SUBA.W Mode
+                                
+               CMP.B    #7,D4           ADDA.L
+               BEQ      OP_ADDRESS     Go to SUBA.L Mode
+  
+
+               CMP.B    #0,D4           FIND OUT THE MODE for SUB
+               BEQ      ARITH_MODE_1    <EA> -> Dn Byte
+               CMP.B    #1,D4
+               BEQ      ARITH_MODE_1    <EA> -> Dn Word 
+               CMP.B    #2,D4
+               BEQ      ARITH_MODE_1    <EA> -> Dn Long
+               
+
+               CMP.B    #4,D4
+               BEQ      ARITH_MODE_2    Dn -> <EA> Byte
+               CMP.B    #5,D4
+               BEQ      ARITH_MODE_2    Dn -> <EA> Word
+               CMP.B    #6,D4
+               BEQ      ARITH_MODE_2    Dn -> <EA> Long
+
+
+
             
+*------------------------------------------------------------------*
+* op_ADD also op_ADDA
+*
+
+op_ADD         LEA      ADD_STR,A5      Go to ADD mode
+               MOVE.L   A5,(A6)+        Load ADD String
+
+
+               CMP.B    #3,D4           ADDA.W
+               BEQ      OP_ADDRESS     Go to ADDA.W Mode
+                                
+               CMP.B    #7,D4           ADDA.L
+               BEQ      OP_ADDRESS     Go to ADDA.L Mode
+  
+
+               CMP.B    #0,D4           FIND OUT THE MODE for ADD
+               BEQ      ARITH_MODE_1    <EA> -> Dn Byte
+               CMP.B    #1,D4
+               BEQ      ARITH_MODE_1    <EA> -> Dn Word 
+               CMP.B    #2,D4
+               BEQ      ARITH_MODE_1    <EA> -> Dn Long
+               
+
+               CMP.B    #4,D4
+               BEQ      ARITH_MODE_2    Dn -> <EA> Byte
+               CMP.B    #5,D4
+               BEQ      ARITH_MODE_2    Dn -> <EA> Word
+               CMP.B    #6,D4
+               BEQ      ARITH_MODE_2    Dn -> <EA> Long
+
+
+*------------------------------------------------------------*
+* OP_ADDRESS is Specifically for methods like
+* SUBA or ADDA that have the 'A' Suffix and similar addressing
+* behavior
+*
+*               
+               
+OP_ADDRESS     LEA      ADDR_A,A5       Load the ADDA String
+               MOVE.L   A5,(A6)+     
+               
+               CMP.B    #3,D4           Is this a long operation?
+               BNE      LONG_ADD
+
+WORD_ADD       JSR      print_W_str     Then it's a word operation
+               MOVE.L   D6,-(SP)        Save D6, just in case
+               CLR      D6
+               MOVE.B   #1,D6           Set Word flag (in case immediate data is used)
+               BRA      OP_ADDR_CONT    Continue operation
+
+LONG_ADD       JSR      print_L_str
+               MOVE.L   D6,-(SP)        Save D6, just in case
+               CLR      D6
+               MOVE.B   #2,D6           Set Long flag (in case immediate data is used)
+
+
+OP_ADDR_CONT   JSR      PRINT_TAB
+
+               ADD.W    #$02,A2         Advance the pointer past the instruction
+               JSR      FIND_EAMODE     Get EA MODE
+               
+               JSR      PRINT_COMMA     Comma
+               
+               MOVE.L   D4,-(SP)        Save D4 for a minute
+               CLR      D4              
+               MOVE.L   #1,D4
+               
+               JSR      FIND_OPMODE
+            
+               MOVEM.L  (SP)+,D6/D4     Restore D6 & D4
+
+               JSR      PRINT_init      Print the string
+                
+               BRA      exit            Done
+               
+               
+               
+               
+**************************************************************
+* Arithmetic Mode 1 is for <EA> -> Dn Effective Addressing              
+* This modal behavior is used by Add, and Sub alike
+* D3: Should have the Dn register number.
+* D4: Should contain the OPMode bits to determine the 
+* D5: Should contain the EA-Bits (6 total)
+* D6: Is the expected flag value for immediate data usage
+* Operation size. (000)Byte, (001) Word, (010) Long
+*
+ARITH_MODE_1   MOVE.L   D6,-(SP)        Save D6, just in case
+               CLR      D6              Clear it out
+
+               CMP.B    #1,D4           FIND OUT THE SIZE
+               BEQ      ARITH1_WORD     <EA> -> Dn Word
+               CMP.B    #2,D4
+               BEQ      ARITH1_LONG     <EA> -> Dn Long 
+               
+ARITH1_BYTE    JSR      print_B_str     Set the '.B' Suffix
+               MOVE.B   #0,D6           Set the byte flag (for immediate data useage)
+               BRA      ARITH_ONE_CONT  Continue
+
+ARITH1_WORD    JSR      print_W_str     Set the '.W' Suffix
+               MOVE.B   #1,D6           Set the word flag (for immediate data useage)
+               BRA      ARITH_ONE_CONT  Continue
+
+ARITH1_LONG    JSR      print_L_str     Set the '.L' Suffix
+               MOVE.B   #2,D6           Set the Long flag (for immediate data useage)
+
+
+ARITH_ONE_CONT ADD.W    #$02,A2         Advance the pointer past the instruction
+               
+               JSR      FIND_EAMODE     Get EA MODE 
+               JSR      PRINT_COMMA     Comma
+               
+               MOVE.L   D4,-(SP)        Save D4 for a minute
+               CLR      D4              
+               MOVE.L   #0,D4           Manually set Dn for Destination
+               
+               JSR      FIND_OPMODE
+            
+               MOVEM.L  (SP)+,D4       Restore  D4
+
+               JSR      PRINT_init      Print the string
+               BRA      exit
+
+
+**************************************************************
+* Arithmetic Mode 2 is for Dn -> <EA> Effective Addressing              
+* This modal behavior is used by Add, and Sub alike
+* D3: Should have the Dn register number.
+* D4: Should contain the OPMode bits to determine the 
+* D5: Should contain the EA-Bits (6 total)
+* D6: Is the expected flag value for immediate data usage 
+* (not used here)
+* Operation size. (100)Byte, (101) Word, (110) Long
+*
+ARITH_MODE_2   CMP.B    #5,D4           FIND OUT THE SIZE
+               BEQ      ARITH2_WORD     Dn -> <EA> Word
+               CMP.B    #6,D4
+               BEQ      ARITH2_LONG     Dn -> <EA> Long 
+               
+ARITH2_BYTE    JSR      print_B_str     Set the '.B' Suffix
+               BRA      ARITH_TWO_CONT  Continue
+
+ARITH2_WORD    JSR      print_W_str     Set the '.W' Suffix
+               BRA      ARITH_TWO_CONT  Continue
+
+ARITH2_LONG    JSR      print_L_str     Set the '.L' Suffix
+
+
+ARITH_TWO_CONT  MOVEM.L     D0/D1,-(SP) Save the D0,D1 Register
+
+                MOVE.B      D5,D0
+                MOVE.B      D5,D1
+                ANDI.B      #EA_REG,D1  Get the EA Reg        
+                ANDI.B      #EA_MODE,D0 Get the EA Mode
+                LSR.B       #3,D0           
+
+                CMP.B       #0,D0       Check for illegal Dn mode
+                BEQ         op_DATA
+                CMP.B       #1,D0       Check for illegal An mode
+                BEQ         op_DATA
+    
+                CMP.B       #7,D0       Check for mode 7 Reg 4
+                BEQ         CHECK_REG
+
+
+ARITH2_RESUME   MOVEM.L    (SP)+,D0/D1     Release D0,D1 from stack
+
+                MOVE.L     D4,-(SP)        Save D4 for a minute
+                CLR        D4              
+                MOVE.L     #0,D4           Manually set Dn for Source
+                   
+                JSR        FIND_OPMODE     Get Dn register
+                JSR        PRINT_COMMA     Get Comma
+        
+                ADD.W      #$02,A2         Advance the pointer past the instruction
+                JSR        FIND_EAMODE     Get <EA> operand  
+
+                MOVEM.L    (SP)+,D4        Restore  D4
+
+                JSR        PRINT_init      Print the string
+                BRA        exit 
+
+
+CHECK_REG       CMP.B       #2,D1          Check for illegal reg (d16,PC)
+                BEQ         op_DATA
+                CMP.B       #3,D1          Check for illegal reg (d8,PC,Xn)
+                BEQ         op_DATA
+                CMP.B       #4,D1          Check for illegal reg #(data) immediate data
+                BEQ         op_DATA
+                BRA         ARITH2_RESUME  Otherwise continue.
+
+                 
+                
+               
+
+
+
+
+
+
+*-------------------------------------------------*   
    
 *----------------------------------------*
 * Prints a comma
@@ -1932,7 +2226,7 @@ ABS_SHORTADDR   MOVEM.L     A1/D0-D1,-(SP)      Save our state
     
 ABS_LONGADDR    MOVEM.L     A1/D0-D1,-(SP)      Save our state
   
-                *CMP.W       (A2)+,A1            MOVE just after instruction in memory
+                
     
                 LEA         DOLLAH,A5
                 MOVE.L      A5,(A6)+            Add '$' to the output string
@@ -2157,6 +2451,10 @@ ROL_STR         DC.B        '      ROL',0
 ROR_STR         DC.B        '      ROR',0
 ASL_STR         DC.B        '      ASL',0
 ASR_STR         DC.B        '      ASR',0
+ADDA_STR        DC.B        '      ADDA',0
+ADD_STR         DC.B        '      ADD',0
+SUBA_STR        DC.B        '      SUBA',0
+SUB_STR         DC.B        '      SUB',0
 MULSW_STR       DC.B        '      MULS.W   ',0
 
 *------------------------------------------------------------------*
@@ -2166,6 +2464,7 @@ MULSW_STR       DC.B        '      MULS.W   ',0
 
 DATA_REG        DC.B        'D',0
 ADDR_REG        DC.B        'A',0
+ADDR_A          DC.B        'A',0
 SP_REG          DC.B        'SP',0
 
 *------------------------------------------------------------------*
