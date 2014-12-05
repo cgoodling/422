@@ -1822,7 +1822,7 @@ OP_ADDR_CONT   JSR      PRINT_TAB
 
                JSR      PRINT_init      Print the string
                 
-               BRA      exit            Done
+               BRA      loop_exit            Done
                
                
                
@@ -1870,7 +1870,7 @@ ARITH_ONE_CONT ADD.W    #$02,A2         Advance the pointer past the instruction
                MOVEM.L  (SP)+,D4       Restore  D4
 
                JSR      PRINT_init      Print the string
-               BRA      exit
+               BRA      loop_exit
 
 
 **************************************************************
@@ -1929,7 +1929,7 @@ ARITH2_RESUME   MOVEM.L    (SP)+,D0/D1     Release D0,D1 from stack
                 MOVEM.L    (SP)+,D4        Restore  D4
 
                 JSR        PRINT_init      Print the string
-                BRA        exit 
+                BRA        loop_exit 
 
 
 CHECK_REG       CMP.B       #2,D1          Check for illegal reg (d16,PC)
