@@ -992,7 +992,7 @@ SHIFT_ea        MOVE.W      (A2),D0             * move original op into D0
                 
                 *ASL/ASR
                 CMP.W       #$0000,D0           * check for ASL/ASR
-                *BEQ         op_AS
+                BEQ         op_AS
                 
                 *ROL/ROR
                 CMP.W       #$0600,D0           * check for ROL/ROR
@@ -1141,7 +1141,7 @@ op_SHIFT_EA     LEA         TAB,A5
                 JSR         FIND_EAMODE
                 
                 JSR         PRINT_init
-                
+                ADD.W       #$02,A2
                 BRA         loop_exit
 
 SHIFT_count     LEA         POUND,A5
@@ -1153,9 +1153,11 @@ SHIFT_count     LEA         POUND,A5
                 LSR.L       #1,D1               ; shift to get the register
                 ADD.W       #$30,D1             ; convert ascii number to hex
             
-                MOVE.B      D1,$4000            ; move the register to address $4000
-                MOVE.B      #$00,$4001          ; add the string terminating character
-                MOVE.L      #$00004000,A5
+                MOVE.B      D1,(A4)+            ; move the register to A4
+                MOVE.B      #$00,(A4)+          ; add the string terminating character
+                MOVE.W      A4,D0
+                SUB.W       #$02,D0
+                MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            ; add the register to the string
             
                 LEA         COMMA,A5            ; add a comma to the string
@@ -1168,13 +1170,15 @@ SHIFT_count     LEA         POUND,A5
                 ANDI.W      #$0007,D1
                 ADD.W       #$30,D1             ; convert the register to hex
 
-                MOVE.B      D1,$4002            ; move the register to address $4002
-                MOVE.B      #$00,$4003          ; add the string terminating character
-                MOVE.L      #$00004002,A5
+                MOVE.B      D1,(A4)+            ; move the register to A4
+                MOVE.B      #$00,(A4)+          ; add the string terminating character
+                MOVE.W      A4,D0
+                SUB.W       #$02,D0
+                MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            ; add the register to the string
             
                 JSR         PRINT_init          ; print the string
-            
+                ADD.W       #$02,A2
                 BRA         loop_exit
 
 SHIFT_reg       LEA         DATA_REG,A5
@@ -1186,9 +1190,11 @@ SHIFT_reg       LEA         DATA_REG,A5
                 LSR.L       #1,D1               ; shift to get the register
                 ADD.W       #$30,D1             ; convert ascii number to hex
             
-                MOVE.B      D1,$4000            ; move the register to address $4000
-                MOVE.B      #$00,$4001          ; add the string terminating character
-                MOVE.L      #$00004000,A5
+                MOVE.B      D1,(A4)+            ; move the register to A4
+                MOVE.B      #$00,(A4)+          ; add the string terminating character
+                MOVE.W      A4,D0
+                SUB.W       #$02,D0
+                MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            ; add the register to the string
             
                 LEA         COMMA,A5            ; add a comma to the string
@@ -1201,13 +1207,15 @@ SHIFT_reg       LEA         DATA_REG,A5
                 ANDI.W      #$0007,D1
                 ADD.W       #$30,D1             ; convert the register to hex
 
-                MOVE.B      D1,$4002            ; move the register to address $4002
-                MOVE.B      #$00,$4003          ; add the string terminating character
-                MOVE.L      #$00004002,A5
+                MOVE.B      D1,(A4)+            ; move the register to A4
+                MOVE.B      #$00,(A4)+          ; add the string terminating character
+                MOVE.W      A4,D0
+                SUB.W       #$02,D0
+                MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            ; add the register to the string
             
                 JSR         PRINT_init          ; print the string
-            
+                ADD.W       #$02,A2
                 BRA         loop_exit
 
 EOR_opmode      CMP.W       #%0100,D4           ; check if byte
@@ -1235,10 +1243,20 @@ OR_opmode       CMP.W       #%0000,D4
                 BEQ         op_DATA
 
 print_add       MOVEM.L     D0-D7,-(SP)         ; Save the state
-                MOVE.L      A2,D1               ; Move the current address to D1
-                MOVE.L      #15,D0              ; Move the I/O code to D0 to print the number in D1
-                MOVE.L      #16,D2              ; Print the number in base 16
-                TRAP        #15                 ; print
+                MOVE.L      A4,A0               Clear the output address location
+                MOVE.L      A2,D0
+                MOVE.L      #$00000004,D1
+                MOVE.L      #$00000000,D2
+                MOVE.L      #$00000000,D3
+                JSR         HEXTOASCII
+                                
+                ADD.L       #$08,A4
+                MOVE.B      #$00,(A4)+          Add the string terminating character
+                MOVE.L      A4,D0
+                SUB.L       #$09,D0
+                MOVE.L      D0,A5
+                MOVE.L      A5,(A6)+            Add the register to the output string
+                
                 MOVEM.L     (SP)+,D0-D7         ; restore the state
                 RTS
             
@@ -1247,18 +1265,38 @@ op_NOP          LEA         NOP_STR,A5
                 JSR         PRINT_init          ; print the string
                 BRA         loop_exit
             
-op_DATA         MOVE.L      #14,D0
-                LEA         DATA_STR,A1
-                TRAP        #15                 ; OP code DNE
+op_DATA         JSR         clearTempVars
+                JSR         clearOutputStr
+                MOVE.L      #$00004000,A4
+                MOVE.L      #$00005000,A6
+                JSR         print_add
+
+                LEA         DATA_STR,A5
+                MOVE.L      A5,(A6)+            ; add DATA to string
                 
-                MOVE.L      #14,D0
-                LEA         TAB,A1
-                TRAP        #15                 ; print a tab
+                LEA         TAB,A5
+                MOVE.L      A5,(A6)+            ; add tab to string                    
                 
-                MOVE.L      #16,D2
-                MOVE.L      #15,D0
-                MOVE.L      A2,D1
-                TRAP        #15
+                MOVE.L      A4,A0               Clear the output address location
+                MOVE.W      (A2),D0
+                MOVE.L      #$00000002,D1
+                MOVE.L      #$00000000,D2
+                MOVE.L      #$00000000,D3
+                JSR         HEXTOASCII
+                
+                MOVEM.L     (SP)+,D0-D7         Restore state
+                
+                ***
+                ADD.L       #$04,A4
+                MOVE.B      #$00,(A4)+          Add the string terminating character
+                MOVE.L      A4,D0
+                SUB.L       #$05,D0
+                MOVE.L      D0,A5
+                MOVE.L      A5,(A6)+            Add the register to the output string
+                
+                JSR         PRINT_init
+                
+                ADD.W       #$02,A2
                 
                 BRA         loop_exit
             
@@ -1784,7 +1822,7 @@ OP_ADDR_CONT   JSR      PRINT_TAB
 
                JSR      PRINT_init      Print the string
                 
-               BRA      exit            Done
+               BRA      loop_exit            Done
                
                
                
@@ -1832,7 +1870,7 @@ ARITH_ONE_CONT ADD.W    #$02,A2         Advance the pointer past the instruction
                MOVEM.L  (SP)+,D4       Restore  D4
 
                JSR      PRINT_init      Print the string
-               BRA      exit
+               BRA      loop_exit
 
 
 **************************************************************
@@ -1891,7 +1929,7 @@ ARITH2_RESUME   MOVEM.L    (SP)+,D0/D1     Release D0,D1 from stack
                 MOVEM.L    (SP)+,D4        Restore  D4
 
                 JSR        PRINT_init      Print the string
-                BRA        exit 
+                BRA        loop_exit 
 
 
 CHECK_REG       CMP.B       #2,D1          Check for illegal reg (d16,PC)
@@ -2428,7 +2466,7 @@ POUND           DC.B        '#',0
 DOLLAH          DC.B        '$',0
 IMMED_PREFIX    DC.B        '#$',0
 *------------------------------------------------------------------*
-DATA_STR        DC.B        '      DATA',CR,LF,0
+DATA_STR        DC.B        '      DATA',0
 NOP_STR         DC.B        '      NOP',0
 MOVEB_STR       DC.B        '      MOVE.B',0
 BRA_STR         DC.B        '      BRA  ',0
@@ -2471,6 +2509,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
