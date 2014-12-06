@@ -904,11 +904,12 @@ op0100          *NEG
 	            BEQ         op_NEG	            ; Check for NEG
 	        
                 *NOP
-                MOVE.L      (A2),D1             ; move the original operation into D1
+                MOVE.W      (A2),D1             ; move the original operation into D1
                 CMP.W       #$4E71,D1               ; compare D0 and D1
                 BEQ         op_NOP              ; if they're equal, the operation is NOP
             
                 *LEA
+                MOVE.W      (A2),D1
                 ANDI.W      #$F1C0,D1
                 CMP.W       #$41C0,D1
                 BEQ         op_LEA
@@ -1534,7 +1535,7 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
             
                 LEA         LEA_STR,A5
                 MOVE.L      A5,(A6)+
-                JSR         PRINT_TAB           Print the tab
+                JSR         PRINT_ALI_4           Print the tab
                 MOVEM.L     (SP)+,D0/A1         restore from stack
             
                 * Since we know that in this case, LEA always moves
