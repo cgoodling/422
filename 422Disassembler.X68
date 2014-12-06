@@ -441,7 +441,45 @@ START:
                 MOVE.W      #$41D8, $6226            Attempt LEA (An)+,A0
                 MOVE.W      #$41E0, $6228            Attempt LEA -(An),A0
                 MOVE.W      #$41F0, $622A            Attempt LEA #(DATA),A0
-                    
+                
+                *******************************************************
+                * MULS Tests
+                
+                MOVE.W      #$CBC3, $622C           MULS.W D3,D5
+                MOVE.W      #$CBCB, $622E           MULS.W A3,D5 --- DATA INVALID INPUT
+                MOVE.W      #$CBD3, $6230           MULS.W (A3),D5
+                MOVE.W      #$CBDB, $6232           MULS.W (A3)+,D5
+                MOVE.W      #$CBE3, $6234           MULS.W -(A3),D5
+                MOVE.W      #$CBEB, $6236           MULS.W (d16,An)
+                MOVE.W      #$CBF3, $6238           MULS.W (d8,An,Xn)
+                MOVE.W      #$CBF8, $623A           MULS.W #$ABCD,D5
+                MOVE.W      #$ABCD, $623C
+                MOVE.W      #$CBF9, $623E           MULS.W #$ABCDEF00,D5
+                MOVE.W      #$ABCD, $6240
+                MOVE.W      #$EF00, $6242
+                MOVE.W      #$CBFC, $6244           MULS.W #$1234567,D5
+                MOVE.W      #$1234, $6246
+                MOVE.W      #$5678, $6248
+                
+                *******************************************************
+                * DIVS Tests
+                
+                MOVE.W      #$8BC3, $6248           DIVS.W D3,D5
+                MOVE.W      #$8BCB, $624A           DIVS.W A3,D5 --- DATA INVALID INPUT
+                MOVE.W      #$8BD3, $624C           DIVS.W (A3),D5
+                MOVE.W      #$8BDB, $624E           DIVS.W (A3)+,D5
+                MOVE.W      #$8BE3, $6250           DIVS.W -(A3),D5
+                MOVE.W      #$8BEB, $6252           DIVS.W (d16,An)
+                MOVE.W      #$8BF3, $6254           DIVS.W (d8,An,Xn)
+                MOVE.W      #$8BF8, $6256           DIVS.W #$ABCD,D5
+                MOVE.W      #$ABCD, $6258
+                MOVE.W      #$8BF9, $625A           DIVS.W #$ABCDEF00,D5
+                MOVE.W      #$ABCD, $625C
+                MOVE.W      #$EF00, $625E
+                MOVE.W      #$8BFC, $6260           DIVS.W #$1234567,D5
+                MOVE.W      #$1234, $6262
+                MOVE.W      #$5678, $6264
+                
                 *******************************************************
                 * ADDA Tests
                 
@@ -490,33 +528,54 @@ START:
 
                 * ADD.L
                 *******************************************************
-            
-                MOVE.W      #$0C01, $622C       CMPI.B #$ xx,D1             ONLY CMPI
-                MOVE.W      #$0C51, $622E       CMPI.W #$ xxxx,(A1)         ONLY CMPI
-                MOVE.W      #$0C99, $6230       CMPI.L #$ xxxxxxxx,(A1)+    ONLY CMPI
-                MOVE.W      #$4E80, $6232       JSR
-                MOVE.W      #$4E75, $6234       RTS                     WRONG OUTPUT
-                MOVE.W      #$0B91, $6236       BCLR D5,A1              ONLY showing BCLR
-                MOVE.W      #$3246, $6238       MOVE.W D6,A1            WRONG OUTPUT
-                MOVE.W      #$0002, $623A
-                MOVE.W      #$00EC, $623C       ORI.B  #$EC,D2
-                MOVE.W      #$0045, $623E
-                MOVE.W      #$0123, $6240       ORI.W  #$0123,D5
-                MOVE.W      #$0085, $6242       ORI.L  #$xxxxxxxx, D5
-                MOVE.W      #$1234, $6246
-                MOVE.W      #$5678, $6248             12345678    
-                MOVE.W      #$43F8, $624A
-                MOVE.W      #$7000, $624C       LEA $7000,A1
-                MOVE.W      #$4E71, $624E       NOP                             Extra blank line after return
-                MOVE.W      #$1200, $6250       MOVE.B D0,D1                    WRONG
-                MOVE.W      #$1607, $6252       MOVE.B D7,D3                    WRONG
-                MOVE.W      #$B501, $6254       EOR.B	D2,D1
-                MOVE.W      #$B178, $6256       EOR.W	D0,$XXXX
-                MOVE.W      #$4000, $6258            	    4000
-                MOVE.W      #$B7B9, $625A       EOR.L  D3,$XXXXXXXX
-                MOVE.W      #$1234, $625C                  1234
-                MOVE.W      #$5678, $625E                      5678
-                MOVE.W      #$B79A, $6260       EOR.L  D3,(A2)+
+                
+                *******************************************************
+                * CMP Tests
+                MOVE.W      #$B411, $96B0       CMP.B  (A1),D2
+                MOVE.W      #$B063, $96B2		CMP.W	-(A3),D0
+                MOVE.W      #$B449, $96B4	    CMP.W	A1,D2
+                MOVE.W      #$B489, $96B6    	CMP.L	A1,D2
+                MOVE.W      #$B008, $96B8       CMP.B	A0,D0     TEST CASE(Should be DATA) 
+                MOVE.W      #$B03C, $96BA	    CMP.B	#$xx,D0 
+                MOVE.W      #$0001, $96BC                01
+                MOVE.W      #$B038, $96BE	    CMP.B	$xxxx,D0
+                MOVE.W      #$0005, $96C0               0005
+                MOVE.W      #$B0B9, $96C2       CMP.L   $xxxxxxxx,D0
+                MOVE.W      #$1234, $96C4               1234
+                MOVE.W      #$5678, $96C6                   5678
+                MOVE.W      #$B0BC, $96C8       CMP.L   #$xxxxxxxx,D0   *TO BE FIXED
+                MOVE.W      #$1234, $96CA               1234           *TO BE FIXED
+                MOVE.W      #$5678, $96CC                   5678       *TO BE FIXED
+                MOVE.W      #$B25A, $96CE       CMP.W   (A2)+,D1         
+                MOVE.W      #$B401, $96D0       CMP.B   D1,D2 
+        
+                *******************************************************
+                *MOVE.W      #$0C01, $622C       CMPI.B #$ xx,D1             ONLY CMPI
+                *MOVE.W      #$0C51, $622E       CMPI.W #$ xxxx,(A1)         ONLY CMPI
+                *MOVE.W      #$0C99, $6230       CMPI.L #$ xxxxxxxx,(A1)+    ONLY CMPI
+                *MOVE.W      #$4E80, $6232       JSR
+                *MOVE.W      #$4E75, $6234       RTS                     WRONG OUTPUT
+                *MOVE.W      #$0B91, $6236       BCLR D5,A1              ONLY showing BCLR
+                *MOVE.W      #$3246, $6238       MOVE.W D6,A1            WRONG OUTPUT
+                *MOVE.W      #$0002, $623A
+                *MOVE.W      #$00EC, $623C       ORI.B  #$EC,D2
+                *MOVE.W      #$0045, $623E
+                *MOVE.W      #$0123, $6240       ORI.W  #$0123,D5
+                *MOVE.W      #$0085, $6242       ORI.L  #$xxxxxxxx, D5
+                *MOVE.W      #$1234, $6246
+                *MOVE.W      #$5678, $6248             12345678    
+                *MOVE.W      #$43F8, $624A
+                *MOVE.W      #$7000, $624C       LEA $7000,A1
+                *MOVE.W      #$4E71, $624E       NOP                             Extra blank line after return
+                *MOVE.W      #$1200, $6250       MOVE.B D0,D1                    WRONG
+                *MOVE.W      #$1607, $6252       MOVE.B D7,D3                    WRONG
+                *MOVE.W      #$B501, $6254       EOR.B	D2,D1
+                *MOVE.W      #$B178, $6256       EOR.W	D0,$XXXX
+                *MOVE.W      #$4000, $6258            	    4000
+                *MOVE.W      #$B7B9, $625A       EOR.L  D3,$XXXXXXXX
+                *MOVE.W      #$1234, $625C                  1234
+                *MOVE.W      #$5678, $625E                      5678
+                *MOVE.W      #$B79A, $6260       EOR.L  D3,(A2)+
 
  *-----------------------------------------------------------------------*
  *              SUBQ Testing (all modes have been tested)
@@ -838,34 +897,30 @@ op0011          BRA         op_DATA
 *-------------------------------------------------------------------------*             
 op0100          *NEG
                 MOVE.W      (A2),D1             ; move operation into D1
-	            ANDI.W	    #%1111111100000000,D1
-    	        CMP.W	    #%0100010000000000,D1
+	            ANDI.W	    #$FF00,D1
+    	        CMP.W	    #$4400,D1
 	            BEQ         op_NEG	            ; Check for NEG
 	        
                 *NOP
-                CLR.L       D0                  ; clear D0
-                MOVE.W      #%0100111001110001,D0
-                CLR.L       D1                  ; clear D1
-                MOVE.W      (A2),D1             ; move the original operation into D1
-                CMP.W       D0,D1               ; compare D0 and D1
+                MOVE.L      (A2),D1             ; move the original operation into D1
+                CMP.W       #$4E71,D1               ; compare D0 and D1
                 BEQ         op_NOP              ; if they're equal, the operation is NOP
             
                 *LEA
-                ANDI.W      #%1111000111000000,D1
-                CMP.W       #%0100000111000000,D1
+                ANDI.W      #$F1C0,D1
+                CMP.W       #$41C0,D1
                 BEQ         op_LEA
 
                 *JSR
                 MOVE.W      (A2),D1             ; move the original operation into D1 
-                ANDI.W      #%1111111111000000,D1
-                CMP.W       #%0100111010000000,D1
+                ANDI.W      #$FFC0,D1
+                CMP.W       #$4E80,D1
                 BEQ         op_JSR              ; check bits 6-15 to compare for JSR
             
                 *RTS
                 MOVE.W      (A2),D1             ; move the original operation into D1
-                CMP.W       #%0100111001110101,D1
+                CMP.W       #$4E75,D1
                 BEQ         op_RTS              ; check for RTS
-
             
                 BRA         op_DATA             ; invalid
 *-------------------------------------------------------------------------*
@@ -883,35 +938,39 @@ op0101          BRA         op_SUBQ
 op0110          *BRA
                 CLR.L       D0
                 MOVE.W      (A2),D0
-                ANDI.W      #%1111111100000000,D0
-                LSR.L       #8,D0               ; separate the first 8 bits (bits 8-15)
+                ANDI.W      #$FF00,D0
+                LSR.L       #8,D0                   ; separate the first 8 bits (bits 8-15)
                 CLR.L       D1
                 MOVE.W      (A2),D1
-                ANDI.W      #%0000000011111111,D1
-                CMP.W       #%01100000,D0       ; standard first 8 bits of a BRA op
-                BEQ         op_BRA              ; if they're equal, OP code is BRA
+                ANDI.W      #$00FF,D1
+                CMP.W       #$60,D0                 ; standard first 8 bits of a BRA op
+                BEQ         op_BRA                  ; if they're equal, OP code is BRA
                                             
-                CMP.W       #%01100101,D0         * Check for BCS
+                CMP.W       #$65,D0                 * Check for BCS
                 BEQ         op_BCS
                 
-                CMP.W       #%01101100,D0         * Check for BGE
+                CMP.W       #$6C,D0                 * Check for BGE
                 BEQ         op_BGE
 
-                CMP.W       #%01101101,D0         * Check for BLT
+                CMP.W       #$6D,D0                 * Check for BLT
                 BEQ         op_BLT
                 
-                CMP.W       #%01101000,D0         * Check for BVC
+                CMP.W       #$68,D0                 * Check for BVC
                 BEQ         op_BVC
 
-                BRA         op_DATA             * Otherwise branch to data
+                BRA         op_DATA                 * Otherwise branch to data
             
 op0111          BRA         op_DATA
 
 *-------------------------------------------------------------------------*
 * Inclusive Or, Signed Divide
-*-------------------------------------------------------------------------*             
-op1000          * OR
-                JSR         op_OR
+*-------------------------------------------------------------------------*
+op1000          * DIVS
+                CMP.W       #$07,D4                 * check the opmode field
+                BEQ         op_DIVS                 * if it is 7, the operation is DIVS
+
+                * OR
+                JSR         op_OR                   * otherwise the operation is OR
 
                 BRA         op_DATA
 
@@ -919,8 +978,8 @@ op1000          * OR
 * Subtract
 *-------------------------------------------------------------------------*             
 op1001          MOVE.W      (A2),D1                 Move operation into D1 
-                ANDI.W      #%1111000000000000,D1   MASK for SUB operation
-                CMP.W       #%1001000000000000,D1
+                ANDI.W      #$F000,D1               MASK for SUB operation
+                CMP.W       #$9000,D1
                 BEQ         op_SUB                  
 
                 
@@ -939,13 +998,17 @@ op1010          BRA         op_DATA
 *-------------------------------------------------------------------------*             
 op1011          
                 *EOR
-	            MOVE.W	(A2),D0                   * copy op for compare
-	            ANDI.W	#%1111000100000000,D0   * grab identifier bits
-	            CMP.W	#%1011000100000000,D0   * check to see if EOR
-                BEQ     op_EOR
+	            MOVE.W	    (A2),D0             * copy op for compare
+	            ANDI.W	    #$F100,D0           * grab identifier bits
+	            CMP.W	    #$B100,D0           * check to see if EOR
+                BEQ         op_EOR
                 
                 *CMP
-
+                MOVE.W      (A2),D0             * copy op for compare
+                MOVE.W      (A2),D1             * copy op for testing
+                ANDI.W	    #$F100,D0           * grab identifier bits
+                CMP.W       #$B000,D0           * check to see if CMP
+                BEQ         op_CMP              
 
                 BRA         op_DATA
 
@@ -953,7 +1016,7 @@ op1011
 * Signed Multiply
 *-------------------------------------------------------------------------*            
 op1100          CMP.B       #$07,D4             * check for Signed Multiply Word
-                BEQ         op_MULS_W
+                BEQ         op_MULS
                 
                 BRA         op_DATA
                 
@@ -976,16 +1039,24 @@ op1110          MOVE.W      (A2),D0             * move original op into D0
 op1111          BRA         op_DATA
 
 *************************************** OPS *************************************
-op_MULS_W       LEA         MULSW_STR,A5        * add the operation to the output
-                MOVE.L      A5,(A6)+
+op_DIVS         LEA         DIVSW_STR,A5
+                MOVE.L      A5,(A6)+            * add the operation to the output
+                BRA         op_SIGN_MD
                 
+op_MULS         LEA         MULSW_STR,A5        * add the operation to the output
+                MOVE.L      A5,(A6)+
+                BRA         op_SIGN_MD
+                
+op_SIGN_MD
                 MOVE.W      D5,D0               * copy the EA bits into D0
-                ANDI.W      #%00111000,D0       * Separate the mode
-                CMP.W       #%00001000,D0       * check if its mode 1
+                ANDI.W      #$38,D0             * Separate the mode
+                CMP.W       #$07,D0             * check if its mode 1
                 BEQ         op_DATA             * if it is, it's invalid
                 
                 ADD.W       #$02,A2             * increment the current operation address
                 JSR         FIND_EAMODE         * create the left side of the operation
+                
+                JSR         PRINT_COMMA
                 
                 MOVE.L      #$00000000,D4       * Move our Dn mode to D4
                 JSR         FIND_OPMODE         * Now move to our mode
@@ -1237,6 +1308,14 @@ EOR_opmode      CMP.W       #%0100,D4           ; check if byte
                 CMP.W       #%0110,D4           ; check if long
                 BEQ         print_L_str         ; go add .L to string
                 BRA         op_DATA
+
+CMP_opmode      CMP.W       #%0000,D4           ; check if byte
+                BEQ         print_B_str         ; go add .B to string
+                CMP.W       #%0001,D4           ; check if word
+                BEQ         print_W_str         ; go add .W to string
+                CMP.W       #%0010,D4           ; check if long
+                BEQ         print_L_str         ; go add .L to string
+                BRA         op_DATA
                 
 
 OR_opmode       CMP.W       #%0000,D4
@@ -1421,6 +1500,26 @@ op_BVC          LEA         BVC_STR,A5
                 MOVE.L      A5,(A6)+
                 JSR         FIND_DISP
                 BRA         loop_exit                * eventually should jump to a repeat loop
+
+op_CMP          LEA         CMP_STR,A5               * load op string
+                MOVE.L      A5,(A6)+                 * Add op string to output string
+                JSR         CMP_opmode               * find the size and add it to the string
+                
+                ****Test for .B of An,Dn (invalid)
+                ANDI.L      #$01F8,D1    * mask size and mode bits
+                CMP.L       #$0008,D1    * compare to invalid
+                BEQ         op_DATA                  * invalid op, print DATA
+                
+                MOVE.L      D5,D0               * load the op              
+                ANDI.W      #$0038,D0           * mask the mode
+                ADD.W       #$0002,A2           * increment the current address
+                JSR         FIND_EAMODE         * create the right side of the operation
+                JSR         PRINT_COMMA         * print a comma
+                MOVE.L      #$00000000,D4       * set mode to 0 for Dn
+                JSR         FIND_OPMODE         * create left side of operation
+
+                JSR         PRINT_init          * print the output string
+                BRA         loop_exit           * enter loop exit
 
 *--------------------------------------------------------------*
 * OP-Section for L_oad E_ffective A_ddress
@@ -2599,7 +2698,8 @@ SUBA_STR        DC.B        '      SUBA',0
 SUB_STR         DC.B        '      SUB',0
 SUBQ_STR        DC.B        '      SUBQ',0
 MULSW_STR       DC.B        '      MULS.W   ',0
-
+DIVSW_STR       DC.B        '      DIVS.W   ',0
+CMP_STR         DC.B        '      CMP',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
