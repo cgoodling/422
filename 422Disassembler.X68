@@ -1207,8 +1207,7 @@ SHIFT_IR        JSR         opcode_size_str     * add the size to the string
                 CMP.W       #$0020,D4           * check for register shift
                 BEQ         SHIFT_reg
                 
-op_SHIFT_EA     LEA         TAB,A5
-                MOVE.L      A5,(A6)+   
+op_SHIFT_EA     JSR         PRINT_ALI_4
                 
                 CMP.W       #%00111100,D5       ; mode 7, reg 4 invalid
                 BEQ         op_DATA
@@ -1229,7 +1228,9 @@ op_SHIFT_EA     LEA         TAB,A5
                 ADD.W       #$02,A2
                 BRA         loop_exit
 
-SHIFT_count     LEA         POUND,A5
+SHIFT_count     JSR         PRINT_ALI_1
+
+                LEA         POUND,A5
                 MOVE.L      A5,(A6)+            ; add # to the string
             
                 MOVE.W      (A2),D1
@@ -1266,7 +1267,9 @@ SHIFT_count     LEA         POUND,A5
                 ADD.W       #$02,A2
                 BRA         loop_exit
 
-SHIFT_reg       LEA         DATA_REG,A5
+SHIFT_reg       JSR         PRINT_ALI_1
+
+                LEA         DATA_REG,A5
                 MOVE.L      A5,(A6)+            ; add 'D'y to the string
             
                 MOVE.W      (A2),D1
@@ -2748,6 +2751,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
