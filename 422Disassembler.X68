@@ -441,45 +441,7 @@ START:
                 MOVE.W      #$41D8, $6226            Attempt LEA (An)+,A0
                 MOVE.W      #$41E0, $6228            Attempt LEA -(An),A0
                 MOVE.W      #$41F0, $622A            Attempt LEA #(DATA),A0
-                
-                *******************************************************
-                * MULS Tests
-                
-                MOVE.W      #$CBC3, $622C           MULS.W D3,D5
-                MOVE.W      #$CBCB, $622E           MULS.W A3,D5 --- DATA INVALID INPUT
-                MOVE.W      #$CBD3, $6230           MULS.W (A3),D5
-                MOVE.W      #$CBDB, $6232           MULS.W (A3)+,D5
-                MOVE.W      #$CBE3, $6234           MULS.W -(A3),D5
-                MOVE.W      #$CBEB, $6236           MULS.W (d16,An)
-                MOVE.W      #$CBF3, $6238           MULS.W (d8,An,Xn)
-                MOVE.W      #$CBF8, $623A           MULS.W #$ABCD,D5
-                MOVE.W      #$ABCD, $623C
-                MOVE.W      #$CBF9, $623E           MULS.W #$ABCDEF00,D5
-                MOVE.W      #$ABCD, $6240
-                MOVE.W      #$EF00, $6242
-                MOVE.W      #$CBFC, $6244           MULS.W #$1234567,D5
-                MOVE.W      #$1234, $6246
-                MOVE.W      #$5678, $6248
-                
-                *******************************************************
-                * DIVS Tests
-                
-                MOVE.W      #$8BC3, $6248           DIVS.W D3,D5
-                MOVE.W      #$8BCB, $624A           DIVS.W A3,D5 --- DATA INVALID INPUT
-                MOVE.W      #$8BD3, $624C           DIVS.W (A3),D5
-                MOVE.W      #$8BDB, $624E           DIVS.W (A3)+,D5
-                MOVE.W      #$8BE3, $6250           DIVS.W -(A3),D5
-                MOVE.W      #$8BEB, $6252           DIVS.W (d16,An)
-                MOVE.W      #$8BF3, $6254           DIVS.W (d8,An,Xn)
-                MOVE.W      #$8BF8, $6256           DIVS.W #$ABCD,D5
-                MOVE.W      #$ABCD, $6258
-                MOVE.W      #$8BF9, $625A           DIVS.W #$ABCDEF00,D5
-                MOVE.W      #$ABCD, $625C
-                MOVE.W      #$EF00, $625E
-                MOVE.W      #$8BFC, $6260           DIVS.W #$1234567,D5
-                MOVE.W      #$1234, $6262
-                MOVE.W      #$5678, $6264
-                
+                    
                 *******************************************************
                 * ADDA Tests
                 
@@ -529,36 +491,43 @@ START:
                 * ADD.L
                 *******************************************************
             
-                *MOVE.W      #$0C01, $622C       CMPI.B #$ xx,D1             ONLY CMPI
-                *MOVE.W      #$0C51, $622E       CMPI.W #$ xxxx,(A1)         ONLY CMPI
-                *MOVE.W      #$0C99, $6230       CMPI.L #$ xxxxxxxx,(A1)+    ONLY CMPI
-                *MOVE.W      #$4E80, $6232       JSR
-                *MOVE.W      #$4E75, $6234       RTS                     WRONG OUTPUT
-                *MOVE.W      #$0B91, $6236       BCLR D5,A1              ONLY showing BCLR
-                *MOVE.W      #$3246, $6238       MOVE.W D6,A1            WRONG OUTPUT
-                *MOVE.W      #$0002, $623A
-                *MOVE.W      #$00EC, $623C       ORI.B  #$EC,D2
-                *MOVE.W      #$0045, $623E
-                *MOVE.W      #$0123, $6240       ORI.W  #$0123,D5
-                *MOVE.W      #$0085, $6242       ORI.L  #$xxxxxxxx, D5
-                *MOVE.W      #$1234, $6246
-                *MOVE.W      #$5678, $6248             12345678    
-                *MOVE.W      #$43F8, $624A
-                *MOVE.W      #$7000, $624C       LEA $7000,A1
-                *MOVE.W      #$4E71, $624E       NOP                             Extra blank line after return
-                *MOVE.W      #$1200, $6250       MOVE.B D0,D1                    WRONG
-                *MOVE.W      #$1607, $6252       MOVE.B D7,D3                    WRONG
-                *MOVE.W      #$B501, $6254       EOR.B	D2,D1
-                *MOVE.W      #$B178, $6256       EOR.W	D0,$XXXX
-                *MOVE.W      #$4000, $6258            	    4000
-                *MOVE.W      #$B7B9, $625A       EOR.L  D3,$XXXXXXXX
-                *MOVE.W      #$1234, $625C                  1234
-                *MOVE.W      #$5678, $625E                      5678
-                *MOVE.W      #$B79A, $6260       EOR.L  D3,(A2)+
+                MOVE.W      #$0C01, $622C       CMPI.B #$ xx,D1             ONLY CMPI
+                MOVE.W      #$0C51, $622E       CMPI.W #$ xxxx,(A1)         ONLY CMPI
+                MOVE.W      #$0C99, $6230       CMPI.L #$ xxxxxxxx,(A1)+    ONLY CMPI
+                MOVE.W      #$4E80, $6232       JSR
+                MOVE.W      #$4E75, $6234       RTS                     WRONG OUTPUT
+                MOVE.W      #$0B91, $6236       BCLR D5,A1              ONLY showing BCLR
+                MOVE.W      #$3246, $6238       MOVE.W D6,A1            WRONG OUTPUT
+                MOVE.W      #$0002, $623A
+                MOVE.W      #$00EC, $623C       ORI.B  #$EC,D2
+                MOVE.W      #$0045, $623E
+                MOVE.W      #$0123, $6240       ORI.W  #$0123,D5
+                MOVE.W      #$0085, $6242       ORI.L  #$xxxxxxxx, D5
+                MOVE.W      #$1234, $6246
+                MOVE.W      #$5678, $6248             12345678    
+                MOVE.W      #$43F8, $624A
+                MOVE.W      #$7000, $624C       LEA $7000,A1
+                MOVE.W      #$4E71, $624E       NOP                             Extra blank line after return
+                MOVE.W      #$1200, $6250       MOVE.B D0,D1                    WRONG
+                MOVE.W      #$1607, $6252       MOVE.B D7,D3                    WRONG
+                MOVE.W      #$B501, $6254       EOR.B	D2,D1
+                MOVE.W      #$B178, $6256       EOR.W	D0,$XXXX
+                MOVE.W      #$4000, $6258            	    4000
+                MOVE.W      #$B7B9, $625A       EOR.L  D3,$XXXXXXXX
+                MOVE.W      #$1234, $625C                  1234
+                MOVE.W      #$5678, $625E                      5678
+                MOVE.W      #$B79A, $6260       EOR.L  D3,(A2)+
 
-                
-                
-            
+ *-----------------------------------------------------------------------*
+ *              SUBQ Testing (all modes have been tested)
+ *            
+                MOVE.L      #$53B84012,$6262       SUB.L       #1,$4012
+                MOVE.L      #$55B86666,$6266       SUB.L       #2,$6666
+                MOVE.W      #$57B9,$626A           SUB.L       #3,$70960
+                MOVE.L      #$00070960,$626C       
+                MOVE.W      #$59B9,$6270           SUB.L       #4,$88888888
+                MOVE.L      #$88888888,$6272
+                       
 ************************** END OF TESTING *******************************************************************
                 LEA         STACK,SP            Load the stack
             
@@ -786,11 +755,11 @@ JUMPTABLE       JMP         op0000              ORI, BCLR
                 JMP         op0010
                 JMP         op0011
                 JMP         op0100              NEG, NOP, LEA, JSR, RTS
-                JMP         op0101
+                JMP         op0101              SUBQ
                 JMP         op0110              BRA
                 JMP         op0111
                 JMP         op1000              OR.X
-                JMP         op1001
+                JMP         op1001              SUB, SUBA
                 JMP         op1010
                 JMP         op1011
                 JMP         op1100
@@ -869,35 +838,44 @@ op0011          BRA         op_DATA
 *-------------------------------------------------------------------------*             
 op0100          *NEG
                 MOVE.W      (A2),D1             ; move operation into D1
-	            ANDI.W	    #$FF00,D1
-    	        CMP.W	    #$4400,D1
+	            ANDI.W	    #%1111111100000000,D1
+    	        CMP.W	    #%0100010000000000,D1
 	            BEQ         op_NEG	            ; Check for NEG
 	        
                 *NOP
-                MOVE.L      (A2),D1             ; move the original operation into D1
-                CMP.W       #$4E71,D1               ; compare D0 and D1
+                CLR.L       D0                  ; clear D0
+                MOVE.W      #%0100111001110001,D0
+                CLR.L       D1                  ; clear D1
+                MOVE.W      (A2),D1             ; move the original operation into D1
+                CMP.W       D0,D1               ; compare D0 and D1
                 BEQ         op_NOP              ; if they're equal, the operation is NOP
             
                 *LEA
-                ANDI.W      #$F1C0,D1
-                CMP.W       #$41C0,D1
+                ANDI.W      #%1111000111000000,D1
+                CMP.W       #%0100000111000000,D1
                 BEQ         op_LEA
 
                 *JSR
                 MOVE.W      (A2),D1             ; move the original operation into D1 
-                ANDI.W      #$FFC0,D1
-                CMP.W       #$4E80,D1
+                ANDI.W      #%1111111111000000,D1
+                CMP.W       #%0100111010000000,D1
                 BEQ         op_JSR              ; check bits 6-15 to compare for JSR
             
                 *RTS
                 MOVE.W      (A2),D1             ; move the original operation into D1
-                CMP.W       #$4E75,D1
+                CMP.W       #%0100111001110101,D1
                 BEQ         op_RTS              ; check for RTS
+
             
                 BRA         op_DATA             ; invalid
-
+*-------------------------------------------------------------------------*
+* SUBI - Subtracts the immediate data (1-8) from the destination
+* operand. Only Word and Long operations can be used with Adress Registers
+* (An).      
+*
+*-------------------------------------------------------------------------*
           
-op0101          BRA         op_DATA
+op0101          BRA         op_SUBQ
 
 *-------------------------------------------------------------------------*
 * Branch Subroutine, Branch Always, Branch Conditionally
@@ -905,39 +883,35 @@ op0101          BRA         op_DATA
 op0110          *BRA
                 CLR.L       D0
                 MOVE.W      (A2),D0
-                ANDI.W      #$FF00,D0
-                LSR.L       #8,D0                   ; separate the first 8 bits (bits 8-15)
+                ANDI.W      #%1111111100000000,D0
+                LSR.L       #8,D0               ; separate the first 8 bits (bits 8-15)
                 CLR.L       D1
                 MOVE.W      (A2),D1
-                ANDI.W      #$00FF,D1
-                CMP.W       #$60,D0                 ; standard first 8 bits of a BRA op
-                BEQ         op_BRA                  ; if they're equal, OP code is BRA
+                ANDI.W      #%0000000011111111,D1
+                CMP.W       #%01100000,D0       ; standard first 8 bits of a BRA op
+                BEQ         op_BRA              ; if they're equal, OP code is BRA
                                             
-                CMP.W       #$65,D0                 * Check for BCS
+                CMP.W       #%01100101,D0         * Check for BCS
                 BEQ         op_BCS
                 
-                CMP.W       #$6C,D0                 * Check for BGE
+                CMP.W       #%01101100,D0         * Check for BGE
                 BEQ         op_BGE
 
-                CMP.W       #$6D,D0                 * Check for BLT
+                CMP.W       #%01101101,D0         * Check for BLT
                 BEQ         op_BLT
                 
-                CMP.W       #$68,D0                 * Check for BVC
+                CMP.W       #%01101000,D0         * Check for BVC
                 BEQ         op_BVC
 
-                BRA         op_DATA                 * Otherwise branch to data
+                BRA         op_DATA             * Otherwise branch to data
             
 op0111          BRA         op_DATA
 
 *-------------------------------------------------------------------------*
 * Inclusive Or, Signed Divide
-*-------------------------------------------------------------------------*
-op1000          * DIVS
-                CMP.W       #$07,D4                 * check the opmode field
-                BEQ         op_DIVS                 * if it is 7, the operation is DIVS
-
-                * OR
-                JSR         op_OR                   * otherwise the operation is OR
+*-------------------------------------------------------------------------*             
+op1000          * OR
+                JSR         op_OR
 
                 BRA         op_DATA
 
@@ -945,8 +919,8 @@ op1000          * DIVS
 * Subtract
 *-------------------------------------------------------------------------*             
 op1001          MOVE.W      (A2),D1                 Move operation into D1 
-                ANDI.W      #$F000,D1               MASK for SUB operation
-                CMP.W       #$9000,D1
+                ANDI.W      #%1111000000000000,D1   MASK for SUB operation
+                CMP.W       #%1001000000000000,D1
                 BEQ         op_SUB                  
 
                 
@@ -965,10 +939,10 @@ op1010          BRA         op_DATA
 *-------------------------------------------------------------------------*             
 op1011          
                 *EOR
-	            MOVE.W	    (A2),D0             * copy op for compare
-	            ANDI.W	    #$F100,D0           * grab identifier bits
-	            CMP.W	    #$B100,D0           * check to see if EOR
-                BEQ         op_EOR
+	            MOVE.W	(A2),D0                   * copy op for compare
+	            ANDI.W	#%1111000100000000,D0   * grab identifier bits
+	            CMP.W	#%1011000100000000,D0   * check to see if EOR
+                BEQ     op_EOR
                 
                 *CMP
 
@@ -979,7 +953,7 @@ op1011
 * Signed Multiply
 *-------------------------------------------------------------------------*            
 op1100          CMP.B       #$07,D4             * check for Signed Multiply Word
-                BEQ         op_MULS
+                BEQ         op_MULS_W
                 
                 BRA         op_DATA
                 
@@ -1002,24 +976,16 @@ op1110          MOVE.W      (A2),D0             * move original op into D0
 op1111          BRA         op_DATA
 
 *************************************** OPS *************************************
-op_DIVS         LEA         DIVSW_STR,A5
-                MOVE.L      A5,(A6)+            * add the operation to the output
-                BRA         op_SIGN_MD
-                
-op_MULS         LEA         MULSW_STR,A5        * add the operation to the output
+op_MULS_W       LEA         MULSW_STR,A5        * add the operation to the output
                 MOVE.L      A5,(A6)+
-                BRA         op_SIGN_MD
                 
-op_SIGN_MD
                 MOVE.W      D5,D0               * copy the EA bits into D0
-                ANDI.W      #$38,D0             * Separate the mode
-                CMP.W       #$07,D0             * check if its mode 1
+                ANDI.W      #%00111000,D0       * Separate the mode
+                CMP.W       #%00001000,D0       * check if its mode 1
                 BEQ         op_DATA             * if it is, it's invalid
                 
                 ADD.W       #$02,A2             * increment the current operation address
                 JSR         FIND_EAMODE         * create the left side of the operation
-                
-                JSR         PRINT_COMMA
                 
                 MOVE.L      #$00000000,D4       * Move our Dn mode to D4
                 JSR         FIND_OPMODE         * Now move to our mode
@@ -1477,6 +1443,7 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
                 BEQ         op_DATA         
                 
                 MOVEM.L     D0,-(SP)            Just in case store whatever is in D)
+                CLR         D0
                 MOVE.W      D5,D0               Move D5 to D0
                 ANDI.W      #%00111000,D0       Mask EA mode-bits
                 CMP.W       #%00000000,D0       Check for illegal Dn mode
@@ -1497,6 +1464,7 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
                 JSR         PRINT_COMMA         Print the comma
 
                 MOVEM.L     D4,-(SP)            save contents of D4 on stack
+                CLR         D4
                 MOVE.B      #1,D4               Move our An mode to D4
                 JSR         FIND_OPMODE         Now move to our mode
             
@@ -1520,6 +1488,7 @@ op_JSR          LEA         JSR_STR,A5
                 BEQ         op_DATA         
                 
                 MOVEM.L     D0,-(SP)            Just in case store whatever is in D)
+                CLR         D0
                 MOVE.W      D5,D0               Move D5 to D0
                 ANDI.W      #%00111000,D0       Mask EA mode-bits
                 CMP.W       #%00000000,D0       Check for illegal Dn mode
@@ -1827,12 +1796,11 @@ op_ADD         LEA      ADD_STR,A5      Go to ADD mode
 
 
 *------------------------------------------------------------*
-* OP_ADDRESS is Specifically for methods like
-* SUBA or ADDA that have the 'A' Suffix and similar addressing
-* behavior
+* OP_ADDRESS is Specifically for methods like SUBA or ADDA
+* that have the 'A' Suffix and similar addressing behavior
+* 
 *
-*               
-               
+*                            
 OP_ADDRESS     LEA      ADDR_A,A5       Load the ADDA String
                MOVE.L   A5,(A6)+     
                
@@ -1929,18 +1897,18 @@ ARITH_ONE_CONT ADD.W    #$02,A2         Advance the pointer past the instruction
 * (not used here)
 * Operation size. (100)Byte, (101) Word, (110) Long
 *
-ARITH_MODE_2   CMP.B    #5,D4           FIND OUT THE SIZE
-               BEQ      ARITH2_WORD     Dn -> <EA> Word
-               CMP.B    #6,D4
-               BEQ      ARITH2_LONG     Dn -> <EA> Long 
+ARITH_MODE_2    CMP.B    #5,D4           FIND OUT THE SIZE
+                BEQ      ARITH2_WORD     Dn -> <EA> Word
+                CMP.B    #6,D4
+                BEQ      ARITH2_LONG     Dn -> <EA> Long 
                
-ARITH2_BYTE    JSR      print_B_str     Set the '.B' Suffix
-               BRA      ARITH_TWO_CONT  Continue
+ARITH2_BYTE     JSR      print_B_str     Set the '.B' Suffix
+                BRA      ARITH_TWO_CONT  Continue
 
-ARITH2_WORD    JSR      print_W_str     Set the '.W' Suffix
-               BRA      ARITH_TWO_CONT  Continue
+ARITH2_WORD     JSR      print_W_str     Set the '.W' Suffix
+                BRA      ARITH_TWO_CONT  Continue
 
-ARITH2_LONG    JSR      print_L_str     Set the '.L' Suffix
+ARITH2_LONG     JSR      print_L_str     Set the '.L' Suffix
 
 
 ARITH_TWO_CONT  MOVEM.L     D0/D1,-(SP) Save the D0,D1 Register
@@ -1986,18 +1954,108 @@ CHECK_REG       CMP.B       #2,D1          Check for illegal reg (d16,PC)
                 BEQ         op_DATA
                 BRA         ARITH2_RESUME  Otherwise continue.
 
-                 
-                
+*---------------------------------------------------------------------*                 
+* SUBQ OPCODE Subtracts Immediate data (1-8) from dest operand.
+*
+*
+op_SUBQ         JSR         NA_ADDR_CHECK  Check for illegal submodes of mode 7 
+
+
+                LEA         SUBQ_STR,A5    Load the SUBQ Str
+                MOVE.L      A5,(A6)+   
                
+                MOVEM.L     D0/D1/D3,-(SP) Save state of D0/D1/D3  
+                CLR         D0             Clear out D0
+                MOVE.W      (A2),D0        Move the size bits into d0
+                ANDI.W      #%0000000011000000,D0  Isolate Size bits
+                
+                CMP.B       #$00000000,D0  Check for byte size
+                BEQ         CHECK_SA_MODE  Check for illegal EA mode
+                
+                
+SUBQ_CONT       
+                CLR         D3
+                MOVE.W      D0,D3            
+                JSR         opcode_size_str  Get the size suffix
+                
+                JSR         PRINT_TAB
+                
+                CLR         D1
+                MOVE.W      (A2),D1          Get the data bits
+                ANDI.W      #%0000111000000000,D1 Isolate data number
+                LSR.W       #3,D1            Shift the bits over
+                LSR.W       #6,D1
+                
+                LEA         POUND,A5         Load the '#' symbol
+                MOVE.L      A5,(A6)+  
+
+                CMP.B       #0,D1            Check for zero
+                BNE         SKIP_8           Skip if not number 8 (i.e. 0)
+    
+                LEA         NO_EIGHT,A5      Place the number 8 in the string
+                MOVE.L      A5,(A6)+    
+                BRA         SUBQ_DONE
+                
+SKIP_8          ADD.W       #$30,D1          convert ascii number to hex
+                MOVE.B      D1,(A4)+         Move the register to A4
+                MOVE.B      #$00,(A4)+       Add the string terminating character
+                CLR         D3
+                MOVE.L      A4,D3
+                SUB.L       #$02,D3
+                MOVE.L      D3,A5
+                MOVE.L      A5,(A6)+         Move the number to the string
+              
+
+SUBQ_DONE       
+                JSR         PRINT_COMMA      Print the Comma
+                ADD.W       #$02,A2          Advance pointer past instruction
+                JSR         FIND_EAMODE      Get EA
+                JSR         PRINT_init       Display the string
+                
+                MOVEM.L     (SP)+,D3/D1/D0   Restore the stack
+                
+                BRA         loop_exit        EXIT
+        
+CHECK_SA_MODE   CLR         D1               Check SUBQ Address mode
+                MOVE.L      D5,D1
+                ANDI.B      #%00111000,D1    Isolate EA MODE BITS
+                CMP.B       #%00001000,D1    Compare for An mode
+                BEQ         op_DATA          ILLEGAL EA MODE FOR SIZE BYTE
+                BRA         SUBQ_CONT        Otherwise continue
+                
+*---------------------------------------------------------------------*   
+
+*--------------------------------------------------------------   
+* Non-Alterable Address Check
+* This ancillary method checks for non-alteralble addressing
+* modes such as immediated data, etc that cannot be used
+* addressing modes.
+* D5: Expected to contain operation EA bits.   
+*
+NA_ADDR_CHECK   MOVE.L   D0,-(SP)       Save the state of D0
+                CLR      D0
+                MOVE.W   D5,D0          Move in EA bits
+                    
+                CMP.B    #%00111000,D0  Look for Mode 7                
+                BEQ      NON_MEM_REG
+  
+                  
+NAAC_CONT       MOVE.L   (SP)+,D0       Restore D0 from stack
+                RTS                     Return
 
 
-
-
-
-
-*-------------------------------------------------*   
+NON_MEM_REG     CLR      D0             Clear D0    
+                MOVE.W   D5,D0          Move in EA bits
+                CMP.B    #%00000010,D0  Check for REG 2
+                BEQ      op_DATA        Illegal Mode Displacement PC
+                CMP.B    #%00000011,D0  Check for REG 3
+                BEQ      op_DATA        Illegal Mode Displacement PC bit Xtended
+                CMP.B    #%00000100,D0  Check for REG 4
+                BEQ      op_DATA        Illegal Mode Immediate Data
+                BRA      NAAC_CONT      Continue to exit
+*--------------------------------------------------------------   
    
-*----------------------------------------*
+*---------------------------------------------------------------------*
 * Prints a comma
 *         
 PRINT_COMMA     MOVEM.L     A1/D0,-(SP)         save what we change (ALWAYS!)
@@ -2512,7 +2570,7 @@ POUND           DC.B        '#',0
 DOLLAH          DC.B        '$',0
 IMMED_PREFIX    DC.B        '#$',0
 *------------------------------------------------------------------*
-DATA_STR        DC.B        '      DATA',0
+DATA_STR        DC.B        '      DATA   ',0
 NOP_STR         DC.B        '      NOP',0
 MOVEB_STR       DC.B        '      MOVE.B',0
 BRA_STR         DC.B        '      BRA  ',0
@@ -2539,14 +2597,16 @@ ADDA_STR        DC.B        '      ADDA',0
 ADD_STR         DC.B        '      ADD',0
 SUBA_STR        DC.B        '      SUBA',0
 SUB_STR         DC.B        '      SUB',0
+SUBQ_STR        DC.B        '      SUBQ',0
 MULSW_STR       DC.B        '      MULS.W   ',0
-DIVSW_STR       DC.B        '      DIVS.W   ',0
+
 
 *------------------------------------------------------------------*
 * EA REGISTERS
 *------------------------------------------------------------------*
 * DATA Register
 
+NO_EIGHT        DC.B        '8',0
 DATA_REG        DC.B        'D',0
 ADDR_REG        DC.B        'A',0
 ADDR_A          DC.B        'A',0
@@ -2556,6 +2616,8 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
+
 
 
 
