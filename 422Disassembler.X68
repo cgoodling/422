@@ -535,19 +535,19 @@ START:
                 MOVE.W      #$B063, $96B2		CMP.W	-(A3),D0
                 MOVE.W      #$B449, $96B4	    CMP.W	A1,D2
                 MOVE.W      #$B489, $96B6    	CMP.L	A1,D2
-                MOVE.W      #$B008, $96B8      CMP.B	A0,D0     TEST CASE(Should be DATA) 
+                MOVE.W      #$B008, $96B8       CMP.B	A0,D0     TEST CASE(Should be DATA) 
                 MOVE.W      #$B03C, $96BA	    CMP.B	#$xx,D0 
                 MOVE.W      #$0001, $96BC                01
                 MOVE.W      #$B038, $96BE	    CMP.B	$xxxx,D0
                 MOVE.W      #$0005, $96C0               0005
-                MOVE.W      #$B0B9, $96C2      CMP.L   $xxxxxxxx,D0
+                MOVE.W      #$B0B9, $96C2       CMP.L   $xxxxxxxx,D0
                 MOVE.W      #$1234, $96C4               1234
                 MOVE.W      #$5678, $96C6                   5678
-                MOVE.W      #$B0BC, $96C8      CMP.L   #$xxxxxxxx,D0   *TO BE FIXED
+                MOVE.W      #$B0BC, $96C8       CMP.L   #$xxxxxxxx,D0   *TO BE FIXED
                 MOVE.W      #$1234, $96CA               1234           *TO BE FIXED
                 MOVE.W      #$5678, $96CC                   5678       *TO BE FIXED
-                MOVE.W      #$B25A, $96CE      CMP.W   (A2)+,D1         
-                MOVE.W      #$B401, $96D0      CMP.B   D1,D2 
+                MOVE.W      #$B25A, $96CE       CMP.W   (A2)+,D1         
+                MOVE.W      #$B401, $96D0       CMP.B   D1,D2 
         
                 *******************************************************
                 *MOVE.W      #$0C01, $622C       CMPI.B #$ xx,D1             ONLY CMPI
@@ -1495,8 +1495,8 @@ op_CMP          LEA         CMP_STR,A5               * load op string
                 JSR         CMP_opmode               * find the size and add it to the string
                 
                 ****Test for .B of An,Dn (invalid)
-                ANDI.L      #%0000000111111000,D1    * mask size and mode bits
-                CMP.L       #%0000000000001000,D1    * compare to invalid
+                ANDI.L      #$01F8,D1    * mask size and mode bits
+                CMP.L       #$0008,D1    * compare to invalid
                 BEQ         op_DATA                  * invalid op, print DATA
                 
                 MOVE.L      D5,D0               * load the op              
@@ -2611,6 +2611,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
