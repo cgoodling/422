@@ -518,9 +518,16 @@ START:
                 MOVE.W      #$5678, $625E                      5678
                 MOVE.W      #$B79A, $6260       EOR.L  D3,(A2)+
 
-                
-                
-            
+ *-----------------------------------------------------------------------*
+ *              SUBQ Testing (all modes have been tested)
+ *            
+                MOVE.L      #$53B84012,$6262       SUB.L       #1,$4012
+                MOVE.L      #$55B86666,$6266       SUB.L       #2,$6666
+                MOVE.W      #$57B9,$626A           SUB.L       #3,$70960
+                MOVE.L      #$00070960,$626C       
+                MOVE.W      #$59B9,$6270           SUB.L       #4,$88888888
+                MOVE.L      #$88888888,$6272
+                       
 ************************** END OF TESTING *******************************************************************
                 LEA         STACK,SP            Load the stack
             
@@ -748,11 +755,11 @@ JUMPTABLE       JMP         op0000              ORI, BCLR
                 JMP         op0010
                 JMP         op0011
                 JMP         op0100              NEG, NOP, LEA, JSR, RTS
-                JMP         op0101
+                JMP         op0101              SUBQ
                 JMP         op0110              BRA
                 JMP         op0111
                 JMP         op1000              OR.X
-                JMP         op1001
+                JMP         op1001              SUB, SUBA
                 JMP         op1010
                 JMP         op1011
                 JMP         op1100
@@ -861,9 +868,14 @@ op0100          *NEG
 
             
                 BRA         op_DATA             ; invalid
-
+*-------------------------------------------------------------------------*
+* SUBI - Subtracts the immediate data (1-8) from the destination
+* operand. Only Word and Long operations can be used with Adress Registers
+* (An).      
+*
+*-------------------------------------------------------------------------*
           
-op0101          BRA         op_DATA
+op0101          BRA         op_SUBQ
 
 *-------------------------------------------------------------------------*
 * Branch Subroutine, Branch Always, Branch Conditionally
@@ -992,7 +1004,7 @@ SHIFT_ea        MOVE.W      (A2),D0             * move original op into D0
                 
                 *ASL/ASR
                 CMP.W       #$0000,D0           * check for ASL/ASR
-                *BEQ         op_AS
+                BEQ         op_AS
                 
                 *ROL/ROR
                 CMP.W       #$0600,D0           * check for ROL/ROR
@@ -1141,7 +1153,7 @@ op_SHIFT_EA     LEA         TAB,A5
                 JSR         FIND_EAMODE
                 
                 JSR         PRINT_init
-                
+                ADD.W       #$02,A2
                 BRA         loop_exit
 
 SHIFT_count     LEA         POUND,A5
@@ -1153,9 +1165,11 @@ SHIFT_count     LEA         POUND,A5
                 LSR.L       #1,D1               ; shift to get the register
                 ADD.W       #$30,D1             ; convert ascii number to hex
             
-                MOVE.B      D1,$4000            ; move the register to address $4000
-                MOVE.B      #$00,$4001          ; add the string terminating character
-                MOVE.L      #$00004000,A5
+                MOVE.B      D1,(A4)+            ; move the register to A4
+                MOVE.B      #$00,(A4)+          ; add the string terminating character
+                MOVE.W      A4,D0
+                SUB.W       #$02,D0
+                MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            ; add the register to the string
             
                 LEA         COMMA,A5            ; add a comma to the string
@@ -1168,13 +1182,15 @@ SHIFT_count     LEA         POUND,A5
                 ANDI.W      #$0007,D1
                 ADD.W       #$30,D1             ; convert the register to hex
 
-                MOVE.B      D1,$4002            ; move the register to address $4002
-                MOVE.B      #$00,$4003          ; add the string terminating character
-                MOVE.L      #$00004002,A5
+                MOVE.B      D1,(A4)+            ; move the register to A4
+                MOVE.B      #$00,(A4)+          ; add the string terminating character
+                MOVE.W      A4,D0
+                SUB.W       #$02,D0
+                MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            ; add the register to the string
             
                 JSR         PRINT_init          ; print the string
-            
+                ADD.W       #$02,A2
                 BRA         loop_exit
 
 SHIFT_reg       LEA         DATA_REG,A5
@@ -1186,9 +1202,11 @@ SHIFT_reg       LEA         DATA_REG,A5
                 LSR.L       #1,D1               ; shift to get the register
                 ADD.W       #$30,D1             ; convert ascii number to hex
             
-                MOVE.B      D1,$4000            ; move the register to address $4000
-                MOVE.B      #$00,$4001          ; add the string terminating character
-                MOVE.L      #$00004000,A5
+                MOVE.B      D1,(A4)+            ; move the register to A4
+                MOVE.B      #$00,(A4)+          ; add the string terminating character
+                MOVE.W      A4,D0
+                SUB.W       #$02,D0
+                MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            ; add the register to the string
             
                 LEA         COMMA,A5            ; add a comma to the string
@@ -1201,13 +1219,15 @@ SHIFT_reg       LEA         DATA_REG,A5
                 ANDI.W      #$0007,D1
                 ADD.W       #$30,D1             ; convert the register to hex
 
-                MOVE.B      D1,$4002            ; move the register to address $4002
-                MOVE.B      #$00,$4003          ; add the string terminating character
-                MOVE.L      #$00004002,A5
+                MOVE.B      D1,(A4)+            ; move the register to A4
+                MOVE.B      #$00,(A4)+          ; add the string terminating character
+                MOVE.W      A4,D0
+                SUB.W       #$02,D0
+                MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            ; add the register to the string
             
                 JSR         PRINT_init          ; print the string
-            
+                ADD.W       #$02,A2
                 BRA         loop_exit
 
 EOR_opmode      CMP.W       #%0100,D4           ; check if byte
@@ -1235,10 +1255,20 @@ OR_opmode       CMP.W       #%0000,D4
                 BEQ         op_DATA
 
 print_add       MOVEM.L     D0-D7,-(SP)         ; Save the state
-                MOVE.L      A2,D1               ; Move the current address to D1
-                MOVE.L      #15,D0              ; Move the I/O code to D0 to print the number in D1
-                MOVE.L      #16,D2              ; Print the number in base 16
-                TRAP        #15                 ; print
+                MOVE.L      A4,A0               Clear the output address location
+                MOVE.L      A2,D0
+                MOVE.L      #$00000004,D1
+                MOVE.L      #$00000000,D2
+                MOVE.L      #$00000000,D3
+                JSR         HEXTOASCII
+                                
+                ADD.L       #$08,A4
+                MOVE.B      #$00,(A4)+          Add the string terminating character
+                MOVE.L      A4,D0
+                SUB.L       #$09,D0
+                MOVE.L      D0,A5
+                MOVE.L      A5,(A6)+            Add the register to the output string
+                
                 MOVEM.L     (SP)+,D0-D7         ; restore the state
                 RTS
             
@@ -1247,18 +1277,38 @@ op_NOP          LEA         NOP_STR,A5
                 JSR         PRINT_init          ; print the string
                 BRA         loop_exit
             
-op_DATA         MOVE.L      #14,D0
-                LEA         DATA_STR,A1
-                TRAP        #15                 ; OP code DNE
+op_DATA         JSR         clearTempVars
+                JSR         clearOutputStr
+                MOVE.L      #$00004000,A4
+                MOVE.L      #$00005000,A6
+                JSR         print_add
+
+                LEA         DATA_STR,A5
+                MOVE.L      A5,(A6)+            ; add DATA to string
                 
-                MOVE.L      #14,D0
-                LEA         TAB,A1
-                TRAP        #15                 ; print a tab
+                LEA         TAB,A5
+                MOVE.L      A5,(A6)+            ; add tab to string                    
                 
-                MOVE.L      #16,D2
-                MOVE.L      #15,D0
-                MOVE.L      A2,D1
-                TRAP        #15
+                MOVE.L      A4,A0               Clear the output address location
+                MOVE.W      (A2),D0
+                MOVE.L      #$00000002,D1
+                MOVE.L      #$00000000,D2
+                MOVE.L      #$00000000,D3
+                JSR         HEXTOASCII
+                
+                MOVEM.L     (SP)+,D0-D7         Restore state
+                
+                ***
+                ADD.L       #$04,A4
+                MOVE.B      #$00,(A4)+          Add the string terminating character
+                MOVE.L      A4,D0
+                SUB.L       #$05,D0
+                MOVE.L      D0,A5
+                MOVE.L      A5,(A6)+            Add the register to the output string
+                
+                JSR         PRINT_init
+                
+                ADD.W       #$02,A2
                 
                 BRA         loop_exit
             
@@ -1393,6 +1443,7 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
                 BEQ         op_DATA         
                 
                 MOVEM.L     D0,-(SP)            Just in case store whatever is in D)
+                CLR         D0
                 MOVE.W      D5,D0               Move D5 to D0
                 ANDI.W      #%00111000,D0       Mask EA mode-bits
                 CMP.W       #%00000000,D0       Check for illegal Dn mode
@@ -1413,6 +1464,7 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
                 JSR         PRINT_COMMA         Print the comma
 
                 MOVEM.L     D4,-(SP)            save contents of D4 on stack
+                CLR         D4
                 MOVE.B      #1,D4               Move our An mode to D4
                 JSR         FIND_OPMODE         Now move to our mode
             
@@ -1436,6 +1488,7 @@ op_JSR          LEA         JSR_STR,A5
                 BEQ         op_DATA         
                 
                 MOVEM.L     D0,-(SP)            Just in case store whatever is in D)
+                CLR         D0
                 MOVE.W      D5,D0               Move D5 to D0
                 ANDI.W      #%00111000,D0       Mask EA mode-bits
                 CMP.W       #%00000000,D0       Check for illegal Dn mode
@@ -1743,12 +1796,11 @@ op_ADD         LEA      ADD_STR,A5      Go to ADD mode
 
 
 *------------------------------------------------------------*
-* OP_ADDRESS is Specifically for methods like
-* SUBA or ADDA that have the 'A' Suffix and similar addressing
-* behavior
+* OP_ADDRESS is Specifically for methods like SUBA or ADDA
+* that have the 'A' Suffix and similar addressing behavior
+* 
 *
-*               
-               
+*                            
 OP_ADDRESS     LEA      ADDR_A,A5       Load the ADDA String
                MOVE.L   A5,(A6)+     
                
@@ -1784,7 +1836,7 @@ OP_ADDR_CONT   JSR      PRINT_TAB
 
                JSR      PRINT_init      Print the string
                 
-               BRA      exit            Done
+               BRA      loop_exit            Done
                
                
                
@@ -1832,7 +1884,7 @@ ARITH_ONE_CONT ADD.W    #$02,A2         Advance the pointer past the instruction
                MOVEM.L  (SP)+,D4       Restore  D4
 
                JSR      PRINT_init      Print the string
-               BRA      exit
+               BRA      loop_exit
 
 
 **************************************************************
@@ -1845,18 +1897,18 @@ ARITH_ONE_CONT ADD.W    #$02,A2         Advance the pointer past the instruction
 * (not used here)
 * Operation size. (100)Byte, (101) Word, (110) Long
 *
-ARITH_MODE_2   CMP.B    #5,D4           FIND OUT THE SIZE
-               BEQ      ARITH2_WORD     Dn -> <EA> Word
-               CMP.B    #6,D4
-               BEQ      ARITH2_LONG     Dn -> <EA> Long 
+ARITH_MODE_2    CMP.B    #5,D4           FIND OUT THE SIZE
+                BEQ      ARITH2_WORD     Dn -> <EA> Word
+                CMP.B    #6,D4
+                BEQ      ARITH2_LONG     Dn -> <EA> Long 
                
-ARITH2_BYTE    JSR      print_B_str     Set the '.B' Suffix
-               BRA      ARITH_TWO_CONT  Continue
+ARITH2_BYTE     JSR      print_B_str     Set the '.B' Suffix
+                BRA      ARITH_TWO_CONT  Continue
 
-ARITH2_WORD    JSR      print_W_str     Set the '.W' Suffix
-               BRA      ARITH_TWO_CONT  Continue
+ARITH2_WORD     JSR      print_W_str     Set the '.W' Suffix
+                BRA      ARITH_TWO_CONT  Continue
 
-ARITH2_LONG    JSR      print_L_str     Set the '.L' Suffix
+ARITH2_LONG     JSR      print_L_str     Set the '.L' Suffix
 
 
 ARITH_TWO_CONT  MOVEM.L     D0/D1,-(SP) Save the D0,D1 Register
@@ -1891,7 +1943,7 @@ ARITH2_RESUME   MOVEM.L    (SP)+,D0/D1     Release D0,D1 from stack
                 MOVEM.L    (SP)+,D4        Restore  D4
 
                 JSR        PRINT_init      Print the string
-                BRA        exit 
+                BRA        loop_exit 
 
 
 CHECK_REG       CMP.B       #2,D1          Check for illegal reg (d16,PC)
@@ -1902,18 +1954,108 @@ CHECK_REG       CMP.B       #2,D1          Check for illegal reg (d16,PC)
                 BEQ         op_DATA
                 BRA         ARITH2_RESUME  Otherwise continue.
 
-                 
-                
+*---------------------------------------------------------------------*                 
+* SUBQ OPCODE Subtracts Immediate data (1-8) from dest operand.
+*
+*
+op_SUBQ         JSR         NA_ADDR_CHECK  Check for illegal submodes of mode 7 
+
+
+                LEA         SUBQ_STR,A5    Load the SUBQ Str
+                MOVE.L      A5,(A6)+   
                
+                MOVEM.L     D0/D1/D3,-(SP) Save state of D0/D1/D3  
+                CLR         D0             Clear out D0
+                MOVE.W      (A2),D0        Move the size bits into d0
+                ANDI.W      #%0000000011000000,D0  Isolate Size bits
+                
+                CMP.B       #$00000000,D0  Check for byte size
+                BEQ         CHECK_SA_MODE  Check for illegal EA mode
+                
+                
+SUBQ_CONT       
+                CLR         D3
+                MOVE.W      D0,D3            
+                JSR         opcode_size_str  Get the size suffix
+                
+                JSR         PRINT_TAB
+                
+                CLR         D1
+                MOVE.W      (A2),D1          Get the data bits
+                ANDI.W      #%0000111000000000,D1 Isolate data number
+                LSR.W       #3,D1            Shift the bits over
+                LSR.W       #6,D1
+                
+                LEA         POUND,A5         Load the '#' symbol
+                MOVE.L      A5,(A6)+  
+
+                CMP.B       #0,D1            Check for zero
+                BNE         SKIP_8           Skip if not number 8 (i.e. 0)
+    
+                LEA         NO_EIGHT,A5      Place the number 8 in the string
+                MOVE.L      A5,(A6)+    
+                BRA         SUBQ_DONE
+                
+SKIP_8          ADD.W       #$30,D1          convert ascii number to hex
+                MOVE.B      D1,(A4)+         Move the register to A4
+                MOVE.B      #$00,(A4)+       Add the string terminating character
+                CLR         D3
+                MOVE.L      A4,D3
+                SUB.L       #$02,D3
+                MOVE.L      D3,A5
+                MOVE.L      A5,(A6)+         Move the number to the string
+              
+
+SUBQ_DONE       
+                JSR         PRINT_COMMA      Print the Comma
+                ADD.W       #$02,A2          Advance pointer past instruction
+                JSR         FIND_EAMODE      Get EA
+                JSR         PRINT_init       Display the string
+                
+                MOVEM.L     (SP)+,D3/D1/D0   Restore the stack
+                
+                BRA         loop_exit        EXIT
+        
+CHECK_SA_MODE   CLR         D1               Check SUBQ Address mode
+                MOVE.L      D5,D1
+                ANDI.B      #%00111000,D1    Isolate EA MODE BITS
+                CMP.B       #%00001000,D1    Compare for An mode
+                BEQ         op_DATA          ILLEGAL EA MODE FOR SIZE BYTE
+                BRA         SUBQ_CONT        Otherwise continue
+                
+*---------------------------------------------------------------------*   
+
+*--------------------------------------------------------------   
+* Non-Alterable Address Check
+* This ancillary method checks for non-alteralble addressing
+* modes such as immediated data, etc that cannot be used
+* addressing modes.
+* D5: Expected to contain operation EA bits.   
+*
+NA_ADDR_CHECK   MOVE.L   D0,-(SP)       Save the state of D0
+                CLR      D0
+                MOVE.W   D5,D0          Move in EA bits
+                    
+                CMP.B    #%00111000,D0  Look for Mode 7                
+                BEQ      NON_MEM_REG
+  
+                  
+NAAC_CONT       MOVE.L   (SP)+,D0       Restore D0 from stack
+                RTS                     Return
 
 
-
-
-
-
-*-------------------------------------------------*   
+NON_MEM_REG     CLR      D0             Clear D0    
+                MOVE.W   D5,D0          Move in EA bits
+                CMP.B    #%00000010,D0  Check for REG 2
+                BEQ      op_DATA        Illegal Mode Displacement PC
+                CMP.B    #%00000011,D0  Check for REG 3
+                BEQ      op_DATA        Illegal Mode Displacement PC bit Xtended
+                CMP.B    #%00000100,D0  Check for REG 4
+                BEQ      op_DATA        Illegal Mode Immediate Data
+                BRA      NAAC_CONT      Continue to exit
+*--------------------------------------------------------------   
    
-*----------------------------------------*
+*---------------------------------------------------------------------*
 * Prints a comma
 *         
 PRINT_COMMA     MOVEM.L     A1/D0,-(SP)         save what we change (ALWAYS!)
@@ -2428,7 +2570,7 @@ POUND           DC.B        '#',0
 DOLLAH          DC.B        '$',0
 IMMED_PREFIX    DC.B        '#$',0
 *------------------------------------------------------------------*
-DATA_STR        DC.B        '      DATA',CR,LF,0
+DATA_STR        DC.B        '      DATA   ',0
 NOP_STR         DC.B        '      NOP',0
 MOVEB_STR       DC.B        '      MOVE.B',0
 BRA_STR         DC.B        '      BRA  ',0
@@ -2455,13 +2597,16 @@ ADDA_STR        DC.B        '      ADDA',0
 ADD_STR         DC.B        '      ADD',0
 SUBA_STR        DC.B        '      SUBA',0
 SUB_STR         DC.B        '      SUB',0
+SUBQ_STR        DC.B        '      SUBQ',0
 MULSW_STR       DC.B        '      MULS.W   ',0
+
 
 *------------------------------------------------------------------*
 * EA REGISTERS
 *------------------------------------------------------------------*
 * DATA Register
 
+NO_EIGHT        DC.B        '8',0
 DATA_REG        DC.B        'D',0
 ADDR_REG        DC.B        'A',0
 ADDR_A          DC.B        'A',0
@@ -2471,6 +2616,9 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
+
+
 
 
 
