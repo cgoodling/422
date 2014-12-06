@@ -555,6 +555,27 @@ START:
                 *MOVE.W      #$1234, $625C                  1234
                 *MOVE.W      #$5678, $625E                      5678
                 *MOVE.W      #$B79A, $6260       EOR.L  D3,(A2)+
+                 MOVE.W      #$B411, $96B0       CMP.B  (A1),D2
+
+                 MOVE.W      #$B063, $96B2		CMP.W	-(A3),D0
+                 MOVE.W      #$B449, $96B4	    CMP.W	A1,D2
+                 MOVE.W      #$B489, $96B6    	CMP.L	A1,D2
+                 MOVE.W      #$B03C, $96B8	    CMP.B	#$xx,D0
+                 MOVE.W      #$0001, $96BA                01
+                 MOVE.W      #$B038, $96BC	    CMP.B	$xxxx,D0
+                 MOVE.W      #$0005, $96BE               0005
+                 MOVE.W      #$B008, $96C0      CMP.B	A0,D0     TEST CASE(Should be DATA)   
+                 MOVE.W      #$B0B9, $96C2      CMP.L   $xxxxxxxx,D0
+                 MOVE.W      #$1234, $96C4               1234
+                 MOVE.W      #$5678, $96C6                   5678
+                 MOVE.W      #$B0BC, $96C8      CMP.L   #$xxxxxxxx,D0
+                 MOVE.W      #$1234, $96CA               1234
+                 MOVE.W      #$5678, $96CC                   5678
+                 MOVE.W      #$B25A, $96CE      CMP.W   (A2)+,D1         
+                 MOVE.W      #$B401, $96D0      CMP.B   D1,D2         
+
+            
+                 
 
                 
                 
@@ -971,7 +992,8 @@ op1011
                 BEQ         op_EOR
                 
                 *CMP
-
+                CMP.W       #$B000,D0
+                BEQ         op_CMP
 
                 BRA         op_DATA
 
@@ -1271,6 +1293,14 @@ EOR_opmode      CMP.W       #%0100,D4           ; check if byte
                 CMP.W       #%0110,D4           ; check if long
                 BEQ         print_L_str         ; go add .L to string
                 BRA         op_DATA
+
+CMP_opmode      CMP.W       #%0000,D4           ; check if byte
+                BEQ         print_B_str         ; go add .B to string
+                CMP.W       #%0001,D4           ; check if word
+                BEQ         print_W_str         ; go add .W to string
+                CMP.W       #%0010,D4           ; check if long
+                BEQ         print_L_str         ; go add .L to string
+                BRA         op_DATA
                 
 
 OR_opmode       CMP.W       #%0000,D4
@@ -1455,6 +1485,28 @@ op_BVC          LEA         BVC_STR,A5
                 MOVE.L      A5,(A6)+
                 JSR         FIND_DISP
                 BRA         loop_exit                * eventually should jump to a repeat loop
+
+op_CMP          LEA         CMP_STR,A5
+                MOVE.L      A5,(A6)+
+                JSR         CMP_opmode               * find the size and add it to the string
+                
+                MOVE.L      D5,D0
+                ****Check for .B of An,Dn
+                ANDI.W      #$01F8,D0
+                CMPI.W      #$B401,D0
+                BEQ         op_DATA
+                
+                MOVE.L      D5,D0
+                
+                ANDI.W      #$0038,D0           * mask the mode
+                ADD.W       #$0002,A2           * increment the current address
+                JSR         FIND_EAMODE         * create the RIGHT side of the operation
+                JSR         PRINT_COMMA
+                MOVE.L      #$00000000,D4       * set mode to 0
+                JSR         FIND_OPMODE
+
+                JSR         PRINT_init
+                BRA         loop_exit
 
 *--------------------------------------------------------------*
 * OP-Section for L_oad E_ffective A_ddress
@@ -2541,6 +2593,7 @@ SUBA_STR        DC.B        '      SUBA',0
 SUB_STR         DC.B        '      SUB',0
 MULSW_STR       DC.B        '      MULS.W   ',0
 DIVSW_STR       DC.B        '      DIVS.W   ',0
+CMP_STR         DC.B        '      CMP',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
@@ -2556,6 +2609,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
