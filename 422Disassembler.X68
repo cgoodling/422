@@ -528,7 +528,28 @@ START:
 
                 * ADD.L
                 *******************************************************
-            
+                
+                *******************************************************
+                * CMP Tests
+                MOVE.W      #$B411, $96B0       CMP.B  (A1),D2
+                MOVE.W      #$B063, $96B2		CMP.W	-(A3),D0
+                MOVE.W      #$B449, $96B4	    CMP.W	A1,D2
+                MOVE.W      #$B489, $96B6    	CMP.L	A1,D2
+                MOVE.W      #$B008, $96B8      CMP.B	A0,D0     TEST CASE(Should be DATA) 
+                MOVE.W      #$B03C, $96BA	    CMP.B	#$xx,D0 
+                MOVE.W      #$0001, $96BC                01
+                MOVE.W      #$B038, $96BE	    CMP.B	$xxxx,D0
+                MOVE.W      #$0005, $96C0               0005
+                MOVE.W      #$B0B9, $96C2      CMP.L   $xxxxxxxx,D0
+                MOVE.W      #$1234, $96C4               1234
+                MOVE.W      #$5678, $96C6                   5678
+                MOVE.W      #$B0BC, $96C8      CMP.L   #$xxxxxxxx,D0   *TO BE FIXED
+                MOVE.W      #$1234, $96CA               1234           *TO BE FIXED
+                MOVE.W      #$5678, $96CC                   5678       *TO BE FIXED
+                MOVE.W      #$B25A, $96CE      CMP.W   (A2)+,D1         
+                MOVE.W      #$B401, $96D0      CMP.B   D1,D2 
+        
+                *******************************************************
                 *MOVE.W      #$0C01, $622C       CMPI.B #$ xx,D1             ONLY CMPI
                 *MOVE.W      #$0C51, $622E       CMPI.W #$ xxxx,(A1)         ONLY CMPI
                 *MOVE.W      #$0C99, $6230       CMPI.L #$ xxxxxxxx,(A1)+    ONLY CMPI
@@ -555,30 +576,10 @@ START:
                 *MOVE.W      #$1234, $625C                  1234
                 *MOVE.W      #$5678, $625E                      5678
                 *MOVE.W      #$B79A, $6260       EOR.L  D3,(A2)+
-                 MOVE.W      #$B411, $96B0       CMP.B  (A1),D2
 
-                 MOVE.W      #$B063, $96B2		CMP.W	-(A3),D0
-                 MOVE.W      #$B449, $96B4	    CMP.W	A1,D2
-                 MOVE.W      #$B489, $96B6    	CMP.L	A1,D2
-                 MOVE.W      #$B03C, $96B8	    CMP.B	#$xx,D0
-                 MOVE.W      #$0001, $96BA                01
-                 MOVE.W      #$B038, $96BC	    CMP.B	$xxxx,D0
-                 MOVE.W      #$0005, $96BE               0005
-                 MOVE.W      #$B008, $96C0      CMP.B	A0,D0     TEST CASE(Should be DATA)   
-                 MOVE.W      #$B0B9, $96C2      CMP.L   $xxxxxxxx,D0
-                 MOVE.W      #$1234, $96C4               1234
-                 MOVE.W      #$5678, $96C6                   5678
-                 MOVE.W      #$B0BC, $96C8      CMP.L   #$xxxxxxxx,D0
-                 MOVE.W      #$1234, $96CA               1234
-                 MOVE.W      #$5678, $96CC                   5678
-                 MOVE.W      #$B25A, $96CE      CMP.W   (A2)+,D1         
-                 MOVE.W      #$B401, $96D0      CMP.B   D1,D2         
 
             
-                 
-
-                
-                
+                            
             
 ************************** END OF TESTING *******************************************************************
                 LEA         STACK,SP            Load the stack
@@ -992,8 +993,11 @@ op1011
                 BEQ         op_EOR
                 
                 *CMP
-                CMP.W       #$B000,D0
-                BEQ         op_CMP
+                MOVE.W      (A2),D0             * copy op for compare
+                MOVE.W      (A2),D1             * copy op for testing
+                ANDI.W	    #$F100,D0           * grab identifier bits
+                CMP.W       #$B000,D0           * check to see if CMP
+                BEQ         op_CMP              
 
                 BRA         op_DATA
 
@@ -1486,27 +1490,25 @@ op_BVC          LEA         BVC_STR,A5
                 JSR         FIND_DISP
                 BRA         loop_exit                * eventually should jump to a repeat loop
 
-op_CMP          LEA         CMP_STR,A5
-                MOVE.L      A5,(A6)+
+op_CMP          LEA         CMP_STR,A5               * load op string
+                MOVE.L      A5,(A6)+                 * Add op string to output string
                 JSR         CMP_opmode               * find the size and add it to the string
                 
-                MOVE.L      D5,D0
-                ****Check for .B of An,Dn
-                ANDI.W      #$01F8,D0
-                CMPI.W      #$B401,D0
-                BEQ         op_DATA
+                ****Test for .B of An,Dn (invalid)
+                ANDI.L      #%0000000111111000,D1    * mask size and mode bits
+                CMP.L       #%0000000000001000,D1    * compare to invalid
+                BEQ         op_DATA                  * invalid op, print DATA
                 
-                MOVE.L      D5,D0
-                
+                MOVE.L      D5,D0               * load the op              
                 ANDI.W      #$0038,D0           * mask the mode
                 ADD.W       #$0002,A2           * increment the current address
-                JSR         FIND_EAMODE         * create the RIGHT side of the operation
-                JSR         PRINT_COMMA
-                MOVE.L      #$00000000,D4       * set mode to 0
-                JSR         FIND_OPMODE
+                JSR         FIND_EAMODE         * create the right side of the operation
+                JSR         PRINT_COMMA         * print a comma
+                MOVE.L      #$00000000,D4       * set mode to 0 for Dn
+                JSR         FIND_OPMODE         * create left side of operation
 
-                JSR         PRINT_init
-                BRA         loop_exit
+                JSR         PRINT_init          * print the output string
+                BRA         loop_exit           * enter loop exit
 
 *--------------------------------------------------------------*
 * OP-Section for L_oad E_ffective A_ddress
