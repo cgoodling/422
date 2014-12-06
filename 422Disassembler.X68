@@ -441,7 +441,7 @@ START:
                 MOVE.W      #$41D8, $6226            Attempt LEA (An)+,A0
                 MOVE.W      #$41E0, $6228            Attempt LEA -(An),A0
                 MOVE.W      #$41F0, $622A            Attempt LEA #(DATA),A0
-                
+                    
                 *******************************************************
                 * MULS Tests
                 
@@ -2733,6 +2733,7 @@ MULSW_STR       DC.B        '      MULS.W   ',0
 DIVSW_STR       DC.B        '      DIVS.W   ',0
 CMP_STR         DC.B        '      CMP',0
 
+
 *------------------------------------------------------------------*
 * EA REGISTERS
 *------------------------------------------------------------------*
@@ -2748,7 +2749,6 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
-
 
 
 
