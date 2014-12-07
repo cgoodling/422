@@ -621,7 +621,17 @@ START:
                 MOVE.W      #$2079, $96E6       MOVEA.L     $xxxxxxxx,A0
                 MOVE.W      #$1234, $96E8       MOVEA.L      1234
                 MOVE.W      #$5678, $96EA       MOVEA.L          5678
-        
+                
+                *******************************************************
+                * MOVEA.W Tests
+                MOVE.W      #$364A, $96EC       MOVEA.W     A2,A3
+                MOVE.W      #$3652, $96EE       MOVEA.W     (A2),A3
+                MOVE.W      #$3459, $96F0       MOVEA.W     (A1)+,A2
+                MOVE.W      #$3461, $96F2       MOVEA.W     -(A1),A2
+                MOVE.W      #$367C, $96F4       MOVEA.W     #$xxxx,A3
+                MOVE.W      #$1234, $96F6       MOVEA.W       1234                              
+                MOVE.W      #$3078, $96F8       MOVEA.W     $xxxx,A0
+                MOVE.W      #$1234, $96FA       MOVEA.W      1234
                 *******************************************************
                 *MOVE.W      #$0C01, $622C       CMPI.B #$ xx,D1             ONLY CMPI
                 *MOVE.W      #$0C51, $622E       CMPI.W #$ xxxx,(A1)         ONLY CMPI
@@ -956,11 +966,12 @@ op0001          *MOVEM.L     D1,-(SP)            Save what we have here in D1 ju
 *-------------------------------------------------------------------------*            
 op0010          
                 *MOVEA.L
+                LEA         MOVEAL_STR,A5
                 MOVE.W      (A2),D0             ; move operation for compare
-                MOVE.W      (A2),D1             ; move operation for testing
+                MOVE.W      (A2),D1             ; move operation for flagging
 	            ANDI.W	    #$01C0,D0
     	        CMP.W	    #$0040,D0
-	            BEQ         op_MOVEAL	        ; Check for MOVEA.L               
+	            BEQ         op_MOVEA 	        ; Check for MOVEA.L               
                 
                 
                 BRA         op_DATA
@@ -971,7 +982,12 @@ op0010
 *-------------------------------------------------------------------------*             
 op0011          
                 *MOVEA.W
-
+                LEA         MOVEAW_STR,A5
+                MOVE.W      (A2),D0             ; move operation for compare
+                MOVE.W      (A2),D1             ; move operation for flagging
+	            ANDI.W	    #$01C0,D0
+    	        CMP.W	    #$0040,D0
+	            BEQ         op_MOVEA	        ; Check for MOVEA.W  
 
                 BRA         op_DATA
 
@@ -1916,20 +1932,19 @@ op_BCLR_DYN     LEA         BCLR_STR,A5         * add the op to the string
                 JSR         PRINT_init
                 BRA         loop_exit
                 
-op_MOVEAL       LEA         MOVEAL_STR,A5       * load the operation name
-                MOVE.L      A5,(A6)+            * add operation to output string
-                JSR         PRINT_ALI_1
+op_MOVEA        
                 LSR.L       #6,D1               * shift the size bits to get the flag 
-                LSR.L       #6,D1               * shift the size bits to get the flag 
+                LSR.L       #6,D1               * shift the size bits to get the flag
+                MOVE.L      A5,(A6)+
+                JSR         PRINT_ALI_1         * print space for alignment
                 MOVE.L      D1,D6               * move size bit to D6 to set flag
                 ADD.W       #$02,A2             * increment the current address
                 JSR         FIND_EAMODE         * add the left side of operation to output string
                 JSR         PRINT_COMMA         * add a comma to output string
-                MOVE.W      #%001,D4            * set mode to 4 for An
-                JSR         FIND_OPMODE
-                JSR         PRINT_init
-                BRA         loop_exit               
-                
+                MOVE.W      #%001,D4            * set mode to 1 for An
+                JSR         FIND_OPMODE         * add right operand to output string
+                JSR         PRINT_init          * print the output string
+                BRA         loop_exit           * exit the loop    
             
 ***************************************************************************       
 opcode_size_str CMP.W       #$0000,D3
