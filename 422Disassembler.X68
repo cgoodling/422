@@ -440,12 +440,13 @@ START:
                 MOVE.W      #$41C8, $6224            Attempt LEA An,A0
                 MOVE.W      #$41D8, $6226            Attempt LEA (An)+,A0
                 MOVE.W      #$41E0, $6228            Attempt LEA -(An),A0
-                MOVE.W      #$41F0, $622A            Attempt LEA #(DATA),A0
+                MOVE.W      #$41FC, $622A            Attempt LEA #(DATA),A0
+                MOVE.W      #$DEAD, $622C            DEAD
                 
                 *******************************************************
                 * MULS Tests
                 
-                MOVE.W      #$CBC3, $622C           MULS.W D3,D5
+                *MOVE.W      #$CBC3, $622C           MULS.W D3,D5
                 MOVE.W      #$CBCB, $622E           MULS.W A3,D5 --- DATA INVALID INPUT
                 MOVE.W      #$CBD3, $6230           MULS.W (A3),D5
                 MOVE.W      #$CBDB, $6232           MULS.W (A3)+,D5
@@ -956,11 +957,12 @@ op0100          *NEG
 	            BEQ         op_NEG	            ; Check for NEG
 	        
                 *NOP
-                MOVE.L      (A2),D1             ; move the original operation into D1
+                MOVE.W      (A2),D1             ; move the original operation into D1
                 CMP.W       #$4E71,D1               ; compare D0 and D1
                 BEQ         op_NOP              ; if they're equal, the operation is NOP
             
                 *LEA
+                MOVE.W      (A2),D1
                 ANDI.W      #$F1C0,D1
                 CMP.W       #$41C0,D1
                 BEQ         op_LEA
@@ -1102,6 +1104,7 @@ op_MULS         LEA         MULSW_STR,A5        * add the operation to the outpu
                 BRA         op_SIGN_MD
                 
 op_SIGN_MD
+                JSR         PRINT_ALI_1
                 MOVE.W      D5,D0               * copy the EA bits into D0
                 ANDI.W      #$38,D0             * Separate the mode
                 CMP.W       #$07,D0             * check if its mode 1
@@ -1586,7 +1589,7 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
             
                 LEA         LEA_STR,A5
                 MOVE.L      A5,(A6)+
-                JSR         PRINT_TAB           Print the tab
+                JSR         PRINT_ALI_4           Print the tab
                 MOVEM.L     (SP)+,D0/A1         restore from stack
             
                 * Since we know that in this case, LEA always moves
@@ -1636,8 +1639,6 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
 
 op_JSR          LEA         JSR_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
-            
-                JSR         PRINT_TAB           Print the tab
                 
                 CMP.W       #%00111100,D5       Check for illegal #(data) mode
                 BEQ         op_DATA         
@@ -1658,7 +1659,7 @@ op_JSR          LEA         JSR_STR,A5
                 MOVEM.L     (SP)+,D0            Pop off the stack
                 
                 ADD.W       #$02,A2             Advance pointer beyond instruction
-                
+                JSR         PRINT_ALI_4
                 JSR         FIND_EAMODE         Find EA mode
                 
                 JSR         PRINT_init          ; print the string
@@ -2409,11 +2410,19 @@ MODE_SELECT     CMP.B       #0,D5               MODE ZERO Goes to DATA REG DIREC
                 CMP.B       #4,D5
                 BEQ         M_FOUR              Address Reg Indirect Pre Dec
                 CMP.B       #5,D5
-                BEQ         op_DATA
+                BEQ         M_INV
                 CMP.B       #6,D5
-                BEQ         op_DATA
+                BEQ         M_INV
                 CMP.B       #7,D5
                 BEQ         M_SEVEN             Auxillary EA modes (ABS Short,Long,Immed...)
+
+*-------------------------------------
+* Mode invalid 
+* Handler for invalid EA modes
+* 
+M_INV           SUB.W       #$02,A2             * roll back the address pointer
+                BRA         op_DATA
+
 
 *-------------------------------------
 * Mode zero is data register direct mode
@@ -2880,8 +2889,8 @@ ADD_STR         DC.B        '      ADD',0
 SUBA_STR        DC.B        '      SUBA',0
 SUB_STR         DC.B        '      SUB',0
 SUBQ_STR        DC.B        '      SUBQ',0
-MULSW_STR       DC.B        '      MULS.W   ',0
-DIVSW_STR       DC.B        '      DIVS.W   ',0
+MULSW_STR       DC.B        '      MULS.W',0
+DIVSW_STR       DC.B        '      DIVS.W',0
 CMP_STR         DC.B        '      CMP',0
 
 *------------------------------------------------------------------*
