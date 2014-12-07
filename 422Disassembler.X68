@@ -473,23 +473,22 @@ START:
                 MOVE.W      #$8BF9, $625E           DIVS.W #$ABCDEF00,D5
                 MOVE.W      #$ABCD, $6260
                 MOVE.W      #$EF00, $6262
-                MOVE.W      #$8BFC, $6264           DIVS.W #$1234567,D5
+                MOVE.W      #$8BFC, $6264           DIVS.W #$1234,D5
                 MOVE.W      #$1234, $6266
-                MOVE.W      #$5678, $6268
                 
  *-----------------------------------------------------------------------*
  *              SUBQ Testing (all modes have been tested)
  *            
                 MOVE.W      #$53B8,$626A
-                MOVE.W      #$4012,$626C            SUB.L       #1,$4012
+                MOVE.W      #$AAAA,$626C            SUBQ.L       #1,$AAAA
                 MOVE.W      #$55B8,$626E
-                MOVE.W      #$6666,$6270            SUB.L       #2,$6666
-                MOVE.W      #$57B9,$6272            SUB.L       #3,$70960
-                MOVE.W      #$0007,$6274
-                MOVE.W      #$0960,$6276       
-                MOVE.W      #$59B9,$6278            SUB.L       #4,$88888888
-                MOVE.W      #$8888,$627A
-                MOVE.W      #$8888,$627C
+                MOVE.W      #$AAAA,$6270            SUBQ.L       #2,$AAAA
+                MOVE.W      #$57B9,$6272            SUBQ.L       #3,$AAAAA
+                MOVE.W      #$000A,$6274
+                MOVE.W      #$AAAA,$6276       
+                MOVE.W      #$59B9,$6278            SUBQ.L       #4,$AAAAAAAA
+                MOVE.W      #$AAAA,$627A
+                MOVE.W      #$AAAA,$627C
                 
                 *******************************************************
                 * BCLR
@@ -1161,6 +1160,7 @@ op_SIGN_MD
                 CMP.W       #$08,D0             * check if its mode 1
                 BEQ         op_DATA             * if it is, it's invalid
                 
+                MOVE.L      #$00000001,D6       * set the flag bit
                 ADD.W       #$02,A2             * increment the current operation address
                 JSR         FIND_EAMODE         * create the left side of the operation
                 
@@ -1172,6 +1172,7 @@ op_SIGN_MD
                 JSR         PRINT_init          * print the output string
                 
                 BRA         loop_exit           * address has been processed
+
 
 SHIFT_ea        MOVE.W      (A2),D0             * move original op into D0
                 MOVE.W      (A2),D2             * move the original op into D2
@@ -1919,14 +1920,9 @@ op_BCLR_DYN     LEA         BCLR_STR,A5         * add the op to the string
                 LEA         DATA_REG,A5         * add the D to the output
                 MOVE.L      A5,(A6)+
                 
-                MOVE.L      A4,A0
                 MOVE.L      D3,D0
-                MOVE.L      #$00000001,D1       * prepare for ASCII output
-                CLR         D2
-                CLR         D3
-                JSR         HEXTOASCII          * add the data register to the output
-                
-                ADD.L       #$01,A4
+                ADD.W       #$30,D0
+                MOVE.B      D0,(A4)+
                 MOVE.B      #$00,(A4)+          Add the string terminating character
                 MOVE.L      A4,D0
                 SUB.L       #$02,D0
@@ -1939,7 +1935,6 @@ op_BCLR_DYN     LEA         BCLR_STR,A5         * add the op to the string
                 
                 JSR         FIND_EAMODE         * print the right side of the output
                 
-                ADD.W       #$02,A2             * increment the current address
                 
                 JSR         PRINT_init
                 BRA         loop_exit
@@ -2981,6 +2976,8 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
+
 
 
 
