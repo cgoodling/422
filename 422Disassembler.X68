@@ -540,31 +540,31 @@ START:
                 MOVE.W      #$D4D3,$62C8        ADDA.W    (A3),A2      
                 MOVE.W      #$D6DD,$62CA        ADDA.W    (A5)+,A3
                 MOVE.W      #$D8E6,$62CC        ADDA.W    -(A6),A4
-                MOVE.L      #$DAE9,$62CE
-                MOVE.L      #$0190,$62D0        ADDA.W    (400,A1),A5 (Attempt)  
-                MOVE.L      #$DCF8,$62D2
-                MOVE.L      #$5000,$62D4        ADDA.W    $5000,A6
+                MOVE.W      #$DAE9,$62CE
+                MOVE.W      #$0190,$62D0        ADDA.W    (400,A1),A5 (Attempt)  
+                MOVE.W      #$DCF8,$62D2
+                MOVE.W      #$5000,$62D4        ADDA.W    $5000,A6
                 MOVE.W      #$DEF9,$62D6        ADDA.W    $8000,A7
-                MOVE.L      #$0000,$62D8
-                MOVE.L      #$8000,$62E0    
-                MOVE.L      #$DEFC,$62E2
-                MOVE.L      #$8000,$62E4        ADDA.W    #$8000,A7  
+                MOVE.W      #$0000,$62D8
+                MOVE.W      #$8000,$62E0    
+                MOVE.W      #$DEFC,$62E2
+                MOVE.W      #$8000,$62E4        ADDA.W    #$8000,A7  
                 
                 MOVE.W      #$D1C9,$62E6        ADDA.L    A1,A0     
                 MOVE.W      #$D3C3,$62E8        ADDA.L    D3,A1  
                 MOVE.W      #$D5D3,$62EA        ADDA.L    (A3),A2      
                 MOVE.W      #$D7DD,$62EC        ADDA.L    (A5)+,A3
                 MOVE.W      #$D9E6,$62EE        ADDA.L    -(A6),A4
-                MOVE.L      #$DBE9,$62F0
-                MOVE.L      #$0190,$62F2        ADDA.L    (400,A1),A5 (Attempt)  
-                MOVE.L      #$DDF8,$62F4
-                MOVE.L      #$5000,$62F6        ADDA.L    $5000,A6
+                MOVE.W      #$DBE9,$62F0
+                MOVE.W      #$0190,$62F2        ADDA.L    (400,A1),A5 (Attempt)  
+                MOVE.W      #$DDF8,$62F4
+                MOVE.W      #$5000,$62F6        ADDA.L    $5000,A6
                 MOVE.W      #$DFF9,$62F8        ADDA.L    $8000,A7
-                MOVE.L      #$0000,$62FA
-                MOVE.L      #$8000,$62FC    
+                MOVE.W      #$0000,$62FA
+                MOVE.W      #$8000,$62FC    
                 MOVE.W      #$DFFC,$62FE        ADDA.L    #$8000,A7  
-                MOVE.L      #$0000,$6300
-                MOVE.L      #$8000,$6302   
+                MOVE.W      #$0000,$6300
+                MOVE.W      #$8000,$6302   
   
                 *******************************************************
                 * CMP Tests
@@ -580,11 +580,13 @@ START:
                 MOVE.W      #$B0B9, $6316       CMP.L   $xxxxxxxx,D0
                 MOVE.W      #$1234, $6318               1234
                 MOVE.W      #$5678, $631A                   5678
-                MOVE.W      #$B0BC, $631C       CMP.L   #$xxxxxxxx,D0   *TO BE FIXED
-                MOVE.W      #$1234, $631E               1234           *TO BE FIXED
-                MOVE.W      #$5678, $6320                   5678       *TO BE FIXED
+                MOVE.W      #$B0BC, $631C       CMP.L   #$xxxxxxxx,D0
+                MOVE.W      #$1234, $631E               1234           
+                MOVE.W      #$5678, $6320                   5678       
                 MOVE.W      #$B25A, $6322       CMP.W   (A2)+,D1         
                 MOVE.W      #$B401, $6324       CMP.B   D1,D2 
+                MOVE.W      #$BA7C, $6326       CMP.W   #$xxxx,A5
+                MOVE.W      #$AAAA, $6328                AAAA
                 
                 * ADD & ADDA TESTS
                 *******************************************************
@@ -592,10 +594,10 @@ START:
                 *
                 * ADD.B  
                 
-                MOVE.L      #$D938,$6326
-                MOVE.L      #$5530,$6328   ADD.B D4,$5530
-                MOVE.L      #$DA38,$632A
-                MOVE.L      #$0044,$632C   ADD.B $44,D5
+                *MOVE.W      #$D938,$6326
+                *MOVE.W      #$5530,$6328   ADD.B D4,$5530
+                MOVE.W      #$DA38,$632A
+                MOVE.W      #$0044,$632C   ADD.B $44,D5
                    
                 * ADD.W
                 
@@ -667,7 +669,7 @@ START:
                        
 ************************** END OF TESTING *******************************************************************
                 LEA         STACK,SP            Load the stack
-            
+
                 MOVE.B      #14,D0
                 LEA         prompt_start,A1
                 TRAP #15                        ; prompt for starting address
@@ -704,6 +706,8 @@ START:
                 BRA         loop_start          ; start the loop
                 
 loop_start
+                CMP.W       $AAAA,A5
+                CMP.W       #$AAAA,A5
                 CMP.L       A3,A2               ; check to see if end is reached
                 BGT         exit                ; nothing left, exit program
                        
@@ -1616,12 +1620,16 @@ op_BVC          LEA         BVC_STR,A5
 op_CMP          LEA         CMP_STR,A5               * load op string
                 MOVE.L      A5,(A6)+                 * Add op string to output string
                 JSR         CMP_opmode               * find the size and add it to the string
-                JSR         PRINT_ALI_3              * 
+                JSR         PRINT_ALI_1              * 
+
                 ****Test for .B of An,Dn (invalid)
-                ANDI.L      #$01F8,D1    * mask size and mode bits
-                CMP.L       #$0008,D1    * compare to invalid
-                BEQ         op_DATA                  * invalid op, print DATA
+                ANDI.L      #$01F8,D1           * mask size and mode bits  
+                CMP.L       #$0008,D1           * compare to invalid
+                BEQ         op_DATA             * invalid op, print DATA
                 
+                ANDI.L      #$01C0,D1           * mask the size bits
+                LSR.B       #6,D1               * rotate the bits to get size 
+                MOVE.L      D1,D6               * move size bits into flag             
                 MOVE.L      D5,D0               * load the op              
                 ANDI.W      #$0038,D0           * mask the mode
                 ADD.W       #$0002,A2           * increment the current address
