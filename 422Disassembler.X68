@@ -440,13 +440,12 @@ START:
                 MOVE.W      #$41C8, $6224            Attempt LEA An,A0
                 MOVE.W      #$41D8, $6226            Attempt LEA (An)+,A0
                 MOVE.W      #$41E0, $6228            Attempt LEA -(An),A0
-                MOVE.W      #$41FC, $622A            Attempt LEA #(DATA),A0
-                MOVE.W      #$DEAD, $622C            DEAD
+                MOVE.W      #$41F0, $622A            Attempt LEA #(DATA),A0
                 
                 *******************************************************
                 * MULS Tests
                 
-                *MOVE.W      #$CBC3, $622C           MULS.W D3,D5
+                MOVE.W      #$CBC3, $622C           MULS.W D3,D5
                 MOVE.W      #$CBCB, $622E           MULS.W A3,D5 --- DATA INVALID INPUT
                 MOVE.W      #$CBD3, $6230           MULS.W (A3),D5
                 MOVE.W      #$CBDB, $6232           MULS.W (A3)+,D5
@@ -480,6 +479,62 @@ START:
                 MOVE.W      #$8BFC, $6260           DIVS.W #$1234567,D5
                 MOVE.W      #$1234, $6262
                 MOVE.W      #$5678, $6264
+                
+ *-----------------------------------------------------------------------*
+ *              SUBQ Testing (all modes have been tested)
+ *            
+                MOVE.W      #$53B8,$6266
+                MOVE.W      #$4012,$6268            SUB.L       #1,$4012
+                MOVE.W      #$55B8,$626A
+                MOVE.W      #$6666,$626C            SUB.L       #2,$6666
+                MOVE.W      #$57B9,$626E            SUB.L       #3,$70960
+                MOVE.W      #$0007,$6270
+                MOVE.W      #$0960,$6272       
+                MOVE.W      #$59B9,$6274            SUB.L       #4,$88888888
+                MOVE.W      #$8888,$6276
+                MOVE.W      #$8888,$6278
+                
+                *******************************************************
+                * BCLR
+                *
+                ** Bit number Dynamic **
+                MOVE.W      #$0B83,$627A        BCLR    D5,D3
+                MOVE.W      #$0B8B,$627C        BCLR    D5,A3 --- DATA, INVALID
+                MOVE.W      #$0B93,$627E        BCLR    D5,(A3)
+                MOVE.W      #$0B9B,$6280        BCLR    D5,(A3)+
+                MOVE.W      #$0BA3,$6282        BCLR    D5,-(A3)
+                MOVE.W      #$0BAB,$6284        BCLR    (D16,AN) --- DATA,INVALID?
+                MOVE.W      #$0BB3,$6286        BCLR    (D8,AN,XN) --- DATA, INVALID?
+                MOVE.W      #$0BB8,$6288        BCLR    D5,#$AAAA
+                MOVE.W      #$AAAA,$628A
+                MOVE.W      #$0BB9,$628C        BCLR    D5,#$AAAAAAAA
+                MOVE.W      #$AAAA,$628E
+                MOVE.W      #$AAAA,$6290
+                MOVE.W      #$0BBC,$6292        BCLR    D5,#$01234567
+                MOVE.W      #$0123,$6294
+                MOVE.W      #$4567,$6296
+                
+                ** Bit number Static **
+                MOVE.W      #$0883,$6298        BCLR    #15,D3
+                MOVE.W      #$0015,$629A
+                MOVE.W      #$088B,$629C        BCLR    #15,A3 --- DATA, INVALID
+                MOVE.W      #$0893,$629E        BCLR    #15,(A3)
+                MOVE.W      #$0015,$62A0
+                MOVE.W      #$089B,$62A2        BCLR    #15,(A3)+
+                MOVE.W      #$0015,$62A4
+                MOVE.W      #$08A3,$62A6        BCLR    #15,-(A3)
+                MOVE.W      #$0015,$62A8
+                MOVE.W      #$08AB,$62AA        BCLR    (D16,AN) --- DATA,INVALID?
+                MOVE.W      #$08B3,$62AC        BCLR    (D8,AN,XN) --- DATA, INVALID?
+                MOVE.W      #$08B8,$62AE        BCLR    #15,#$AAAA
+                MOVE.W      #$0015,$62B0
+                MOVE.W      #$AAAA,$62B2
+                MOVE.W      #$08B9,$62B4        BCLR    #15,#$AAAAAAAA
+                MOVE.W      #$0015,$62B6
+                MOVE.W      #$AAAA,$62B8
+                MOVE.W      #$AAAA,$62BA
+                MOVE.W      #$08BC,$62BC        BCLR    #15,#$01234567 --- DATA, INVALID
+                MOVE.W      #$0015,$62BE
                 
                 *******************************************************
                 * ADDA Tests
@@ -577,16 +632,6 @@ START:
                 *MOVE.W      #$1234, $625C                  1234
                 *MOVE.W      #$5678, $625E                      5678
                 *MOVE.W      #$B79A, $6260       EOR.L  D3,(A2)+
-
- *-----------------------------------------------------------------------*
- *              SUBQ Testing (all modes have been tested)
- *            
-                MOVE.L      #$53B84012,$6262       SUB.L       #1,$4012
-                MOVE.L      #$55B86666,$6266       SUB.L       #2,$6666
-                MOVE.W      #$57B9,$626A           SUB.L       #3,$70960
-                MOVE.L      #$00070960,$626C       
-                MOVE.W      #$59B9,$6270           SUB.L       #4,$88888888
-                MOVE.L      #$88888888,$6272
                        
 ************************** END OF TESTING *******************************************************************
                 LEA         STACK,SP            Load the stack
@@ -832,15 +877,21 @@ JUMPTABLE       JMP         op0000              ORI, BCLR
 *-------------------------------------------------------------------------* 
 op0000          *ORI
                 MOVE.W      (A2),D1             ; copy instruction into D1
-                ANDI        #%1111111100000000,D1
-                CMP.W       #%0000000000000000,D1
+                ANDI        #$FF00,D1
+                CMP.W       #$0000,D1
                 BEQ         op_ORI              ; check bits 8-15 for ORI
             
-                *BCLR
+                *BCLR STATIC
+                MOVE.W      (A2),D1
+                ANDI        #$FFC0,D1
+                CMP.W       #$0880,D1
+                BEQ         op_BCLR_STAT
+                
+                *BCLR DYNAMIC
                 MOVE.W      (A2),D1             ; copy instruction into D1
-                ANDI        #%0000000111000000,D1
-                CMP.W       #%0000000110000000,D1
-                BEQ         op_BCLR             ; check bits 9-11 for BCLR
+                ANDI        #$01C0,D1
+                CMP.W       #$0180,D1
+                BEQ         op_BCLR_DYN         ; check bits 9-11 for BCLR
             
                 *CMPI
                 MOVE.W      (A2),D1
@@ -905,12 +956,11 @@ op0100          *NEG
 	            BEQ         op_NEG	            ; Check for NEG
 	        
                 *NOP
-                MOVE.W      (A2),D1             ; move the original operation into D1
+                MOVE.L      (A2),D1             ; move the original operation into D1
                 CMP.W       #$4E71,D1               ; compare D0 and D1
                 BEQ         op_NOP              ; if they're equal, the operation is NOP
             
                 *LEA
-                MOVE.W      (A2),D1
                 ANDI.W      #$F1C0,D1
                 CMP.W       #$41C0,D1
                 BEQ         op_LEA
@@ -1536,7 +1586,7 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
             
                 LEA         LEA_STR,A5
                 MOVE.L      A5,(A6)+
-                JSR         PRINT_ALI_4           Print the tab
+                JSR         PRINT_TAB           Print the tab
                 MOVEM.L     (SP)+,D0/A1         restore from stack
             
                 * Since we know that in this case, LEA always moves
@@ -1586,6 +1636,8 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
 
 op_JSR          LEA         JSR_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
+            
+                JSR         PRINT_TAB           Print the tab
                 
                 CMP.W       #%00111100,D5       Check for illegal #(data) mode
                 BEQ         op_DATA         
@@ -1606,7 +1658,7 @@ op_JSR          LEA         JSR_STR,A5
                 MOVEM.L     (SP)+,D0            Pop off the stack
                 
                 ADD.W       #$02,A2             Advance pointer beyond instruction
-                JSR         PRINT_ALI_4
+                
                 JSR         FIND_EAMODE         Find EA mode
                 
                 JSR         PRINT_init          ; print the string
@@ -1731,10 +1783,106 @@ op_ORI          LEA         ORI_STR,A5
                 JSR         PRINT_init          ; print the string
                 BRA         loop_exit
             
-op_BCLR         LEA         BCLR_STR,A5         ; add the op to the string
+op_BCLR_STAT    LEA         BCLR_STR,A5         * add the op to the string
+                MOVE.L      A5,(A6)+
+                
+                CMP.W       #$3C,D5             * check for mode 7 register 4
+                BEQ         op_DATA             * invalid EA mode
+                
+                MOVE.W      D5,D0
+                ANDI.W      #$38,D0             * mask for EA mode
+                CMP.W       #$08,D0             * check for mode 2
+                BEQ         op_DATA             * invalid EA mode
+                
+                MOVE.W      (A2)+,D6            * store the original op in D6 and move to the next half of it
+                MOVE.W      (A2),D0             * move the second half to D0
+                MOVE.W      (A2),D1             * and D1
+                ANDI.W      #$FF00,D0           * mask for the first byte in D0
+                ANDI.W      #$00FF,D1           * and the second byte in D1
+                
+                CMP.W       #$0000,D0           * check for the valid bits in D0
+                BNE         REWIND_add          * if they're invalid, rewind the current address and branch to op_DATA
+                
+                JSR         PRINT_ALI_3
+                
+                LEA         POUND,A5            * add the pound to the output
+                MOVE.L      A5,(A6)+
+                
+                MOVE.L      A4,A0
+                MOVE.W      D1,D0
+                MOVE.L      #$00000001,D1       * prepare for ASCII output
+                CLR         D2
+                CLR         D3
+                JSR         HEXTOASCII
+                
+                ADD.L       #$02,A4
+                MOVE.B      #$00,(A4)+          Add the string terminating character
+                MOVE.L      A4,D0
+                SUB.L       #$03,D0
+                MOVE.L      D0,A5
+                MOVE.L      A5,(A6)+            Add the number to the output string
+                
+                JSR         PRINT_COMMA
+                
+                CMP.W       #$38,D5
+                BEQ         op_BCLR_STAT_ADD
+                
+                CMP.W       #$39,D5
+                BEQ         op_BCLR_STAT_ADD
+                
+                JSR         FIND_EAMODE
+                
+                ADD.W       #$02,A2             * Increment the current address
+                
+                JSR         PRINT_init
+                BRA         loop_exit
+                
+op_BCLR_STAT_ADD
+                ADD.W       #$02,A2
+                JSR         FIND_EAMODE
+                                
+                JSR         PRINT_init
+                BRA         loop_exit
+                
+REWIND_add      SUB.W       #$02,A2
+                BRA         op_DATA
+                
+op_BCLR_DYN     LEA         BCLR_STR,A5         * add the op to the string
                 MOVE.L      A5,(A6)+
             
-                **** FINDING/ADDING EA TO STRING HERE
+                CMP.W       #$3C,D5             * check for mode 7 register 4
+                BEQ         op_DATA             * invalid EA mode
+                
+                MOVE.W      D5,D0
+                ANDI.W      #$38,D0             * mask for EA mode
+                CMP.W       #$08,D0             * check for mode 2
+                BEQ         op_DATA             * invalid EA mode
+                
+                JSR         PRINT_ALI_3         * align last column
+                
+                LEA         DATA_REG,A5         * add the D to the output
+                MOVE.L      A5,(A6)+
+                
+                MOVE.L      A4,A0
+                MOVE.L      D3,D0
+                MOVE.L      #$00000001,D1       * prepare for ASCII output
+                CLR         D2
+                CLR         D3
+                JSR         HEXTOASCII          * add the data register to the output
+                
+                ADD.L       #$01,A4
+                MOVE.B      #$00,(A4)+          Add the string terminating character
+                MOVE.L      A4,D0
+                SUB.L       #$02,D0
+                MOVE.L      D0,A5
+                MOVE.L      A5,(A6)+            Add the register to the output string
+                
+                JSR         PRINT_COMMA         * print the comma
+                
+                JSR         FIND_EAMODE         * print the right side of the output
+                
+                ADD.W       #$02,A2             * increment the current address
+                
                 JSR         PRINT_init
                 BRA         loop_exit
             
@@ -2261,19 +2409,11 @@ MODE_SELECT     CMP.B       #0,D5               MODE ZERO Goes to DATA REG DIREC
                 CMP.B       #4,D5
                 BEQ         M_FOUR              Address Reg Indirect Pre Dec
                 CMP.B       #5,D5
-                BEQ         M_INV
+                BEQ         op_DATA
                 CMP.B       #6,D5
-                BEQ         M_INV
+                BEQ         op_DATA
                 CMP.B       #7,D5
                 BEQ         M_SEVEN             Auxillary EA modes (ABS Short,Long,Immed...)
-
-*-------------------------------------
-* Mode invalid 
-* Handler for invalid EA modes
-* 
-M_INV           SUB.W       #$02,A2             * roll back the address pointer
-                BRA         op_DATA
-
 
 *-------------------------------------
 * Mode zero is data register direct mode
@@ -2759,7 +2899,6 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
-
 
 
 
