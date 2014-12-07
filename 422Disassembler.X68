@@ -440,12 +440,13 @@ START:
                 MOVE.W      #$41C8, $6224            Attempt LEA An,A0
                 MOVE.W      #$41D8, $6226            Attempt LEA (An)+,A0
                 MOVE.W      #$41E0, $6228            Attempt LEA -(An),A0
-                MOVE.W      #$41F0, $622A            Attempt LEA #(DATA),A0
+                MOVE.W      #$41FC, $622A            Attempt LEA #(DATA),A0
+                MOVE.W      #$DEAD, $622C            DEAD
                 
                 *******************************************************
                 * MULS Tests
                 
-                MOVE.W      #$CBC3, $622C           MULS.W D3,D5
+                *MOVE.W      #$CBC3, $622C           MULS.W D3,D5
                 MOVE.W      #$CBCB, $622E           MULS.W A3,D5 --- DATA INVALID INPUT
                 MOVE.W      #$CBD3, $6230           MULS.W (A3),D5
                 MOVE.W      #$CBDB, $6232           MULS.W (A3)+,D5
@@ -1585,8 +1586,6 @@ op_LEA          MOVEM.L     D0/A1,-(SP)         Save A1 & D0 to stack
 
 op_JSR          LEA         JSR_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
-            
-                JSR         PRINT_TAB           Print the tab
                 
                 CMP.W       #%00111100,D5       Check for illegal #(data) mode
                 BEQ         op_DATA         
@@ -1607,7 +1606,7 @@ op_JSR          LEA         JSR_STR,A5
                 MOVEM.L     (SP)+,D0            Pop off the stack
                 
                 ADD.W       #$02,A2             Advance pointer beyond instruction
-                
+                JSR         PRINT_ALI_4
                 JSR         FIND_EAMODE         Find EA mode
                 
                 JSR         PRINT_init          ; print the string
@@ -2262,11 +2261,19 @@ MODE_SELECT     CMP.B       #0,D5               MODE ZERO Goes to DATA REG DIREC
                 CMP.B       #4,D5
                 BEQ         M_FOUR              Address Reg Indirect Pre Dec
                 CMP.B       #5,D5
-                BEQ         op_DATA
+                BEQ         M_INV
                 CMP.B       #6,D5
-                BEQ         op_DATA
+                BEQ         M_INV
                 CMP.B       #7,D5
                 BEQ         M_SEVEN             Auxillary EA modes (ABS Short,Long,Immed...)
+
+*-------------------------------------
+* Mode invalid 
+* Handler for invalid EA modes
+* 
+M_INV           SUB.W       #$02,A2             * roll back the address pointer
+                BRA         op_DATA
+
 
 *-------------------------------------
 * Mode zero is data register direct mode
@@ -2752,6 +2759,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
