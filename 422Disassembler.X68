@@ -607,6 +607,22 @@ START:
                 MOVE.W      #$B401, $96D0       CMP.B   D1,D2 
         
                 *******************************************************
+                * MOVEA.L Tests
+                MOVE.W      #$264A, $96D2       MOVEA.L     A2,A3
+                MOVE.W      #$2652, $96D4       MOVEA.L     (A2),A3
+                MOVE.W      #$2459, $96D6       MOVEA.L     (A1)+,A2
+                MOVE.W      #$2461, $96D8       MOVEA.L     -(A1),A2
+                MOVE.W      #$287C, $96DA       MOVEA.L     #$xxxxxxxx,A4
+                MOVE.W      #$1234, $96DC       MOVEA.L       1234
+                MOVE.W      #$5678, $96DE       MOVEA.L           5678
+                MOVE.W      #$267C, $96E0       MOVEA.L     #$100,A3
+                MOVE.W      #$0000, $96E2       MOVEA.L     0000
+                MOVE.W      #$0100, $96E4       MOVEA.L         0100
+                MOVE.W      #$2079, $96E6       MOVEA.L     $xxxxxxxx,A0
+                MOVE.W      #$1234, $96E8       MOVEA.L      1234
+                MOVE.W      #$5678, $96EA       MOVEA.L          5678
+        
+                *******************************************************
                 *MOVE.W      #$0C01, $622C       CMPI.B #$ xx,D1             ONLY CMPI
                 *MOVE.W      #$0C51, $622E       CMPI.W #$ xxxx,(A1)         ONLY CMPI
                 *MOVE.W      #$0C99, $6230       CMPI.L #$ xxxxxxxx,(A1)+    ONLY CMPI
@@ -938,13 +954,26 @@ op0001          *MOVEM.L     D1,-(SP)            Save what we have here in D1 ju
 * Move Long  : MOVEA DOESN'T NEED EXTRA SPACING, ONLY TAB
 *            : MOVE NEEDS ONE EXTRA SPACE
 *-------------------------------------------------------------------------*            
-op0010          BRA         op_DATA
+op0010          
+                *MOVEA.L
+                MOVE.W      (A2),D0             ; move operation for compare
+                MOVE.W      (A2),D1             ; move operation for testing
+	            ANDI.W	    #$01C0,D0
+    	        CMP.W	    #$0040,D0
+	            BEQ         op_MOVEAL	        ; Check for MOVEA.L               
+                
+                
+                BRA         op_DATA
 
 *-------------------------------------------------------------------------*
 * Move Word  : MOVEA DOESN'T NEED EXTRA SPACING, ONLY TAB
 *            : MOVE NEEDS ONE EXTRA SPACE
 *-------------------------------------------------------------------------*             
-op0011          BRA         op_DATA
+op0011          
+                *MOVEA.W
+
+
+                BRA         op_DATA
 
 *-------------------------------------------------------------------------*
 * Negate, No Operation, Load Effective Address, Jump to Subroutine, 
@@ -1683,7 +1712,7 @@ op_EOR          LEA         EOR_STR,A5
                 JSR         PRINT_COMMA
 
                 ADD.W       #$0002,A2           * increment the current address
-                JSR         FIND_EAMODE         * create the RIGHT side of the operation
+                JSR         FIND_EAMODE         * create the right side of the operation
                 JSR         PRINT_init
                 BRA         loop_exit
                 
@@ -1886,6 +1915,21 @@ op_BCLR_DYN     LEA         BCLR_STR,A5         * add the op to the string
                 
                 JSR         PRINT_init
                 BRA         loop_exit
+                
+op_MOVEAL       LEA         MOVEAL_STR,A5       * load the operation name
+                MOVE.L      A5,(A6)+            * add operation to output string
+                JSR         PRINT_ALI_1
+                LSR.L       #6,D1               * shift the size bits to get the flag 
+                LSR.L       #6,D1               * shift the size bits to get the flag 
+                MOVE.L      D1,D6               * move size bit to D6 to set flag
+                ADD.W       #$02,A2             * increment the current address
+                JSR         FIND_EAMODE         * add the left side of operation to output string
+                JSR         PRINT_COMMA         * add a comma to output string
+                MOVE.W      #%001,D4            * set mode to 4 for An
+                JSR         FIND_OPMODE
+                JSR         PRINT_init
+                BRA         loop_exit               
+                
             
 ***************************************************************************       
 opcode_size_str CMP.W       #$0000,D3
@@ -2892,6 +2936,8 @@ SUBQ_STR        DC.B        '      SUBQ',0
 MULSW_STR       DC.B        '      MULS.W',0
 DIVSW_STR       DC.B        '      DIVS.W',0
 CMP_STR         DC.B        '      CMP',0
+MOVEAL_STR      DC.B        '      MOVEA.L',0
+MOVEAW_STR      DC.B        '      MOVEA.W',0
 
 *------------------------------------------------------------------*
 * EA REGISTERS
@@ -2908,6 +2954,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
