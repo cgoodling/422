@@ -1052,6 +1052,7 @@ op_MULS         LEA         MULSW_STR,A5        * add the operation to the outpu
                 BRA         op_SIGN_MD
                 
 op_SIGN_MD
+                JSR         PRINT_ALI_1
                 MOVE.W      D5,D0               * copy the EA bits into D0
                 ANDI.W      #$38,D0             * Separate the mode
                 CMP.W       #$07,D0             * check if its mode 1
@@ -2740,8 +2741,8 @@ ADD_STR         DC.B        '      ADD',0
 SUBA_STR        DC.B        '      SUBA',0
 SUB_STR         DC.B        '      SUB',0
 SUBQ_STR        DC.B        '      SUBQ',0
-MULSW_STR       DC.B        '      MULS.W   ',0
-DIVSW_STR       DC.B        '      DIVS.W   ',0
+MULSW_STR       DC.B        '      MULS.W',0
+DIVSW_STR       DC.B        '      DIVS.W',0
 CMP_STR         DC.B        '      CMP',0
 
 *------------------------------------------------------------------*
@@ -2759,6 +2760,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
