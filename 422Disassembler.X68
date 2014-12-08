@@ -610,14 +610,81 @@ START:
                 MOVE.W      #$9001,$634A
                 MOVE.W      #$0000,$634C
                 MOVE.W      #$1234,$634E
-                MOVE.W      #$48BC,$6350       MOVEM.W xxx,#$AAAA
+                MOVE.W      #$48BC,$6350       MOVEM.W xxx,#$AAAA --- DATA, INVALID
                 MOVE.W      #$AAAA,$6352
                 MOVE.W      #$AAAA,$6354
                 
-                *MOVE.W      #$ 0100 1 0 00 1 S MOD REG , $
+                *** REGISTER TO MEMORY *** .L
+                MOVE.W      #$48C5,$6356       MOVEM.W D1,D5 --- DATA, INVALID
+                MOVE.W      #$AAAA,$6358
+                MOVE.W      #$48CD,$635A       MOVEM.W D1,A5 --- DATA, INVALID
+                MOVE.W      #$AAAA,$635C
+                MOVE.W      #$48D5,$635E       MOVEM.W D1,(A5)
+                MOVE.W      #$0002,$6360
+                MOVE.W      #$48DD,$6362       MOVEM.W D1/A1,(A5)+ --- DATA, INVALID
+                MOVE.W      #$AAAA,$6364
+                MOVE.W      #$48E5,$6366       MOVEM.W D1/A1,-(A5)
+                MOVE.W      #$4040,$6368
+                MOVE.W      #$48ED,$636A       DATA, INVALID
+                MOVE.W      #$48B5,$636C       DATA, INVALID
+                MOVE.W      #$48F8,$636E       MOVEM.W D1/D6/A3,$1234
+                MOVE.W      #$0842,$6370
+                MOVE.W      #$1234,$6372
+                MOVE.W      #$48F9,$6374       MOVEM.W D0/A4/A7,$00001234
+                MOVE.W      #$9001,$6376
+                MOVE.W      #$0000,$6378
+                MOVE.W      #$1234,$637A
+                MOVE.W      #$48FC,$637C       MOVEM.W xxx,#$AAAA --- DATA, INVALID
+                MOVE.W      #$AAAA,$637E
+                MOVE.W      #$AAAA,$6380
                 
-                *MOVE.W      #$ 0100 1 D 00 1 S MOD REG , $
+                *** MEMORY TO REGISTER *** .W
+                MOVE.W      #$4C85,$6382       MOVEM.W D5,D1 --- DATA, INVALID
+                MOVE.W      #$AAAA,$6384
+                MOVE.W      #$4C8D,$6386       MOVEM.W A5,D1 --- DATA, INVALID
+                MOVE.W      #$AAAA,$6388
+                MOVE.W      #$4C95,$638A       MOVEM.W (A5),D1
+                MOVE.W      #$0002,$638C
+                MOVE.W      #$4C9D,$638E       MOVEM.W (A5)+,D6/A6
+                MOVE.W      #$4040,$6390
+                MOVE.W      #$4CA5,$6392       MOVEM.W -(A5),D1/A1 --- DATA, INVALID
+                MOVE.W      #$AAAA,$6394
+                MOVE.W      #$4CAD,$6396       DATA, INVALID
+                MOVE.W      #$4CB5,$6398       DATA, INVALID
+                MOVE.W      #$4CB8,$639A       MOVEM.W $1234,D1/D6/A3
+                MOVE.W      #$0842,$639C
+                MOVE.W      #$1234,$639E
+                MOVE.W      #$4CB9,$63A0       MOVEM.W $00001234,D0/A4/A7
+                MOVE.W      #$9001,$63A2
+                MOVE.W      #$0000,$63A4
+                MOVE.W      #$1234,$63A6
+                MOVE.W      #$4CBC,$63A8       MOVEM.W #$AAAA,xxx --- DATA, INVALID
+                MOVE.W      #$AAAA,$63AA
+                MOVE.W      #$AAAA,$63AC
                 
+                *** MEMORY TO REGISTER *** .L
+                MOVE.W      #$4CC5,$63AE       MOVEM.W D5,D1 --- DATA, INVALID
+                MOVE.W      #$AAAA,$63B0
+                MOVE.W      #$4CCD,$63B2       MOVEM.W A5,D1 --- DATA, INVALID
+                MOVE.W      #$AAAA,$63B4
+                MOVE.W      #$4CD5,$63B6       MOVEM.W (A5),D1
+                MOVE.W      #$0002,$63B8
+                MOVE.W      #$4CDD,$63BA       MOVEM.W (A5)+,D6/A6
+                MOVE.W      #$4040,$63BC
+                MOVE.W      #$4CE5,$63BE       MOVEM.W -(A5),D1/A1 --- DATA, INVALID
+                MOVE.W      #$AAAA,$63C0
+                MOVE.W      #$4CED,$63C2       DATA, INVALID
+                MOVE.W      #$4CF5,$63C4       DATA, INVALID
+                MOVE.W      #$4CF8,$63C6       MOVEM.W $1234,D1/D6/A3
+                MOVE.W      #$0842,$63C8
+                MOVE.W      #$1234,$63CA
+                MOVE.W      #$4CF9,$63CC       MOVEM.W $00001234,D0/A4/A7
+                MOVE.W      #$9001,$63CE
+                MOVE.W      #$0000,$63D0
+                MOVE.W      #$1234,$63D2
+                MOVE.W      #$4CFC,$63D4       MOVEM.W #$AAAA,xxx --- DATA, INVALID
+                MOVE.W      #$AAAA,$63D6
+                MOVE.W      #$AAAA,$63D8
                 
                 * ADD & ADDA TESTS
                 *******************************************************
@@ -2157,7 +2224,7 @@ RTM_PREDEC      LEA         MOVEM_PRE_STR,A1    * load address of REG string int
                 JSR         PRINT_init          * print the output
                 BRA         loop_exit
 
-MEM_TO_REG      CMP.W       #$C3,D5             ***test for mode 7 reg 4 INVALID
+MEM_TO_REG      CMP.W       #$3C,D5             ***test for mode 7 reg 4 INVALID
                 BEQ         op_DATA
                 
                 MOVE.W      D5,D0
@@ -2172,16 +2239,18 @@ MEM_TO_REG      CMP.W       #$C3,D5             ***test for mode 7 reg 4 INVALID
                 BEQ         op_DATA
                 CMP.W       #$30,D0             * compare to mode 6
                 BEQ         op_DATA
-                
-                LEA         MOVEM_POST_STR,A1   * load address of REG string into A1
-                ADD.W       #$02,A2             * move the current pointer to the next half of the op
-                MOVE.W      (A2),D2             * move the second half of the op to D2
-                JSR         PARSE_STR           * set up the registers
-                
+               
+                ADD.W       #$02,A2             * move the current address pointer forward a word
+                MOVE.W      (A2),D6             * store the second word of the op in D6
+                ADD.W       #$02,A2             * move to the third word of the op
+                JSR         FIND_EAMODE         * set up the second half
+
                 JSR         PRINT_COMMA         * add the comma
                 
-                ADD.W       #$02,A2             * move the current address pointer forward a word
-                JSR         FIND_EAMODE         * set up the second half
+                LEA         MOVEM_POST_STR,A1   * load address of REG string into A1
+                MOVE.W      D6,D2               * move the second word of the op to D2
+                JSR         PARSE_STR           * set up the registers
+                
                 JSR         PRINT_init          * print the output
                 BRA         loop_exit
 
@@ -3155,6 +3224,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 *~Font name~Courier New~
 *~Font size~14~
 *~Tab type~1~
