@@ -1031,6 +1031,14 @@ op0100          *NEG
                 MOVE.W      (A2),D1             ; move the original operation into D1
                 CMP.W       #$4E75,D1
                 BEQ         op_RTS              ; check for RTS
+                
+                *MOVEM
+                MOVE.W      (A2),D1             * move the original operation into D1
+                MOVE.W      (A2),D2             * move operation into D2 for masking
+                ANDI.W      #$0B80,D1           * mask MOVEM defining bits
+                CMP.W       #$0880,D1           * compare masked bits to MOVEM bits
+                BEQ         op_MOVEM            * go to MOVEM decode
+                
             
                 BRA         op_DATA             ; invalid
 *-------------------------------------------------------------------------*
@@ -2056,7 +2064,53 @@ op_CMPI         LEA         CMPI_STR,A5
                 JSR         PRINT_init          ; print the string
                 RTS
                 
+op_MOVEM        LEA         MOVEM_STR,A5
+                MOVE.L      A5,(A6)+
+                ANDI.L      #$0040,D2           * mask for size bit
+                JSR         MOVEM_SIZE          * get size of instruction
+                JSR         PRINT_ALI_1         * align the third column
+                MOVE.W      (A2),D2             * load instruction
+                ANDI.L      #$0400,D2           * mask for direction
+                CMP.W       #$0000,D2           * check for reg to mem
+                BEQ         REG_TO_MEM          * branch to reg_to_mem
+                CMP.W       #$0400,D2           * check for mem to reg
+                BEQ         MEM_TO_REG          * branch to mem_to_reg
+
+MOVEM_SIZE      CMP.W       #$00,D2             * check if size is 0
+                BEQ         PRINT_W_STR         * add .W to string
+                CMP.W       #$40,D2             * check if size is 1
+                BEQ         PRINT_L_STR         * add .L to string
+                RTS
+
+REG_TO_MEM      
+                CMP.W       #$C3,D5             ***test for mode 7 reg 4 INVALID
+                BEQ         op_DATA
                 
+                MOVE.W      D5,D0               * move instruction to D0
+                ANDI.W      #$38,D0             * mask for the mode
+                CMP.W       #$00,D0             * check for mode 0 (INVALID)
+                BEQ         op_DATA
+                CMP.W       #$08,D0             * check for mode 1 (INVALID)
+                BEQ         op_DATA
+                CMP.W       #$18,D0             * check for mode 3 (INVALID)
+                BEQ         op_DATA
+                CMP.W       #$20,D0             * check for predec
+                BEQ         RTM_PREDEC
+
+RTM_PREDEC      
+
+MEM_TO_REG   
+                CMP.W       #$C3,D5             ***test for mode 7 reg 4 INVALID
+                BEQ         op_DATA
+                
+                MOVE.W      D5,D0
+                ANDI.W      #$38,D0             * mask for the mode
+                CMP.W       #$00,D0             * compare to mode 0
+                BEQ         op_DATA
+                CMP.W       #$08,D0             * compare to mode 1
+                BEQ         op_DATA
+                CMP.W       #$20,D0             * compare to mode 4
+                BEQ         op_DATA             
                 
 *------------------------------------------------------------------*
 * op_SUB & op_ADDA
@@ -2968,7 +3022,9 @@ DIVSW_STR       DC.B        '      DIVS.W',0
 CMP_STR         DC.B        '      CMP',0
 MOVEAL_STR      DC.B        '      MOVEA.L',0
 MOVEAW_STR      DC.B        '      MOVEA.W',0
-
+MOVEM_STR       DC.B        '      MOVEM',0
+MOVEM_PRE_STR   DC.B        'A7','A6','A5','A4','A3','A2','A1','A0','D7','D6','D5','D4','D3','D2','D1','D0',0
+MOVEM_POST_STR  DC.B        'D0','D1','D2','D3','D4','D5','D6','D7','A0','A1','A2','A3','A4','A5','A6','A7',0
 *------------------------------------------------------------------*
 * EA REGISTERS
 *------------------------------------------------------------------*
