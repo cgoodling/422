@@ -2097,7 +2097,11 @@ REG_TO_MEM
                 CMP.W       #$20,D0             * check for predec
                 BEQ         RTM_PREDEC
 
-RTM_PREDEC      
+RTM_PREDEC   
+
+*****Assumes second half of op is in D2, and assumes A1 has the address of the string
+PARSE_STR       MOVE.W      (A1)+,D1
+                ANDI.L         
 
 MEM_TO_REG   
                 CMP.W       #$C3,D5             ***test for mode 7 reg 4 INVALID
