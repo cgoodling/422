@@ -587,6 +587,37 @@ START:
                 MOVE.W      #$B401, $6324       CMP.B   D1,D2 
                 MOVE.W      #$BA7C, $6326       CMP.W   #$xxxx,A5
                 MOVE.W      #$AAAA, $6328                AAAA
+                *******************************************************
+                * MOVEM TESTS
+                *
+                *** REGISTER TO MEMORY *** .W
+                MOVE.W      #$4885,$632A       MOVEM.W D1,D5 --- DATA, INVALID
+                MOVE.W      #$AAAA,$632C
+                MOVE.W      #$488D,$632E       MOVEM.W D1,A5 --- DATA, INVALID
+                MOVE.W      #$AAAA,$6330
+                MOVE.W      #$4895,$6332       MOVEM.W D1,(A5)
+                MOVE.W      #$0002,$6334
+                MOVE.W      #$489D,$6336       MOVEM.W D1/A1,(A5)+ --- DATA, INVALID
+                MOVE.W      #$AAAA,$6338
+                MOVE.W      #$48A5,$633A       MOVEM.W D1/A1,-(A5)
+                MOVE.W      #$4040,$633C
+                MOVE.W      #$48AD,$633E       DATA, INVALID
+                MOVE.W      #$48B5,$6340       DATA, INVALID
+                MOVE.W      #$48B8,$6342       MOVEM.W D1/D6/A3,$1234
+                MOVE.W      #$0842,$6344
+                MOVE.W      #$1234,$6346
+                MOVE.W      #$48B9,$6348       MOVEM.W D0/A4/A7,$00001234
+                MOVE.W      #$9001,$634A
+                MOVE.W      #$0000,$634C
+                MOVE.W      #$1234,$634E
+                MOVE.W      #$48BC,$6350       MOVEM.W xxx,#$AAAA
+                MOVE.W      #$AAAA,$6352
+                MOVE.W      #$AAAA,$6354
+                
+                *MOVE.W      #$ 0100 1 0 00 1 S MOD REG , $
+                
+                *MOVE.W      #$ 0100 1 D 00 1 S MOD REG , $
+                
                 
                 * ADD & ADDA TESTS
                 *******************************************************
@@ -596,8 +627,8 @@ START:
                 
                 *MOVE.W      #$D938,$6326
                 *MOVE.W      #$5530,$6328   ADD.B D4,$5530
-                MOVE.W      #$DA38,$632A
-                MOVE.W      #$0044,$632C   ADD.B $44,D5
+                *MOVE.W      #$DA38,$632A
+                *MOVE.W      #$0044,$632C   ADD.B $44,D5
                    
                 * ADD.W
                 
@@ -636,9 +667,9 @@ START:
                 MOVE.W      #$3459, $96F0       MOVEA.W     (A1)+,A2
                 MOVE.W      #$3461, $96F2       MOVEA.W     -(A1),A2
                 MOVE.W      #$367C, $96F4       MOVEA.W     #$xxxx,A3
-                MOVE.W      #$1234, $96F6       MOVEA.W       1234                              
-                MOVE.W      #$3078, $96F8       MOVEA.W     $xxxx,A0
-                MOVE.W      #$1234, $96FA       MOVEA.W      1234
+                *MOVE.W      #$1234, $96F6       MOVEA.W       1234                              
+                *MOVE.W      #$3078, $96F8       MOVEA.W     $xxxx,A0
+                *MOVE.W      #$1234, $96FA       MOVEA.W      1234
                 *******************************************************
                 *MOVE.W      #$0C01, $622C       CMPI.B #$ xx,D1             ONLY CMPI
                 *MOVE.W      #$0C51, $622E       CMPI.W #$ xxxx,(A1)         ONLY CMPI
@@ -699,10 +730,10 @@ START:
                 CLR.L       D6
                 CLR.L       D7                  ; clear all of the registers
                 
-                MOVE.W      #$0000,$3000        ; set counter to 0
-                LEA         $5000,A5            ; move the starting address of the output string to A1
-                LEA         $4000,A4
-                MOVE.W      A5,A6               ; move the ending address of the output string here too (empty string)
+                MOVE.W      #$0000,$00009000        ; set counter to 0
+                LEA         $000090A0,A5            ; move the starting address of the output string to A1
+                LEA         $00009010,A4
+                MOVE.L      A5,A6               ; move the ending address of the output string here too (empty string)
                 BRA         loop_start          ; start the loop
                 
 loop_start
@@ -711,7 +742,7 @@ loop_start
                 CMP.L       A3,A2               ; check to see if end is reached
                 BGT         exit                ; nothing left, exit program
                        
-                MOVE.L      #$3000, A0          ; Move address of count into A0
+                MOVE.L      #$00009000, A0          ; Move address of count into A0
                 ADD.W       #%01,(A0)           ; increment count by one
                 CMP.W       #$001E,(A0)         ; check to see if count is 30
                 BEQ         next_page           ; if over 30, go to next page
@@ -723,9 +754,9 @@ loop_start
                 BRA         loop_exit
                 
 ******************************* CLEAR REGISTERS **************************
-* clearTempVars  - clears all of the temporary variables starting at $4000
-* clearOutputStr - clears all of the values starting at $5000
-clearTempVars   MOVE.L      #$4000,A0           ; move the first address to A0
+* clearTempVars  - clears all of the temporary variables starting at $00009010
+* clearOutputStr - clears all of the values starting at $000090A0
+clearTempVars   MOVE.L      #$00009010,A0           ; move the first address to A0
                 BRA         CTV_loop            ; begin the loop
                
 CTV_loop        CMP.L       #$FFFFFFFF,(A0)     ; check if the values at address A0 are all Fs
@@ -735,7 +766,7 @@ CTV_loop        CMP.L       #$FFFFFFFF,(A0)     ; check if the values at address
                 
 CTV_exit        RTS                             ; return to where clearTempVars was called
 
-clearOutputStr  MOVE.L      #$5000,A0           ; move the first address to A0
+clearOutputStr  MOVE.L      #$000090A0,A0           ; move the first address to A0
                 BRA         COS_loop            ; begin the loop
                 
 COS_loop        CMP.L       #$FFFFFFFF,(A0)     ; check if the values at address A0 are all Fs
@@ -1361,7 +1392,7 @@ SHIFT_count     JSR         PRINT_ALI_1
             
                 MOVE.B      D1,(A4)+            ; move the register to A4
                 MOVE.B      #$00,(A4)+          ; add the string terminating character
-                MOVE.W      A4,D0
+                MOVE.L      A4,D0
                 SUB.W       #$02,D0
                 MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            ; add the register to the string
@@ -1378,7 +1409,7 @@ SHIFT_count     JSR         PRINT_ALI_1
 
                 MOVE.B      D1,(A4)+            ; move the register to A4
                 MOVE.B      #$00,(A4)+          ; add the string terminating character
-                MOVE.W      A4,D0
+                MOVE.L      A4,D0
                 SUB.W       #$02,D0
                 MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            ; add the register to the string
@@ -1400,7 +1431,7 @@ SHIFT_reg       JSR         PRINT_ALI_1
             
                 MOVE.B      D1,(A4)+            ; move the register to A4
                 MOVE.B      #$00,(A4)+          ; add the string terminating character
-                MOVE.W      A4,D0
+                MOVE.L      A4,D0
                 SUB.W       #$02,D0
                 MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            ; add the register to the string
@@ -1417,7 +1448,7 @@ SHIFT_reg       JSR         PRINT_ALI_1
 
                 MOVE.B      D1,(A4)+            ; move the register to A4
                 MOVE.B      #$00,(A4)+          ; add the string terminating character
-                MOVE.W      A4,D0
+                MOVE.L      A4,D0
                 SUB.W       #$02,D0
                 MOVE.L      D0,A5
                 MOVE.L      A5,(A6)+            ; add the register to the string
@@ -1483,8 +1514,8 @@ op_NOP          LEA         NOP_STR,A5
             
 op_DATA         JSR         clearTempVars
                 JSR         clearOutputStr
-                MOVE.L      #$00004000,A4
-                MOVE.L      #$00005000,A6
+                MOVE.L      #$00009010,A4
+                MOVE.L      #$000090A0,A6
                 JSR         print_add
 
                 LEA         DATA_STR,A5
@@ -1990,7 +2021,7 @@ print_L_str     LEA         L_STR,A5            ; Add the address of .L to the s
                 MOVE.L      A5,(A6)+
                 RTS
             
-PRINT_init      LEA         $5000,A5            ; load the beginning of the string
+PRINT_init      LEA         $000090A0,A5            ; load the beginning of the string
                 BRA         PRINT_loop          ; enter the print loop
 
             
@@ -2068,7 +2099,8 @@ op_MOVEM        LEA         MOVEM_STR,A5
                 MOVE.L      A5,(A6)+
                 ANDI.L      #$0040,D2           * mask for size bit
                 JSR         MOVEM_SIZE          * get size of instruction
-                JSR         PRINT_ALI_1         * align the third column
+                LEA         SMALL_TAB,A5
+                MOVE.L      A5,(A6)+            * align the third column
                 MOVE.W      (A2),D2             * load instruction
                 ANDI.L      #$0400,D2           * mask for direction
                 CMP.W       #$0000,D2           * check for reg to mem
@@ -2082,8 +2114,7 @@ MOVEM_SIZE      CMP.W       #$00,D2             * check if size is 0
                 BEQ         PRINT_L_STR         * add .L to string
                 RTS
 
-REG_TO_MEM      
-                CMP.W       #$C3,D5             ***test for mode 7 reg 4 INVALID
+REG_TO_MEM      CMP.W       #$3C,D5             ***test for mode 7 reg 4 INVALID
                 BEQ         op_DATA
                 
                 MOVE.W      D5,D0               * move instruction to D0
@@ -2096,15 +2127,37 @@ REG_TO_MEM
                 BEQ         op_DATA
                 CMP.W       #$20,D0             * check for predec
                 BEQ         RTM_PREDEC
+                CMP.W       #$28,D0             * compare to mode 5
+                BEQ         op_DATA
+                CMP.W       #$30,D0             * compare to mode 6
+                BEQ         op_DATA
+                
+                LEA         MOVEM_POST_STR,A1   * load address of REG string into A1
+                ADD.W       #$02,A2             * move the current pointer to the next half of the op
+                MOVE.W      (A2),D2             * move the second half of the op to D2
+                JSR         PARSE_STR           * set up the registers
+                
+                JSR         PRINT_COMMA         * add the comma
+                
+                ADD.W       #$02,A2             * move the current address pointer forward a word
+                JSR         FIND_EAMODE         * set up the second half
+                JSR         PRINT_init          * print the output
+                BRA         loop_exit
 
-RTM_PREDEC   
 
-*****Assumes second half of op is in D2, and assumes A1 has the address of the string
-PARSE_STR       MOVE.W      (A1)+,D1
-                ANDI.L         
+RTM_PREDEC      LEA         MOVEM_PRE_STR,A1    * load address of REG string into A1
+                ADD.W       #$02,A2             * move the current pointer to the next half of the op
+                MOVE.W      (A2),D2             * move the second half of the op to D2
+                JSR         PARSE_STR           * set up the registers
+                
+                JSR         PRINT_COMMA         * add the comma
+                
+                ADD.W       #$02,A2             * move the current address pointer forward a word
+                JSR         FIND_EAMODE         * set up the second half
+                JSR         PRINT_init          * print the output
+                BRA         loop_exit
 
-MEM_TO_REG   
-                CMP.W       #$C3,D5             ***test for mode 7 reg 4 INVALID
+MEM_TO_REG      CMP.W       #$C3,D5             ***test for mode 7 reg 4 INVALID
                 BEQ         op_DATA
                 
                 MOVE.W      D5,D0
@@ -2115,7 +2168,64 @@ MEM_TO_REG
                 BEQ         op_DATA
                 CMP.W       #$20,D0             * compare to mode 4
                 BEQ         op_DATA             
+                CMP.W       #$28,D0             * compare to mode 5
+                BEQ         op_DATA
+                CMP.W       #$30,D0             * compare to mode 6
+                BEQ         op_DATA
                 
+                LEA         MOVEM_POST_STR,A1   * load address of REG string into A1
+                ADD.W       #$02,A2             * move the current pointer to the next half of the op
+                MOVE.W      (A2),D2             * move the second half of the op to D2
+                JSR         PARSE_STR           * set up the registers
+                
+                JSR         PRINT_COMMA         * add the comma
+                
+                ADD.W       #$02,A2             * move the current address pointer forward a word
+                JSR         FIND_EAMODE         * set up the second half
+                JSR         PRINT_init          * print the output
+                BRA         loop_exit
+
+
+*****Assumes second half of op is in D2, and assumes A1 has the address of the string
+PARSE_STR       MOVEM.L     D0-D7,-(SP)         * save all data registers
+                MOVE.L      #$00000000,D6       * clear D6 - the counter
+             
+                JSR         PS_loop             * jump to PS_loop
+                JSR         PS_exit_loop        * jump to PS_exit_loop
+                MOVEM.L     (SP)+,D0-D7         * restore the data registers
+                RTS                             * return to the calling sub routine
+                
+PS_loop         MOVE.B      (A1)+,D1            * load the first word of the string into D1
+                LSL.W       #8,D1
+                MOVE.B      (A1)+,D1
+                MOVE.W      D2,D0               * copy the second half of the op into D0
+                ANDI.W      #$8000,D0           * mask for the first bit of the word
+                CMP.W       #$8000,D0           * check if the first bit is a 1
+                BEQ         PS_valid_add        * add it to the output if it is
+                BRA         PS_inc_count        * increment the counter
+                
+PS_valid_add    MOVE.L      A4,A0               * copy the current pointer of the temp string into A0
+                MOVE.B      D1,(A4)+
+                LSR.W       #8,D1
+                MOVE.B      D1,(A4)+            * copy the current pointer to the register string into A4
+                MOVE.B      #$2F,(A4)+
+                MOVE.B      #$00,(A4)+          * add '/' and the terminating character to the temp string
+                MOVE.L      A0,(A6)+            * add the starting address to the output list
+                BRA         PS_inc_count        * increment the counter
+                
+PS_inc_count    LSL.L       #1,D2               * shift the second half of the op by 1 bit
+                ADD.B       #%1,D6              * add 1 bit to the counter
+                CMP.W       #$10,D6             * check if the counter has reached 16
+                BNE         PS_loop
+                RTS                             * return to PARSE_STR if the loop is complete
+                
+PS_exit_loop    MOVE.L      A4,A0               * copy A4 into A0
+                SUB.W       #$02,A0             * move A0 back by 2
+                MOVE.B      #$00,(A0)+
+                MOVE.B      #$FF,(A0)+          * overwrite the current data in A0 with 00FF
+                MOVE.L      A0,A4               * copy A0 back into A4
+                RTS
+        
 *------------------------------------------------------------------*
 * op_SUB & op_ADDA
 *
@@ -2940,7 +3050,7 @@ next_page       CMP.L       A3,A2               ; check if end address has been 
                 LEA         input,A1
                 TRAP #15                        ; input used to wait for enter
                 
-                MOVE.L      #$0000,$3000        ; set counter to 0
+                MOVE.L      #$0000,$00009000        ; set counter to 0
                 BRA         loop_start          ; go back to start of the loop
                 
                 
@@ -2953,9 +3063,9 @@ loop_exit       MOVE.L      #$000000,A1
                 
                 JSR         clearTempVars       ; clear the temporary variables for the output string
                 JSR         clearOutputStr      ; clear the output string
-                MOVE.L      #$00004000,A4
-                MOVE.L      #$00005000,A5
-                MOVE.L      #$00005000,A6
+                MOVE.L      #$00009010,A4
+                MOVE.L      #$000090A0,A5
+                MOVE.L      #$000090A0,A6
                 CLR.L       D0
                 CLR.L       D1
                 CLR.L       D2
@@ -2977,7 +3087,6 @@ input           DCB.B       256,0
 invalidAdd      DC.B        'ERROR',0
 new_line        DC.B        '',CR,LF,0
 COMMA           DC.B        ',',0
-TAB             DC.B        '      ',0
 B_STR           DC.B        '.B ',0
 W_STR           DC.B        '.W ',0
 L_STR           DC.B        '.L ',0
@@ -2988,6 +3097,8 @@ DECREMENT       DC.B        '-',0
 POUND           DC.B        '#',0
 DOLLAH          DC.B        '$',0
 IMMED_PREFIX    DC.B        '#$',0
+SMALL_TAB       DC.B        '     ',0
+TAB             DC.B        '      ',0
 ONE_SPACE       DC.B        '       ',0
 TWO_SPACE       DC.B        '        ',0
 THREE_SPACE     DC.B        '         ',0
@@ -3027,8 +3138,8 @@ CMP_STR         DC.B        '      CMP',0
 MOVEAL_STR      DC.B        '      MOVEA.L',0
 MOVEAW_STR      DC.B        '      MOVEA.W',0
 MOVEM_STR       DC.B        '      MOVEM',0
-MOVEM_PRE_STR   DC.B        'A7','A6','A5','A4','A3','A2','A1','A0','D7','D6','D5','D4','D3','D2','D1','D0',0
-MOVEM_POST_STR  DC.B        'D0','D1','D2','D3','D4','D5','D6','D7','A0','A1','A2','A3','A4','A5','A6','A7',0
+MOVEM_POST_STR  DC.B        '7A','6A','5A','4A','3A','2A','1A','0A','7D','6D','5D','4D','3D','2D','1D','0D',0
+MOVEM_PRE_STR   DC.B        '0D','1D','2D','3D','4D','5D','6D','7D','0A','1A','2A','3A','4A','5A','6A','7A',0
 *------------------------------------------------------------------*
 * EA REGISTERS
 *------------------------------------------------------------------*
@@ -3044,59 +3155,6 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 *~Font name~Courier New~
 *~Font size~14~
 *~Tab type~1~
