@@ -1247,12 +1247,12 @@ START:
                 MOVE.W      #$BBBB,$67E6
                 MOVE.W      #$002D,$67E8       ORI.B (D16,AN) --- INVALID, DATA
                 MOVE.W      #$0035,$67EA       ORI.B (D8,AN,XN) --- INVALID, DATA
-                MOVE.W      #$0038,$67EC
+                MOVE.W      #$0038,$67EC       ORI.B #$BB,$AAAA
                 MOVE.W      #$BBBB,$67EE
-                MOVE.W      #$AAAA,$67F0       ORI.B #$BB,$AAAA
-                MOVE.W      #$0039,$67F2
+                MOVE.W      #$AAAA,$67F0       
+                MOVE.W      #$0039,$67F2       ORI.B #$BB,#$AAAAAAAA
                 MOVE.W      #$BBBB,$67F4
-                MOVE.W      #$AAAA,$67F6       ORI.B #$BB,#$AAAAAAAA
+                MOVE.W      #$AAAA,$67F6       
                 MOVE.W      #$AAAA,$67F8
                 MOVE.W      #$003C,$67FA       ORI.B #$BB,#$XXXX ---- INVALID, DATA          
                 
@@ -1268,12 +1268,12 @@ START:
                 MOVE.W      #$BBBB,$680E
                 MOVE.W      #$006D,$6810       ORI.W (D16,AN) --- INVALID, DATA
                 MOVE.W      #$0075,$6812       ORI.W (D8,AN,XN) --- INVALID, DATA
-                MOVE.W      #$0078,$6814
+                MOVE.W      #$0078,$6814       ORI.W #$BBBB,$AAAA
                 MOVE.W      #$BBBB,$6816
-                MOVE.W      #$AAAA,$6818       ORI.W #$BBBB,$AAAA
-                MOVE.W      #$0079,$681A
+                MOVE.W      #$AAAA,$6818       
+                MOVE.W      #$0079,$681A       ORI.W #$BBBB,$AAAAAAAA
                 MOVE.W      #$BBBB,$681C
-                MOVE.W      #$AAAA,$681E       ORI.W #$BBBB,$AAAAAAAA
+                MOVE.W      #$AAAA,$681E       
                 MOVE.W      #$AAAA,$6820
                 MOVE.W      #$007C,$6822       ORI.W #$BBBB,#$XXXX ---- INVALID, DATA
                               
@@ -1293,18 +1293,89 @@ START:
                 MOVE.W      #$BBBB,$683C
                 MOVE.W      #$00AD,$683E       ORI.W (D16,AN) --- INVALID, DATA
                 MOVE.W      #$00B5,$6840       ORI.W (D8,AN,XN) --- INVALID, DATA
-                MOVE.W      #$00B8,$6842
+                MOVE.W      #$00B8,$6842       ORI.W #$BBBBBBBB,$AAAA
                 MOVE.W      #$BBBB,$6844
                 MOVE.W      #$BBBB,$6846
-                MOVE.W      #$AAAA,$6848       ORI.W #$BBBBBBBB,$AAAA
-                MOVE.W      #$BBBB,$684A
-                MOVE.W      #$BBBB,$684C
-                MOVE.W      #$00B9,$684E
-                MOVE.W      #$AAAA,$6850       ORI.W #$BBBBBBBB,$AAAAAAAA
+                MOVE.W      #$AAAA,$6848       
+                MOVE.W      #$00B9,$684A       ORI.W #$BBBBBBBB,$AAAAAAAA
+                MOVE.W      #$AAAA,$684C       
+                MOVE.W      #$AAAA,$684E
+                MOVE.W      #$BBBB,$6850
                 MOVE.W      #$BBBB,$6852
-                MOVE.W      #$BBBB,$6854
-                MOVE.W      #$AAAA,$6856
-                MOVE.W      #$00BC,$6858       ORI.W #$BBBB,#$XXXX ---- INVALID, DATA
+                MOVE.W      #$00BC,$6854       ORI.W #$BBBB,#$XXXX ---- INVALID, DATA
+               ************************************************************************** 
+                               
+                *********************************************************
+                * CMPI TESTING
+                ***
+                ** .B
+                MOVE.W      #$0C05,$6856       CMPI.B #$BB,D5
+                MOVE.W      #$BBBB,$6858
+                MOVE.W      #$0C0D,$685A       CMPI.B #$XX,A5 ---- INVALID, DATA
+                MOVE.W      #$0C15,$685C       CMPI.B #$BB,(A5)
+                MOVE.W      #$BBBB,$685E
+                MOVE.W      #$0C1D,$6860       CMPI.B #$BB,(A5)+
+                MOVE.W      #$BBBB,$6862
+                MOVE.W      #$0C25,$6864       CMPI.B #$BB,-(A5)
+                MOVE.W      #$BBBB,$6866
+                MOVE.W      #$0C2D,$6868       CMPI.B (D16,AN) --- INVALID, DATA
+                MOVE.W      #$0C35,$686A       CMPI.B (D8,AN,XN) --- INVALID, DATA
+                MOVE.W      #$0C38,$686C
+                MOVE.W      #$BBBB,$686E
+                MOVE.W      #$AAAA,$6870       CMPI.B #$BB,$AAAA
+                MOVE.W      #$0C39,$6872
+                MOVE.W      #$BBBB,$6874
+                MOVE.W      #$AAAA,$6876       CMPI.B #$BB,#$AAAAAAAA
+                MOVE.W      #$AAAA,$6878
+                MOVE.W      #$0C3C,$687A       CMPI.B #$BB,#$XXXX ---- INVALID, DATA          
+               
+                ** .W
+                MOVE.W      #$0C45,$687C       CMPI.W #$BBBB,D3
+                MOVE.W      #$BBBB,$687E
+                MOVE.W      #$0C4D,$6880       CMPI.W #$BBBB,A3 ---- INVALID, DATA
+                MOVE.W      #$0C55,$6884       CMPI.W #$BBBB,(A3)
+                MOVE.W      #$BBBB,$6886
+                MOVE.W      #$0C5D,$6888       CMPI.W #$BBBB,(A3)+
+                MOVE.W      #$BBBB,$688A
+                MOVE.W      #$0C65,$688C       CMPI.W #$BBBB,-(A3)
+                MOVE.W      #$BBBB,$688E
+                MOVE.W      #$0C6D,$6890       CMPI.W (D16,AN) --- INVALID, DATA
+                MOVE.W      #$0C75,$6892       CMPI.W (D8,AN,XN) --- INVALID, DATA
+                MOVE.W      #$0C78,$6894
+                MOVE.W      #$BBBB,$6896
+                MOVE.W      #$AAAA,$6898       CMPI.W #$BBBB,$AAAA
+                MOVE.W      #$0C79,$689A
+                MOVE.W      #$BBBB,$689C
+                MOVE.W      #$AAAA,$689E       CMPI.W #$BBBB,$AAAAAAAA
+                MOVE.W      #$AAAA,$68A0
+                MOVE.W      #$0C7C,$68A2       CMPI.W #$BBBB,#$XXXX ---- INVALID, DATA
+                              
+                ** .L
+                MOVE.W      #$0C85,$68A4       CMPI.L #$BBBBBBBB,D3
+                MOVE.W      #$BBBB,$68A6
+                MOVE.W      #$BBBB,$68A8
+                MOVE.W      #$0C8D,$68AA       CMPI.L #$BBBBBBBB,A3 ---- INVALID, DATA
+                MOVE.W      #$0C95,$68AC       CMPI.L #$BBBBBBBB,(A3)
+                MOVE.W      #$BBBB,$68AE
+                MOVE.W      #$BBBB,$68B0
+                MOVE.W      #$0C9D,$68B2       CMPI.L #$BBBBBBBB,(A3)+
+                MOVE.W      #$BBBB,$68B4
+                MOVE.W      #$BBBB,$68B6
+                MOVE.W      #$0CA5,$68B8       CMPI.L #$BBBBBBBB,-(A3)
+                MOVE.W      #$BBBB,$68BA
+                MOVE.W      #$BBBB,$68BC
+                MOVE.W      #$0CAD,$68BE       CMPI.L (D16,AN) --- INVALID, DATA
+                MOVE.W      #$00B5,$68C0       CMPI.L (D8,AN,XN) --- INVALID, DATA
+                MOVE.W      #$00B8,$68C2       CMPI.L #$BBBBBBBB,$AAAA
+                MOVE.W      #$BBBB,$68C4
+                MOVE.W      #$BBBB,$68C6
+                MOVE.W      #$AAAA,$68C8       
+                MOVE.W      #$0CB9,$68CA       CMPI.L #$BBBBBBBB,$AAAAAAAA
+                MOVE.W      #$AAAA,$68CC       
+                MOVE.W      #$AAAA,$68CE
+                MOVE.W      #$BBBB,$68D0
+                MOVE.W      #$BBBB,$68D2
+                MOVE.W      #$0CBC,$68D4       CMPI.L #$BBBB,#$XXXX ---- INVALID, DATA
                 *****************************************************************
                 
 ************************** END OF TESTING *******************************************************************
@@ -2456,6 +2527,8 @@ op_ORI          LEA         ORI_STR,A5
                 ANDI.L      #$00C0,D3           * move the size into D3  
                 JSR         opcode_size_str     ; find the size and add it to the string
                 
+                JSR         PRINT_ALI_1
+
                 MOVE.W      (A2),D1
                 LSR.L       #6,D1               ; shift the size bits to get the flag 
                 MOVE.L      D1,D6               ; move size bit to D6 to set flag
@@ -2711,12 +2784,39 @@ op_CMPI         LEA         CMPI_STR,A5
                 MOVE.L      A5,(A6)+            ; add the op to the string
                 MOVE.W      (A2),D3
                 ANDI.L      #$00C0,D3           * move the size into D3  
-                JSR         opcode_size_str     ; find the size and add it to the string            
-            
+                JSR         opcode_size_str     ; find the size and add it to the string   
+               
+                JSR         PRINT_TAB
+
+                MOVE.W      (A2),D1
+                LSR.L       #6,D1               ; shift the size bits to get the flag 
+                MOVE.L      D1,D6               ; move size bit to D6 to set flag
+                **** CHECK FOR INVALID
+                CMP.W       #$3C,D5             ; Mode 7, Register 4 is invalid
+                BEQ         op_DATA
+                
+                CLR.L       D0
+                MOVE.W      D5,D0               ; Move the EA into D0
+                ANDI.W      #$38,D0             ; Separate the EA Mode into D0
+                CMP.W       #$08,D0             ; Compare the An Addressing mode
+                BEQ         op_DATA             ; invalid
+                MOVE.W      D3,D6
+                LSR.L       #6,D6
+                MOVE.L      #$00000007,D4       ; set mode to 7 for mode 7
+                MOVE.L      #$00000004,D3       ; set register to 4 for Immediate Data
+                
+                ADD.L       #$00000002,A2       ; move the current address forward by a word
+
+                JSR         FIND_OPMODE         ; create the left side of the operation
+                JSR         PRINT_COMMA         ; find the comma
+
+                JSR         FIND_EAMODE         ; create the right side of the operation
+
                 **** FINDING/ADDING EA TO STRING HERE
-            
+                
                 JSR         PRINT_init          ; print the string
-                RTS
+                BRA         loop_exit
+
                 
 op_MOVEM        LEA         MOVEM_STR,A5
                 MOVE.L      A5,(A6)+
@@ -3788,6 +3888,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
