@@ -11,7 +11,8 @@ CR              EQU         $0D
 LF              EQU         $0A
 STACK           EQU         $8000
                 ORG         $1000
-                
+minaddress	    EQU	         $00000000 	* The given addresses must be greater than this value.
+maxaddress	    EQU	         $FFFFFFFF 	* The given addresses must be less than this value.                
 NMASK           EQU         %00001111
             
 *----------------------------------------------------------*
@@ -770,6 +771,7 @@ START:
 ************************** END OF TESTING *******************************************************************
                 LEA         STACK,SP            Load the stack
 
+GET_START
                 MOVE.B      #14,D0
                 LEA         prompt_start,A1
                 TRAP #15                        ; prompt for starting address
@@ -779,13 +781,50 @@ START:
                 TRAP #15                        ; store user input
             
                 JSR         asciiToHexS         ; convert user input from start address to hex
+	            
+                *Process the returned data
+	            CMP.L 	     #0, D1		* Check to see if we returned an error when converting the start value
+	            BNE 	     ERROR_HANDLER	* Go to error handler
+                MOVE.L	     D3, A0		* Move the converted value to A0
+
+                * Ensure it is even boundary
+                MOVE.L	A0,D0		* Get A0 ready for change
+	            ANDI.L	#$FFFFFFFE,D0	* Convert to even number
+	            MOVEA.L	D0,A0		* Put it back
+	            
+	            * Make sure start is >= min value
+	            MOVE.B	#$03, D1	* Load the error number in D1 (in case there is an error)
+	            CMP.L	#minaddress, A0	* Check to see if A0 <= minimim_value 
+	            BLT	ERROR_HANDLER	* Go to error handler
+
+GET_END	            
                 MOVE.B      #14,D0
                 LEA         prompt_end,A1
                 TRAP        #15                 ; prompt for ending address
+                CLR         D0
                 MOVE.B      #2,D0
                 LEA         input,A1
                 TRAP        #15                 ; store user input
                 JSR         asciiToHexE         ; convert user input for end address to hex
+                
+                * Process the returned data
+	            CMP.L 	#0, D1		* Check to see if we returned an error when converting the start value
+	            BNE	ERROR_HANDLER	* Go to error handler
+                MOVE.L	D3, A3		* Move the converted value to A2
+
+	            * Make sure end is <= max value
+	            MOVE.B	#$04, D1	* Load the error number in D1 (in case there is an error)
+	            CMP.L	#maxaddress, A3	* Check to see if A2 > max_value 
+	            BLT	ERROR_HANDLER	* Go to error handler
+      
+	            * Make sure start and end are valid
+	            SUBQ.L	#4, A3		* Subtract 2 (bytes) from A6
+	            MOVE.B	#$02, D1	* Load the error number in D1 (in case there is an error)
+	            CMP.L	A3, A0		* Check to see if A5 < (A6 - 2): This will ensure that we have at least 1 WORD to process
+	            BGT	ERROR_HANDLER	* Go to error handler
+	            ADDQ.L	#4, A3		* Add 2 (bytes) back to A6
+            
+            
             
                 MOVE.L      D3,A1               ; move the start address into A1
                 MOVE.L      D3,A2               ; also move it into A2
@@ -922,6 +961,53 @@ ATHE_done       OR.L        D0,D4               ; OR the result to the retVal
                 DBF         D1,ATHE_loop        ; decrement counter and loop while they're > 0
                 CLR.L       D1                  ; done
                 RTS
+                
+                
+**********************************************************************************************
+* ERROR_HANDLER - Display some error message based on the condition of the error.
+*			After such error has been displayed, the program will return
+*			to prompt the user for the starting address.
+*	   
+* D1 = Error code
+*
+
+ERROR_HANDLER
+	CMP.B	#$01, D1	* Compare D1 with the next known error 
+	BEQ	ERROR_01	* Load error01 if we found a match
+
+	CMP.B	#$02, D1	* Compare D1 with the next known error
+	BEQ	ERROR_02	* Load error02 if we found a match
+	
+	CMP.B	#$03, D1	* Compare D1 with the next known error
+	BEQ	ERROR_03	* Load error03 if we found a match
+
+	CMP.B	#$04, D1	* Compare D1 with the next known error
+	BEQ	ERROR_04	* Load error03 if we found a match
+
+	* If we didnt find a match, load up the default error message
+	LEA	str_error00, A1	* Load the error string into A1
+	BRA	ERROR_DISPLAY	* Go back to the start of the program (since we don't know what the error was)
+	
+ERROR_01	* Value entered was invalid
+	LEA	str_error01, A1	* Load the error string into A1
+	BRA	ERROR_DISPLAY	* Display the error message
+	
+ERROR_02	* Start >= (End - 4)
+	LEA	str_error02, A1	* Load the error string into A1
+	BRA	ERROR_DISPLAY	* Display the error message
+	
+ERROR_03	* Start < Min
+	LEA	str_error03, A1	* Load the error string into A1
+	BRA	ERROR_DISPLAY	* Display the error message
+	
+ERROR_04	* Start < Min
+	LEA	str_error04, A1	* Load the error string into A1
+	BRA	ERROR_DISPLAY	* Display the error message
+	
+ERROR_DISPLAY
+	MOVE.B	#13, D0	* Load task 13
+	TRAP	#15		* call TRAP 15
+	BRA 	GET_START	* Go back to the beginning
 ******************************* HEX TO ASCII *****************************
 * Convert starting address from Hex to Ascii, stores in A0
 * D0 = value to convert, D1 = number of bytes to process, A0 = retval
@@ -3170,7 +3256,13 @@ loop_exit       MOVE.L      #$000000,A1
     
 exit            
                 SIMHALT                         ; halt simulator
-
+***********************
+* Declare some error messages used in I/O
+str_error00	DC.B	'Unknown error.',$0
+str_error01	DC.B	'Value entered was invalid.',$0
+str_error02	DC.B	'Start address is >= (End address - 4).',$0
+str_error03	DC.B	'Start address is < min address.',$0
+str_error04	DC.B	'End address is > max address. ',$0
 * Put variables and constants here
 prompt_start    DC.B        'What is the starting address?',CR,LF,0
 prompt_end      DC.B        'What is the ending address?',CR,LF,0
@@ -3249,6 +3341,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 *~Font name~Courier New~
