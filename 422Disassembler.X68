@@ -1575,7 +1575,7 @@ loop_start
                        
                 MOVE.L      #$00009000, A0      * Move address of count into A0
                 ADD.W       #%01,(A0)           * increment count by one
-                CMP.W       #$001E,(A0)         * check to see if count is 30
+                CMP.W       #$0020,(A0)         * check to see if count is 30
                 BEQ         next_page           * if over 30, go to next page
                 
                 MOVE.W      (A2),D0             * MOVEs INSTRUCTION in A1 to D0
@@ -4213,8 +4213,24 @@ loop_exit       MOVE.L      #$000000,A1
                 CLR.L       D6
                 CLR.L       D7                  * clear all of the registers
                 BRA         loop_start          * go back to the start of the loop
+                
+PAGE_FILL       MOVE.L      #$0000001F,D1       * move the max number of lines to D1
+                MOVE.L      #$00009000,A1       * move the address of the counter to A1
+                SUB.W       (A1),D1             * subtract the counter from D1
+                BRA         PF_LOOP             * start the loop
+                
+PF_LOOP         CMP.L       #$00000000,D1       * check if the count down has reached 0
+                BEQ         PF_EXIT             * exit if it's zero
+                MOVE.B      #14,D0              
+                LEA         new_line,A1
+                TRAP        #15                 * print 1 blank line
+                SUB.B       #%01,D1             * subtract 1 from the countdown
+                BRA         PF_LOOP             * restart the loop
+                
+PF_EXIT         RTS                             * return to the exit loop
     
-exit            
+exit            JSR         PAGE_FILL           * jump to the page fill loop
+
                 MOVE.B      #14,D0              
                 LEA         FINISHED_STR,A1      
                 TRAP        #15                 * print the finished statement
@@ -4332,6 +4348,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   * last line of source
+
 
 
 
