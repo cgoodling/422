@@ -12,7 +12,7 @@ LF              EQU         $0A
 STACK           EQU         $8000
                 ORG         $1000
 minaddress	    EQU	        $00000000 	
-maxaddress	    EQU	        $FFFFFFFF 	                
+maxaddress	    EQU	        $00FFFFFF 	                
 NMASK           EQU         %00001111
             
 *----------------------------------------------------------*
@@ -810,7 +810,7 @@ GET_END
                 
 	            MOVE.B	    #$04, D1	        * set the error code
 	            CMP.L	    #maxaddress, A3	    * check if end address is in bounds
-	            BLT	        INPUT_ERROR	        * find error
+	            BGT	        INPUT_ERROR	        * find error
       
 	            SUBQ.L	    #2, A3		        * take away 2 bytes to test distance
 	            MOVE.B	    #$02, D1	        * set the error code
@@ -3418,6 +3418,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
