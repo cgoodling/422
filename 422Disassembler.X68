@@ -993,15 +993,15 @@ OC_decode       MOVE.W      D0,D1               ; move the original operation in
 
 JUMPTABLE       JMP         op0000              ORI, BCLR
                 JMP         op0001              MOVE.B
-                JMP         op0010
-                JMP         op0011
+                JMP         op0010              MOVE.L
+                JMP         op0011              MOVE.W
                 JMP         op0100              NEG, NOP, LEA, JSR, RTS
                 JMP         op0101              SUBQ
                 JMP         op0110              BRA
                 JMP         op0111
                 JMP         op1000              OR.X
                 JMP         op1001              SUB, SUBA
-                JMP         op1010
+                JMP         op1010              
                 JMP         op1011
                 JMP         op1100
                 JMP         op1101              ADD,ADDA
@@ -1038,36 +1038,14 @@ op0000          *ORI
                 BRA         op_DATA
 
 *-------------------------------------------------------------------------*
-* Move Byte
+* Move Byte Opmode
 *-------------------------------------------------------------------------*
-op0001          *MOVEM.L     D1,-(SP)            Save what we have here in D1 just in case
-                MOVE.W      (A2)+,D7            Get instruction, advance pointer
-            
-                MOVE.B      #14,D0              Place MOVE.B string
-                LEA         MOVEB_STR,A1
-                TRAP        #15
-            
-            
-                MOVE.B      #14,D0              Space with a tab
-                LEA         TAB,A1
-                TRAP        #15
-            
-                *MOVEM.L     (SP)+,D1            Restore it
-            
-                JSR         FIND_EAMODE         Get its mode
-            
-                MOVE.B      #14,D0              Place the comma
-                LEA         COMMA,A1
-                TRAP        #15
-            
-                        
-                JSR         FIND_OPMODE         Find destination mode
-            
-                *MOVE.B      #14,D0
-                *LEA         DATA_STR,A1
-                *TRAP        #15                 OP code DNE
-           
-                RTS
+op0001          LEA        MOVEB_STR,A5     * Load the MOVE.B string
+                MOVE.B     #%00,D6          * Set the IM-DATA size code
+                BRA        op_MOVE          * Branch to general move op
+                
+                BRA        op_DATA
+
             
 *-------------------------------------------------------------------------*
 * Move Long  : MOVEA DOESN'T NEED EXTRA SPACING, ONLY TAB
@@ -1080,8 +1058,13 @@ op0010
                 MOVE.W      (A2),D1             ; move operation for flagging
 	            ANDI.W	    #$01C0,D0
     	        CMP.W	    #$0040,D0
-	            BEQ         op_MOVEA 	        ; Check for MOVEA.L               
+	            BEQ         op_MOVEA 	         ; Check for MOVEA.L               
                 
+                
+                
+                LEA         MOVEL_STR,A5        * Load the MOVE.L string
+                MOVE.B      #%01,D6             * Set IM-DATA size code
+                BRA         op_MOVE             * Branch to general move op
                 
                 BRA         op_DATA
 
@@ -1097,6 +1080,12 @@ op0011
 	            ANDI.W	    #$01C0,D0
     	        CMP.W	    #$0040,D0
 	            BEQ         op_MOVEA	        ; Check for MOVEA.W  
+	            
+	            
+
+                LEA         MOVEW_STR,A5        * Load the MOVE.L string
+                MOVE.B      #%10,D6             * Set IM-DATA size code
+                BRA         op_MOVE             * Branch to general move op
 
                 BRA         op_DATA
 
@@ -2069,7 +2058,33 @@ op_MOVEA
                 JSR         PRINT_init          * print the output string
                 BRA         loop_exit           * exit the loop    
             
-***************************************************************************       
+***************************************************************************    
+* op_MOVE Generic move method for all moves
+*
+*
+
+op_MOVE         MOVE.L      A5,(A6)+           * Move our op-sufix to str
+                
+                JSR         PRINT_ALI_1        * Spacer
+                
+                ADD.W       #$02,A2            * advance pointer
+                JSR         FIND_EAMODE        * Get the source operand
+                
+                CMP.B       #7,D4              * If mode is 7 check reg 
+                BEQ         CHECK_MOVEREG
+
+
+MOVE_DONE       JSR         PRINT_COMMA        * Print comma
+                JSR         FIND_OPMODE        * Get Destination Operand
+                JSR         PRINT_init
+                BRA         loop_exit
+
+
+CHECK_MOVEREG   CMP.B       #4,D3              * Prevent IM-DATA destination
+                BEQ         op_DATA            * error
+                BRA         MOVE_DONE          * otherwise continue
+
+***************************************************************************   
 opcode_size_str CMP.W       #$0000,D3
                 BEQ         print_B_str         ; its a byte
                 CMP.W       #$0040,D3
@@ -3184,6 +3199,8 @@ FOUR_SPACE      DC.B        '          ',0
 DATA_STR        DC.B        '      DATA         ',0
 NOP_STR         DC.B        '      NOP',0
 MOVEB_STR       DC.B        '      MOVE.B',0
+MOVEW_STR       DC.B        '      MOVE.W',0
+MOVEL_STR       DC.B        '      MOVE.L',0
 BRA_STR         DC.B        '      BRA',0
 LEA_STR         DC.B        '      LEA',0
 JSR_STR         DC.B        '      JSR',0
