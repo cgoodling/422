@@ -569,10 +569,10 @@ START:
                 *******************************************************
                 * CMP Tests
                 MOVE.W      #$B411, $6304       CMP.B  (A1),D2
-                MOVE.W      #$B063, $6306		CMP.W	-(A3),D0
-                MOVE.W      #$B449, $6308	    CMP.W	A1,D2
-                MOVE.W      #$B489, $630A    	CMP.L	A1,D2
-                MOVE.W      #$B008, $630C       CMP.B	A0,D0     TEST CASE(Should be DATA) 
+                MOVE.W      #$B063, $6306		  CMP.W	-(A3),D0
+                MOVE.W      #$B449, $6308	      CMP.W	A1,D2
+                MOVE.W      #$B489, $630A    	  CMP.L	A1,D2
+                MOVE.W      #$B008, $630C     CMP.B	A0,D0     TEST CASE(Should be DATA) 
                 MOVE.W      #$B03C, $630E	    CMP.B	#$xx,D0 
                 MOVE.W      #$0001, $6310                01
                 MOVE.W      #$B038, $6312	    CMP.B	$xxxx,D0
@@ -720,9 +720,9 @@ START:
                 MOVE.W      #$287C, $96DA       MOVEA.L     #$xxxxxxxx,A4
                 MOVE.W      #$1234, $96DC       MOVEA.L       1234
                 MOVE.W      #$5678, $96DE       MOVEA.L           5678
-                MOVE.W      #$267C, $96E0       MOVEA.L     #$00000100,A3
-                MOVE.W      #$0000, $96E2       MOVEA.L       0000
-                MOVE.W      #$0100, $96E4       MOVEA.L           0100
+                MOVE.W      #$267C, $96E0       MOVEA.L     #$100,A3
+                MOVE.W      #$0000, $96E2       MOVEA.L     0000
+                MOVE.W      #$0100, $96E4       MOVEA.L         0100
                 MOVE.W      #$2079, $96E6       MOVEA.L     $xxxxxxxx,A0
                 MOVE.W      #$1234, $96E8       MOVEA.L      1234
                 MOVE.W      #$5678, $96EA       MOVEA.L          5678
@@ -734,10 +734,9 @@ START:
                 MOVE.W      #$3459, $96F0       MOVEA.W     (A1)+,A2
                 MOVE.W      #$3461, $96F2       MOVEA.W     -(A1),A2
                 MOVE.W      #$367C, $96F4       MOVEA.W     #$xxxx,A3
-                MOVE.W      #$1234, $96F6       MOVEA.W       1234                              
-                MOVE.W      #$3078, $96F8       MOVEA.W     $xxxx,A0
-                MOVE.W      #$1234, $96FA       MOVEA.W      1234
-                MOVE.W      #$AAAA, $96FC       *DATA
+                *MOVE.W      #$1234, $96F6       MOVEA.W       1234                              
+                *MOVE.W      #$3078, $96F8       MOVEA.W     $xxxx,A0
+                *MOVE.W      #$1234, $96FA       MOVEA.W      1234
                 *******************************************************
                 *MOVE.W      #$0C01, $622C       CMPI.B #$ xx,D1             ONLY CMPI
                 *MOVE.W      #$0C51, $622E       CMPI.W #$ xxxx,(A1)         ONLY CMPI
@@ -765,6 +764,13 @@ START:
                 *MOVE.W      #$1234, $625C                  1234
                 *MOVE.W      #$5678, $625E                      5678
                 *MOVE.W      #$B79A, $6260       EOR.L  D3,(A2)+
+                       
+****************************************************************************
+                MOVE.W       #$3040,$6262
+                MOVE.W       #$300D,$6264
+                MOVE.W       #$1E04,$6266
+            
+****************************************************************************                       
                        
 ************************** END OF TESTING *******************************************************************
                 LEA         STACK,SP            Load the stack
@@ -992,15 +998,15 @@ OC_decode       MOVE.W      D0,D1               ; move the original operation in
 
 JUMPTABLE       JMP         op0000              ORI, BCLR
                 JMP         op0001              MOVE.B
-                JMP         op0010
-                JMP         op0011
+                JMP         op0010              MOVE.L
+                JMP         op0011              MOVE.W
                 JMP         op0100              NEG, NOP, LEA, JSR, RTS
                 JMP         op0101              SUBQ
                 JMP         op0110              BRA
                 JMP         op0111
                 JMP         op1000              OR.X
                 JMP         op1001              SUB, SUBA
-                JMP         op1010
+                JMP         op1010              
                 JMP         op1011
                 JMP         op1100
                 JMP         op1101              ADD,ADDA
@@ -1037,36 +1043,14 @@ op0000          *ORI
                 BRA         op_DATA
 
 *-------------------------------------------------------------------------*
-* Move Byte
+* Move Byte Opmode
 *-------------------------------------------------------------------------*
-op0001          *MOVEM.L     D1,-(SP)            Save what we have here in D1 just in case
-                MOVE.W      (A2)+,D7            Get instruction, advance pointer
-            
-                MOVE.B      #14,D0              Place MOVE.B string
-                LEA         MOVEB_STR,A1
-                TRAP        #15
-            
-            
-                MOVE.B      #14,D0              Space with a tab
-                LEA         TAB,A1
-                TRAP        #15
-            
-                *MOVEM.L     (SP)+,D1            Restore it
-            
-                JSR         FIND_EAMODE         Get its mode
-            
-                MOVE.B      #14,D0              Place the comma
-                LEA         COMMA,A1
-                TRAP        #15
-            
-                        
-                JSR         FIND_OPMODE         Find destination mode
-            
-                *MOVE.B      #14,D0
-                *LEA         DATA_STR,A1
-                *TRAP        #15                 OP code DNE
-           
-                RTS
+op0001          LEA        MOVEB_STR,A5     * Load the MOVE.B string
+                MOVE.B     #%00,D6          * Set the IM-DATA size code
+                BRA        op_MOVE          * Branch to general move op
+                
+                BRA        op_DATA
+
             
 *-------------------------------------------------------------------------*
 * Move Long  : MOVEA DOESN'T NEED EXTRA SPACING, ONLY TAB
@@ -1074,15 +1058,18 @@ op0001          *MOVEM.L     D1,-(SP)            Save what we have here in D1 ju
 *-------------------------------------------------------------------------*            
 op0010          
                 *MOVEA.L
-                LEA         MOVEAL_STR,A5      * load the MOVE.L string
-    	        MOVE.B      #%10,D6             * set the flag bit for long
-                MOVE.W      (A2),D0             * move operation for compare
-                MOVE.W      (A2),D1             * move operation for flagging
-	            ANDI.W	    #$01C0,D0           * mask for mode 
-    	        CMP.W	    #$0040,D0           * check if mode is An
-	            BEQ         op_MOVEA            * check for MOVEA.L               
+                LEA         MOVEAL_STR,A5
+                MOVE.W      (A2),D0             ; move operation for compare
+                MOVE.W      (A2),D1             ; move operation for flagging
+	            ANDI.W	    #$01C0,D0
+    	        CMP.W	    #$0040,D0
+	            BEQ         op_MOVEA 	         ; Check for MOVEA.L               
                 
                 
+                
+                LEA         MOVEL_STR,A5        * Load the MOVE.L string
+                MOVE.B      #%01,D6             * Set IM-DATA size code
+                BRA         op_MOVE             * Branch to general move op
                 
                 BRA         op_DATA
 
@@ -1092,13 +1079,18 @@ op0010
 *-------------------------------------------------------------------------*             
 op0011          
                 *MOVEA.W
-                LEA         MOVEAW_STR,A5       * load the MOVE.W string
-                MOVE.B      #%01,D6             * set the flag bit for word 
-                MOVE.W      (A2),D0             * move operation for compare
-                MOVE.W      (A2),D1             * move operation for flagging
-	            ANDI.W	    #$01C0,D0           * mask for mode
-    	        CMP.W	    #$0040,D0           * check if mode is An
-	            BEQ         op_MOVEA            * check for MOVEA.W  
+                LEA         MOVEAW_STR,A5
+                MOVE.W      (A2),D0             ; move operation for compare
+                MOVE.W      (A2),D1             ; move operation for flagging
+	            ANDI.W	    #$01C0,D0
+    	        CMP.W	    #$0040,D0
+	            BEQ         op_MOVEA	        ; Check for MOVEA.W  
+	            
+	            
+
+                LEA         MOVEW_STR,A5        * Load the MOVE.L string
+                MOVE.B      #%10,D6             * Set IM-DATA size code
+                BRA         op_MOVE             * Branch to general move op
 
                 BRA         op_DATA
 
@@ -2057,8 +2049,12 @@ op_BCLR_DYN     LEA         BCLR_STR,A5         * add the op to the string
                 JSR         PRINT_init
                 BRA         loop_exit
                 
-op_MOVEA        MOVE.L      A5,(A6)+            * add operation to output string
-                JSR         PRINT_TAB         * print space for alignment
+op_MOVEA        
+                LSR.L       #6,D1               * shift the size bits to get the flag 
+                LSR.L       #6,D1               * shift the size bits to get the flag
+                MOVE.L      A5,(A6)+
+                JSR         PRINT_ALI_1         * print space for alignment
+                MOVE.L      D1,D6               * move size bit to D6 to set flag
                 ADD.W       #$02,A2             * increment the current address
                 JSR         FIND_EAMODE         * add the left side of operation to output string
                 JSR         PRINT_COMMA         * add a comma to output string
@@ -2067,7 +2063,33 @@ op_MOVEA        MOVE.L      A5,(A6)+            * add operation to output string
                 JSR         PRINT_init          * print the output string
                 BRA         loop_exit           * exit the loop    
             
-***************************************************************************       
+***************************************************************************    
+* op_MOVE Generic move method for all moves
+*
+*
+
+op_MOVE         MOVE.L      A5,(A6)+           * Move our op-sufix to str
+                
+                JSR         PRINT_ALI_1        * Spacer
+                
+                ADD.W       #$02,A2            * advance pointer
+                JSR         FIND_EAMODE        * Get the source operand
+                
+                CMP.B       #7,D4              * If mode is 7 check reg 
+                BEQ         CHECK_MOVEREG
+
+
+MOVE_DONE       JSR         PRINT_COMMA        * Print comma
+                JSR         FIND_OPMODE        * Get Destination Operand
+                JSR         PRINT_init
+                BRA         loop_exit
+
+
+CHECK_MOVEREG   CMP.B       #4,D3              * Prevent IM-DATA destination
+                BEQ         op_DATA            * error
+                BRA         MOVE_DONE          * otherwise continue
+
+***************************************************************************   
 opcode_size_str CMP.W       #$0000,D3
                 BEQ         print_B_str         ; its a byte
                 CMP.W       #$0040,D3
@@ -3176,6 +3198,8 @@ FOUR_SPACE      DC.B        '          ',0
 DATA_STR        DC.B        '      DATA         ',0
 NOP_STR         DC.B        '      NOP',0
 MOVEB_STR       DC.B        '      MOVE.B',0
+MOVEW_STR       DC.B        '      MOVE.W',0
+MOVEL_STR       DC.B        '      MOVE.L',0
 BRA_STR         DC.B        '      BRA',0
 LEA_STR         DC.B        '      LEA',0
 JSR_STR         DC.B        '      JSR',0
