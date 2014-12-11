@@ -1497,14 +1497,9 @@ START:
 
                 
 ************************** END OF TESTING *******************************************************************
-<<<<<<< HEAD
-                LEA         STACK,SP            Load the stack
-                
-=======
+
                 LEA         STACK,SP            * load the stack
                 JSR         PRINT_INTRO         * print the program intro
-GET_START               
->>>>>>> 89519483972620eef3fd1b2e597896f39c22b146
                 MOVE.B      #14,D0
                 LEA         prompt_start,A1
                 TRAP #15                        ; prompt for starting address
@@ -1515,17 +1510,17 @@ GET_START
             
                 JSR         asciiToHexS         ; convert user input from start address to hex
 	            
-	            CMP.L 	    #0, D1		        * check to see if asciiToHexS reported an error
-	            BNE 	    INPUT_ERROR	            * find wthe error message is. print it and loop to GET_START
+	        CMP.L 	    #0, D1		        * check to see if asciiToHexS reported an error
+	        BNE 	    INPUT_ERROR	            * find wthe error message is. print it and loop to GET_START
                 MOVE.L	    D3, A0		            * get the hex address
 
                 MOVE.L	    A0,D3		            * put the start address in a data register
-	            ANDI.L	    #$FFFFFFFE,D3	        * convert the address to an even number if it already isn't
-	            MOVEA.L	    D0,A0		            * move the even address back to A0
+	        ANDI.L	    #$FFFFFFFE,D3	        * convert the address to an even number if it already isn't
+	        MOVEA.L	    D0,A0		            * move the even address back to A0
 
-	            MOVE.B	    #$03, D1	            * set the error code
-	            CMP.L	    #minaddress, A0	        * check to see if start address is in bounds 
-	            BLT	        INPUT_ERROR	            * find error
+	        MOVE.B	    #$03, D1	            * set the error code
+	        CMP.L	    #minaddress, A0	    * check to see if start address is in bounds 
+	        BLT	    INPUT_ERROR	            * find error
 
 GET_END	            
                 MOVE.B      #14,D0
