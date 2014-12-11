@@ -1378,6 +1378,123 @@ START:
                 MOVE.W      #$0CBC,$68D4       CMPI.L #$BBBB,#$XXXX ---- INVALID, DATA
                 *****************************************************************
                 
+                *****************************************************************
+                * RTS TESTING ;)
+                **
+                MOVE.W      #$4E75,$68D6        RTS
+                
+                * SUB TESTS
+                *******************************************************
+                * <EA> -> Dn SUB Tests
+                *
+                * SUB.B - 000
+                MOVE.W      #$9A03,$68D8        SUB.B D3,D5
+                MOVE.W      #$9A0B,$68DA        SUB.B A3,D5
+                MOVE.W      #$9A13,$68DC        SUB.B (A3),D5
+                MOVE.W      #$9A1B,$68DE        SUB.B (A3)+,D5
+                MOVE.W      #$9A23,$68E0        SUB.B -(A3),D5
+                MOVE.W      #$9A2B,$68E2        DATA
+                MOVE.W      #$9A33,$68E4        DATA
+                MOVE.W      #$9A38,$68E6        SUB.B $AAAA,D5
+                MOVE.W      #$AAAA,$68E8
+                MOVE.W      #$9A39,$68EA        SUB.B $AAAAAAAA,D5
+                MOVE.W      #$AAAA,$68EC
+                MOVE.W      #$AAAA,$68EE
+                MOVE.W      #$9A3C,$68F0        SUB.B #$AA,D5
+                MOVE.W      #$AAAA,$68F2
+                MOVE.W      #$AAAA,$68F4        DATA
+                   
+                * SUB.W - 001
+                MOVE.W      #$9A43,$68F6        SUB.W D3,D5
+                MOVE.W      #$9A4B,$68F8        SUB.W A3,D5
+                MOVE.W      #$9A53,$68FA        SUB.W (A3),D5
+                MOVE.W      #$9A5B,$68FC        SUB.W (A3)+,D5
+                MOVE.W      #$9A63,$68FE        SUB.W -(A3),D5
+                MOVE.W      #$9A6B,$6900        DATA
+                MOVE.W      #$9A73,$6902        DATA
+                MOVE.W      #$9A78,$6904        SUB.W $AAAA,D5
+                MOVE.W      #$AAAA,$6906
+                MOVE.W      #$9A79,$6908        SUB.W $AAAAAAAA,D5
+                MOVE.W      #$AAAA,$690A
+                MOVE.W      #$AAAA,$690C
+                MOVE.W      #$9A7C,$690E        SUB.W #$AAAA,D5
+                MOVE.W      #$AAAA,$6910
+                MOVE.W      #$AAAA,$6912        DATA
+                
+                * SUB.L - 010
+                MOVE.W      #$9A83,$6914        SUB.L D3,D5
+                MOVE.W      #$9A8B,$6916        SUB.L A3,D5
+                MOVE.W      #$9A93,$6918        SUB.L (A3),D5
+                MOVE.W      #$9A9B,$691A        SUB.L (A3)+,D5
+                MOVE.W      #$9AA3,$691C        SUB.L -(A3),D5
+                MOVE.W      #$9AAB,$691E        DATA
+                MOVE.W      #$9AB3,$6920        DATA
+                MOVE.W      #$9AB8,$6922        SUB.L $AAAA,D5
+                MOVE.W      #$AAAA,$6924
+                MOVE.W      #$9AB9,$6926        SUB.L $AAAAAAAA,D5
+                MOVE.W      #$AAAA,$6928
+                MOVE.W      #$AAAA,$692A
+                MOVE.W      #$9ABC,$692C        SUB.L #$AAAAAAAA,D5
+                MOVE.W      #$AAAA,$692E
+                MOVE.W      #$AAAA,$6930
+                
+                *******************************************************
+                * Dn -> <EA> Tests
+                
+                * SUB.B - 100
+                MOVE.W      #$9B03,$6932        SUB.B D5,D3 --- DATA, INVALID
+                MOVE.W      #$9B0B,$6934        SUB.B D5,A3 --- DATA, INVALID
+                MOVE.W      #$9B13,$6936        SUB.B D5,(A3)
+                MOVE.W      #$9B1B,$6938        SUB.B D5,(A3)+
+                MOVE.W      #$9B23,$693A        SUB.B D5,-(A3)
+                MOVE.W      #$9B2B,$693C        DATA, INVALID
+                MOVE.W      #$9B33,$693E        DATA, INVALID
+                MOVE.W      #$9B38,$6940        SUB.B D5,$AAAA
+                MOVE.W      #$AAAA,$6942
+                MOVE.W      #$9B39,$6944        SUB.B D5,$AAAAAAAA
+                MOVE.W      #$AAAA,$6946
+                MOVE.W      #$AAAA,$6948
+                MOVE.W      #$9B3C,$694A        SUB.B D5,$AA --- DATA, INVALID
+                MOVE.W      #$AAAA,$694C        DATA, INVALID
+                MOVE.W      #$AAAA,$694E        DATA, INVALID
+                
+                * SUB.W - 101
+                MOVE.W      #$9B43,$6950        SUB.W D5,D3 --- DATA, INVALID
+                MOVE.W      #$9B4B,$6952        SUB.W D5,A3 --- DATA, INVALID
+                MOVE.W      #$9B53,$6954        SUB.W D5,(A3)
+                MOVE.W      #$9B5B,$6956        SUB.W D5,(A3)+
+                MOVE.W      #$9B63,$6958        SUB.W D5,-(A3)
+                MOVE.W      #$9B6B,$695A        DATA, INVALID
+                MOVE.W      #$9B73,$695C        DATA, INVALID
+                MOVE.W      #$9B78,$695E        SUB.W D5,$AAAA
+                MOVE.W      #$AAAA,$6960
+                MOVE.W      #$9B79,$6962        SUB.W D5,$AAAAAAAA
+                MOVE.W      #$AAAA,$6964
+                MOVE.W      #$AAAA,$6966        
+                MOVE.W      #$9B7C,$6968        SUB.W D5,#$AAAA
+                MOVE.W      #$AAAA,$696A
+                MOVE.W      #$AAAA,$696C        DATA, INVALID
+                
+                * SUB.L - 110
+                MOVE.W      #$9B83,$696E        SUB.L D5,D3 --- DATA, INVALID
+                MOVE.W      #$9B8B,$6970        SUB.L D5,A3 --- DATA, INVALID
+                MOVE.W      #$9B93,$6972        SUB.L D5,(A3)
+                MOVE.W      #$9B9B,$6974        SUB.L D5,(A3)+
+                MOVE.W      #$9BA3,$6976        SUB.L D5,-(A3)
+                MOVE.W      #$9BAB,$6978        DATA, INVALID
+                MOVE.W      #$9BB3,$697A        DATA, INVALID
+                MOVE.W      #$9BB8,$697C        SUB.L D5,$AAAA
+                MOVE.W      #$AAAA,$697E
+                MOVE.W      #$9BBA,$6980        SUB.L D5,$AAAAAAAA
+                MOVE.W      #$AAAA,$6982
+                MOVE.W      #$AAAA,$6984
+                MOVE.W      #$9BBC,$6986        SUB.L D5,#$AAAAAAAA
+                MOVE.W      #$AAAA,$6988
+                MOVE.W      #$AAAA,$698A
+                *******************************************************
+        
+
+                
 ************************** END OF TESTING *******************************************************************
                 LEA         STACK,SP            Load the stack
                 
