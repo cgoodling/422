@@ -11,8 +11,8 @@ CR              EQU         $0D
 LF              EQU         $0A
 STACK           EQU         $8000
                 ORG         $1000
-minaddress	    EQU	         $00000000 	* The given addresses must be greater than this value.
-maxaddress	    EQU	         $FFFFFFFF 	* The given addresses must be less than this value.                
+minaddress	    EQU	        $00000000 	
+maxaddress	    EQU	        $FFFFFFFF 	                
 NMASK           EQU         %00001111
             
 *----------------------------------------------------------*
@@ -769,9 +769,9 @@ START:
                 *******************************************************
                        
 ************************** END OF TESTING *******************************************************************
-                LEA         STACK,SP            Load the stack
-
-GET_START
+                LEA         STACK,SP            * load the stack
+                JSR         PRINT_INTRO         * print the program intro
+GET_START               
                 MOVE.B      #14,D0
                 LEA         prompt_start,A1
                 TRAP #15                        ; prompt for starting address
@@ -782,20 +782,17 @@ GET_START
             
                 JSR         asciiToHexS         ; convert user input from start address to hex
 	            
-                *Process the returned data
-	            CMP.L 	     #0, D1		* Check to see if we returned an error when converting the start value
-	            BNE 	     ERROR_HANDLER	* Go to error handler
-                MOVE.L	     D3, A0		* Move the converted value to A0
+	            CMP.L 	     #0, D1		        * check to see if asciiToHexS reported an error
+	            BNE 	     INPUT_ERROR	    * find wthe error message is. print it and loop to GET_START
+                MOVE.L	     D3, A0		        * get the hex address
 
-                * Ensure it is even boundary
-                MOVE.L	A0,D0		* Get A0 ready for change
-	            ANDI.L	#$FFFFFFFE,D0	* Convert to even number
-	            MOVEA.L	D0,A0		* Put it back
-	            
-	            * Make sure start is >= min value
-	            MOVE.B	#$03, D1	* Load the error number in D1 (in case there is an error)
-	            CMP.L	#minaddress, A0	* Check to see if A0 <= minimim_value 
-	            BLT	ERROR_HANDLER	* Go to error handler
+                MOVE.L	    A0,D3		            * put the start address in a data register
+	            ANDI.L	    #$FFFFFFFE,D3	        * convert the address to an even number if it already isn't
+	            MOVEA.L	    D0,A0		            * move the even address back to A0
+
+	            MOVE.B	    #$03, D1	            * set the error code
+	            CMP.L	    #minaddress, A0	        * check to see if start address is in bounds 
+	            BLT	        INPUT_ERROR	            * find error
 
 GET_END	            
                 MOVE.B      #14,D0
@@ -807,24 +804,22 @@ GET_END
                 TRAP        #15                 ; store user input
                 JSR         asciiToHexE         ; convert user input for end address to hex
                 
-                * Process the returned data
-	            CMP.L 	#0, D1		* Check to see if we returned an error when converting the start value
-	            BNE	ERROR_HANDLER	* Go to error handler
-                MOVE.L	D3, A3		* Move the converted value to A2
-
-	            * Make sure end is <= max value
-	            MOVE.B	#$04, D1	* Load the error number in D1 (in case there is an error)
-	            CMP.L	#maxaddress, A3	* Check to see if A2 > max_value 
-	            BLT	ERROR_HANDLER	* Go to error handler
+	            CMP.L 	#0, D1		    * check to see if asciiToHexE reported an error 
+	            BNE	INPUT_ERROR	        * error found. print it and loop to GET_START
+                MOVE.L	D4, A3		    * move end address to A3
+                
+	            MOVE.B	#$04, D1	    * set the error code
+	            CMP.L	#maxaddress, A3	* check if end address is in bounds
+	            BLT	INPUT_ERROR	        * find error
       
-	            * Make sure start and end are valid
-	            SUBQ.L	#4, A3		* Subtract 2 (bytes) from A6
-	            MOVE.B	#$02, D1	* Load the error number in D1 (in case there is an error)
-	            CMP.L	A3, A0		* Check to see if A5 < (A6 - 2): This will ensure that we have at least 1 WORD to process
-	            BGT	ERROR_HANDLER	* Go to error handler
-	            ADDQ.L	#4, A3		* Add 2 (bytes) back to A6
-            
-            
+	            SUBQ.L	#2, A3		    * take away 2 bytes to test distance
+	            MOVE.B	#$02, D1	    * set the error code
+	            CMP.L	A3, D3		    * check to see if end address is greater than start address
+	            BGT	INPUT_ERROR	        * find error
+	            ADDQ.L	#2, A3		    * return A3 back to normal
+                
+                MOVE.L	A3,D4		    * put the end address in a data register
+	            ANDI.L	#$FFFFFFFE,D4	* convert the address to an even number if it already isn't
             
                 MOVE.L      D3,A1               ; move the start address into A1
                 MOVE.L      D3,A2               ; also move it into A2
@@ -890,9 +885,9 @@ COS_exit        RTS                             ; return to where clearOutputStr
 * D0 = temp value, D1 = length of string, D2 = counter, D3 = ret val
 * A1 = memory location of beginning of the string
 asciiToHexS     CMP.B       #8,D1               ; check that length is <= 8
-                BGT         invalidAdd
+                BGT         INVALID_ADD
                 CMP.B       #0,D1               ; check that length is > 0
-                BLE         invalidAdd
+                BLE         INVALID_ADD
                 CLR.L       D3                  ; clear return value
                 SUBQ.B      #1,D1               ; subtract 1 from the counter
             
@@ -901,18 +896,18 @@ ATHS_loop       ROL.L       #4,D3               ; shift bits left by 4
                 CMP.B       #$39,D0             ; if the value is < 39 its a number
                 BGT         ATHS_letter         ; its its not a number process it as a letter
                 CMP.B       #$30,D0             ; if the value is < 30 its invalid
-                BLT         invalidAdd
+                BLT         INVALID_ADD
                 SUBI.B      #$30,D0             ; its a valid number, subtract 30
                 BRA         ATHS_done
             
 ATHS_letter     CMP.B       #$66,D0             ; if the value is > 66 its invalid
-                BGT         invalidAdd
+                BGT         INVALID_ADD
                 CMP.B       #$61,D0             ; if the value is >= 61 its lowercase
                 BGE         ATHS_lower          ; process it as a lowercase letter
                 CMP.B       #$46,D0             ; if the value is less than 46 its invalid
                 BGT         invalidAdd
                 CMP.B       #$41,D0             ; if the value is less than 41 its invalid
-                BLT         invalidAdd
+                BLT         INVALID_ADD
                 SUBI.B      #$37,D0             ; valid letter, subtract 37
                 BRA         ATHS_done
             
@@ -928,9 +923,9 @@ ATHS_done       OR.L        D0,D3               ; OR the result to the retVal
 * D0 = temp value, D1 = length of string, D2 = counter, D4 = ret val
 * A1 = memory location of beginning of the string
 asciiToHexE     CMP.B       #8,D1               ; check that length is <= 8
-                BGT         invalidAdd
+                BGT         INVALID_ADD
                 CMP.B       #0,D1               ; check that length is > 0
-                BLE         invalidAdd
+                BLE         INVALID_ADD
                 CLR.L       D4                  ; clear return value
                 SUBQ.B      #1,D1               ; subtract 1 from the counter
             
@@ -939,18 +934,18 @@ ATHE_loop       ROL.L       #4,D4               ; shift bits left by 4
                 CMP.B       #$39,D0             ; if the value is < 39 its a number
                 BGT         ATHE_letter         ; its its not a number process it as a letter
                 CMP.B       #$30,D0             ; if the value is < 30 its invalid
-                BLT         invalidAdd
+                BLT         INVALID_ADD
                 SUBI.B      #$30,D0             ; its a valid number, subtract 30
                 BRA         ATHE_done
             
 ATHE_letter     CMP.B       #$66,D0             ; if the value is > 66 its invalid
-                BGT         invalidAdd
+                BGT         INVALID_ADD
                 CMP.B       #$61,D0             ; if the value is >= 61 its lowercase
                 BGE         ATHE_lower          ; process it as a lowercase letter
                 CMP.B       #$46,D0             ; if the value is less than 46 its invalid
-                BGT         invalidAdd
+                BGT         INVALID_ADD
                 CMP.B       #$41,D0             ; if the value is less than 41 its invalid
-                BLT         invalidAdd
+                BLT         INVALID_ADD
                 SUBI.B      #$37,D0             ; valid letter, subtract 37
                 BRA         ATHE_done
             
@@ -962,52 +957,62 @@ ATHE_done       OR.L        D0,D4               ; OR the result to the retVal
                 CLR.L       D1                  ; done
                 RTS
                 
-                
+INVALID_ADD
+	            MOVE.B	#$01,D1		* Return error in D1 (0 = success) 
+                RTS               
 **********************************************************************************************
-* ERROR_HANDLER - Display some error message based on the condition of the error.
+* INPUT_ERROR - Display some error message based on the condition of the error.
 *			After such error has been displayed, the program will return
 *			to prompt the user for the starting address.
 *	   
 * D1 = Error code
 *
 
-ERROR_HANDLER
-	CMP.B	#$01, D1	* Compare D1 with the next known error 
-	BEQ	ERROR_01	* Load error01 if we found a match
+* compare error codes to see what type of error was caught
+INPUT_ERROR
+	CMP.B	#%01, D1	 
+	BEQ	E1	            * got to type 1 error
 
-	CMP.B	#$02, D1	* Compare D1 with the next known error
-	BEQ	ERROR_02	* Load error02 if we found a match
+	CMP.B	#%10, D1	
+	BEQ	E2	            * go to type 2 error
 	
-	CMP.B	#$03, D1	* Compare D1 with the next known error
-	BEQ	ERROR_03	* Load error03 if we found a match
+	CMP.B	#%11, D1
+	BEQ	E3	            * go to type 3 error    
 
-	CMP.B	#$04, D1	* Compare D1 with the next known error
-	BEQ	ERROR_04	* Load error03 if we found a match
+	CMP.W	#%100, D1
+	BEQ	E4	            * go to type 4 error
 
-	* If we didnt find a match, load up the default error message
-	LEA	str_error00, A1	* Load the error string into A1
-	BRA	ERROR_DISPLAY	* Go back to the start of the program (since we don't know what the error was)
-	
-ERROR_01	* Value entered was invalid
-	LEA	str_error01, A1	* Load the error string into A1
-	BRA	ERROR_DISPLAY	* Display the error message
-	
-ERROR_02	* Start >= (End - 4)
-	LEA	str_error02, A1	* Load the error string into A1
-	BRA	ERROR_DISPLAY	* Display the error message
-	
-ERROR_03	* Start < Min
-	LEA	str_error03, A1	* Load the error string into A1
-	BRA	ERROR_DISPLAY	* Display the error message
-	
-ERROR_04	* Start < Min
-	LEA	str_error04, A1	* Load the error string into A1
-	BRA	ERROR_DISPLAY	* Display the error message
-	
-ERROR_DISPLAY
-	MOVE.B	#13, D0	* Load task 13
-	TRAP	#15		* call TRAP 15
-	BRA 	GET_START	* Go back to the beginning
+	LEA	ERROR_STR, A1	* load the error string into A1
+	BRA	PRINT_ERROR	    * print default error and go to GET_START
+
+* Address entered was not valid	
+E1	
+	            LEA	    ERROR_INVALID_ADD_STR, A1	* load error string
+	            BRA	    PRINT_ERROR	            * print invalid address message
+
+* Start and end address are less than 2 bits apart, or start address is greater than end address	
+E2	
+	            LEA	    ERROR_SGREATER_STR, A1	* load error string
+	            CMP     D4,D3                   * check to see if start address is greater than end address
+                BGT     PRINT_ERROR           * print start is greater than end message
+                LEA	    ERROR_2BYTE_STR, A1	    * load error string
+	            BRA	    PRINT_ERROR	        * print less than 2 bits apart message
+
+* the start address is less than the minimum address bound	
+E3	    
+	            LEA	ERROR_SBOUND_STR, A1	    * load error string 
+	            BRA	PRINT_ERROR	            * display the error message
+
+* the end address is greater than the maximum bound	
+E4	    
+	            LEA	ERROR_EBOUND_STR, A1	    * load error string
+	            BRA	PRINT_ERROR	            * print the error message
+
+* print out the error message that was loaded in on of the error types	
+PRINT_ERROR
+	            MOVE.B	#13, D0     * print the error message	                
+	            TRAP	#15		                
+	            BRA 	GET_START   * go to GET_START
 ******************************* HEX TO ASCII *****************************
 * Convert starting address from Hex to Ascii, stores in A0
 * D0 = value to convert, D1 = number of bytes to process, A0 = retval
@@ -2726,6 +2731,49 @@ NON_MEM_REG     CLR      D0             Clear D0
                 BEQ      op_DATA        Illegal Mode Immediate Data
                 BRA      NAAC_CONT      Continue to exit
 *--------------------------------------------------------------   
+*---------------------------------------------------------------------*
+* Prints the intro
+*  
+PRINT_INTRO     MOVE.B      #14,D0
+                LEA         INTRO_STR1,A1
+                TRAP #15                             
+                LEA         INTRO_STR2,A1
+                TRAP #15 
+                LEA         INTRO_STR3,A1
+                TRAP #15 
+                LEA         INTRO_STR4,A1
+                TRAP #15 
+                LEA         INTRO_STR5,A1
+                TRAP #15 
+                LEA         INTRO_STR6,A1
+                TRAP #15 
+                LEA         INTRO_STR7,A1
+                TRAP #15
+                LEA         INTRO_STR8,A1
+                TRAP #15                             
+                LEA         INTRO_STR9,A1
+                TRAP #15 
+                LEA         INTRO_STR10,A1
+                TRAP #15 
+                LEA         INTRO_STR11,A1
+                TRAP #15 
+                LEA         INTRO_STR12,A1
+                TRAP #15 
+                LEA         INTRO_STR13,A1
+                TRAP #15 
+                LEA         INTRO_STR14,A1
+                TRAP #15
+                LEA         INTRO_STR15,A1
+                TRAP #15
+                LEA         new_line,A1
+                TRAP #15
+                LEA         INTRO_STR16,A1
+                TRAP #15
+                LEA         INTRO_STR17,A1
+                TRAP #15
+                LEA         new_line,A1
+                TRAP #15
+                RTS
    
 *---------------------------------------------------------------------*
 * Prints a comma
@@ -3255,18 +3303,49 @@ loop_exit       MOVE.L      #$000000,A1
                 BRA         loop_start          ; go back to the start of the loop
     
 exit            
-                SIMHALT                         ; halt simulator
-***********************
-* Declare some error messages used in I/O
-str_error00	DC.B	'Unknown error.',$0
-str_error01	DC.B	'Value entered was invalid.',$0
-str_error02	DC.B	'Start address is >= (End address - 4).',$0
-str_error03	DC.B	'Start address is < min address.',$0
-str_error04	DC.B	'End address is > max address. ',$0
-* Put variables and constants here
-prompt_start    DC.B        'What is the starting address?',CR,LF,0
-prompt_end      DC.B        'What is the ending address?',CR,LF,0
-prompt_new      DC.B        'Press enter to continue',CR,LF,0
+                MOVE.B      #14,D0              
+                LEA         FINISHED_STR,A1      
+                TRAP        #15                 * print the finished statement
+                
+                MOVE.B      #2,D0               * get user input to determine if retrying
+                LEA         input,A1
+                TRAP #15                        
+                CMP.L       #0,D1               * check to see if user typed in 0 or enter
+                BEQ         START               * go to beginning if user typed in enter or 0
+                SIMHALT                         * halt simulator
+
+* strings for intro message                
+INTRO_STR1      DC.B        '_____________________________            _-----_',CR,LF,0
+INTRO_STR2      DC.B        '\_=====================__=__/  ____.----*-------`----.____',CR,LF,0
+INTRO_STR3      DC.B        '                  \_   \       \----._______________.----/ ',CR,LF,0
+INTRO_STR4      DC.B        '                    \   \      /  /     `--___--*',CR,LF,0
+INTRO_STR5      DC.B        '               __,---`   `----*  *-_                _______    _______',CR,LF,0
+INTRO_STR6      DC.B        '              /____                ||              / _____/|  / ___  /|  _',CR,LF,0
+INTRO_STR7      DC.B        '                   `--._________,--*              / /____ |/ / /__/ / / / /',CR,LF,0
+INTRO_STR8      DC.B        '                                                 / ___  /|  / ___  / / / /,-.',CR,LF,0
+INTRO_STR9      DC.B        '                                                / /__/ / / / /__/ / / /   ,*',CR,LF,0
+INTRO_STR10     DC.B        '                                               /______/ / /______/ / /_/\_\',CR,LF,0
+INTRO_STR11     DC.B        '                                               |______|/  |______|/ |_| |_|',CR,LF,0
+INTRO_STR12     DC.B        '                                              =============================',CR,LF,0
+INTRO_STR13     DC.B        '                                               ENTERPRISE      DECOMPILER',CR,LF,0
+INTRO_STR14     DC.B        '                                              =============================',CR,LF,0
+INTRO_STR15     DC.B        '                                               By Kaley, Cole, & Abby 2014',CR,LF,0               
+INTRO_STR16     DC.B        'Welcome to the Enterprise Decompiler! Please load a range of addresses to',CR,LF,0 
+INTRO_STR17     DC.B        'disassemble from and to by typing in their hex values followed by enter. ',CR,LF,0                
+
+* IO error messages
+ERROR_STR	            DC.B	'An error occured. Please try again.',0
+ERROR_INVALID_ADD_STR	DC.B	'Invalid address. Please try again.',0
+ERROR_2BYTE_STR	        DC.B	'The start and end address need to be atleast 2 bytes apart. Please try again.',0
+ERROR_SBOUND_STR	    DC.B	'The start address is less than the minimum address. Please try again.',0
+ERROR_EBOUND_STR	    DC.B	'The end address is greater than the maximum address. Please try again.',0
+ERROR_SGREATER_STR	    DC.B	'The start address is greater than the end address. Please try again.',0
+
+* variables and constants
+prompt_start    DC.B        'What is the starting address? $',0
+prompt_end      DC.B        '  What is the ending address? $',0
+prompt_new      DC.B        'Press enter to continue',0
+FINISHED_STR    DC.B        'Disassembly complete. Press enter to try again, or anything else to stop.',0
 input           DCB.B       256,0
 invalidAdd      DC.B        'ERROR',0
 new_line        DC.B        '',CR,LF,0
@@ -3341,6 +3420,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
