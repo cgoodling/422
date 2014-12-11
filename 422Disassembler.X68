@@ -939,7 +939,7 @@ START:
                 MOVE.W      #$3A39,$65D2        MOVE.B D3,$AAAAAAAAA
                 MOVE.W      #$AAAA,$65D4
                 MOVE.W      #$AAAA,$65D6
-                MOVE.W      #$3A3C,$65D8        MOVE.B D3, #$AA
+                MOVE.W      #$3A3C,$65D8        MOVE.B D3, #$AAAA
                 MOVE.W      #$AAAA,$65DA
                 MOVE.W      #$AAAA,$65DC        DATA
                 
@@ -956,7 +956,7 @@ START:
                 MOVE.W      #$3A79,$65F0        MOVEA.B A3,$AAAAAAAAA
                 MOVE.W      #$AAAA,$65F2
                 MOVE.W      #$AAAA,$65F4
-                MOVE.W      #$3A7C,$65F6        MOVEA.B A3, #$AA --- DATA, INVALID
+                MOVE.W      #$3A7C,$65F6        MOVEA.B A3, #$AAAA --- DATA, INVALID
                 MOVE.W      #$AAAA,$65F8        DATA
                 MOVE.W      #$AAAA,$65FA        DATA
                 
@@ -973,7 +973,7 @@ START:
                 MOVE.W      #$3AB9,$660E        MOVE.B (A3),$AAAAAAAAA
                 MOVE.W      #$AAAA,$6610
                 MOVE.W      #$AAAA,$6612
-                MOVE.W      #$3ABC,$6614        MOVE.B (A3),#$AA
+                MOVE.W      #$3ABC,$6614        MOVE.B (A3),#$AAAA
                 MOVE.W      #$AAAA,$6616
                 MOVE.W      #$AAAA,$6618        DATA
                 
@@ -990,7 +990,7 @@ START:
                 MOVE.W      #$3AF9,$662C        MOVE.B (A3)+,$AAAAAAAAA
                 MOVE.W      #$AAAA,$662E
                 MOVE.W      #$AAAA,$6630
-                MOVE.W      #$3AFC,$6632        MOVE.B (A3)+,#$AA
+                MOVE.W      #$3AFC,$6632        MOVE.B (A3)+,#$AAAA
                 MOVE.W      #$AAAA,$6634
                 MOVE.W      #$AAAA,$6636        DATA
                
@@ -1007,7 +1007,7 @@ START:
                 MOVE.W      #$3B39,$664A        MOVE.B -(A3),$AAAAAAAAA
                 MOVE.W      #$AAAA,$664C
                 MOVE.W      #$AAAA,$664E
-                MOVE.W      #$3B3C,$6650        MOVE.B -(A3),#$AA
+                MOVE.W      #$3B3C,$6650        MOVE.B -(A3),#$AAAA
                 MOVE.W      #$AAAA,$6652
                 MOVE.W      #$AAAA,$6654        DATA
                 
@@ -1037,7 +1037,7 @@ START:
                 MOVE.W      #$BBBB,$667A
                 MOVE.W      #$AAAA,$667C
                 MOVE.W      #$AAAA,$667E
-                MOVE.W      #$31FC,$6680        MOVE.B $BBBB,#$AA
+                MOVE.W      #$31FC,$6680        MOVE.B $BBBB,#$AAAA
                 MOVE.W      #$BBBB,$6682
                 MOVE.W      #$AAAA,$6684
                 MOVE.W      #$AAAA,$6686        DATA
@@ -1069,7 +1069,7 @@ START:
                 MOVE.W      #$BBBB,$66B6
                 MOVE.W      #$AAAA,$66B8
                 MOVE.W      #$AAAA,$66BA
-                MOVE.W      #$33FC,$66BC        MOVE.B $BBBBBBBB,#$AA
+                MOVE.W      #$33FC,$66BC        MOVE.B $BBBBBBBB,#$AAAA
                 MOVE.W      #$BBBB,$66BE
                 MOVE.W      #$BBBB,$66C0
                 MOVE.W      #$AAAA,$66C2
@@ -1095,9 +1095,9 @@ START:
                 MOVE.W      #$2A39,$66E2        MOVE.B D3,$AAAAAAAAA
                 MOVE.W      #$AAAA,$66E4
                 MOVE.W      #$AAAA,$66E6
-                MOVE.W      #$2A3C,$66E8        MOVE.B D3, #$AA
+                MOVE.W      #$2A3C,$66E8        MOVE.B D3, #$AAAAAAAA
                 MOVE.W      #$AAAA,$66EA
-                MOVE.W      #$AAAA,$66EC        DATA
+                MOVE.W      #$AAAA,$66EC        
                 
                 ** EA DESTINATION MODE 001 **
                 MOVE.W      #$2A43,$66EE        MOVEA.B A3,D5 --- DATA, INVALID
@@ -1129,9 +1129,9 @@ START:
                 MOVE.W      #$2AB9,$671E        MOVE.B (A3),$AAAAAAAAA
                 MOVE.W      #$AAAA,$6720
                 MOVE.W      #$AAAA,$6722
-                MOVE.W      #$2ABC,$6724        MOVE.B (A3),#$AA
+                MOVE.W      #$2ABC,$6724        MOVE.B (A3),#$AAAAAAAA
                 MOVE.W      #$AAAA,$6726
-                MOVE.W      #$AAAA,$6728        DATA
+                MOVE.W      #$AAAA,$6728        
                 
                 ** EA DESTINATION MODE 011 **
                 MOVE.W      #$2AC3,$672A        MOVE.B (A3)+,D5
@@ -1146,9 +1146,9 @@ START:
                 MOVE.W      #$2AF9,$673C        MOVE.B (A3)+,$AAAAAAAAA
                 MOVE.W      #$AAAA,$673E
                 MOVE.W      #$AAAA,$6740
-                MOVE.W      #$2AFC,$6742        MOVE.B (A3)+,#$AA
+                MOVE.W      #$2AFC,$6742        MOVE.B (A3)+,#$AAAAAAAA
                 MOVE.W      #$AAAA,$6744
-                MOVE.W      #$AAAA,$6746        DATA
+                MOVE.W      #$AAAA,$6746        
                
                 ** EA SOURCE MODE 100 **
                 MOVE.W      #$2B03,$6748        MOVE.B -(A3),D5
@@ -1163,9 +1163,9 @@ START:
                 MOVE.W      #$2B39,$675A        MOVE.B -(A3),$AAAAAAAAA
                 MOVE.W      #$AAAA,$675C
                 MOVE.W      #$AAAA,$675E
-                MOVE.W      #$2B3C,$6760        MOVE.B -(A3),#$AA
+                MOVE.W      #$2B3C,$6760        MOVE.B -(A3),#$AAAAAAAA
                 MOVE.W      #$AAAA,$6762
-                MOVE.W      #$AAAA,$6764        DATA
+                MOVE.W      #$AAAA,$6764        
               
                 ** EA SOURCE MODE 101 **
                 MOVE.W      #$2B43,$6766        DATA, MODE 5 INVALID
@@ -1193,10 +1193,10 @@ START:
                 MOVE.W      #$BBBB,$678A
                 MOVE.W      #$AAAA,$678C
                 MOVE.W      #$AAAA,$678E
-                MOVE.W      #$21FC,$6790        MOVE.B $BBBB,#$AA
+                MOVE.W      #$21FC,$6790        MOVE.B $BBBB,#$AAAAAAAA
                 MOVE.W      #$BBBB,$6792
                 MOVE.W      #$AAAA,$6794
-                MOVE.W      #$AAAA,$6796        DATA
+                MOVE.W      #$AAAA,$6796        
                
                 ** EA SOURCE MODE 111 REGISTER 001 **
                 MOVE.W      #$23C3,$6798        MOVE.B $AAAAAAAAA,D5
@@ -1225,15 +1225,91 @@ START:
                 MOVE.W      #$BBBB,$67C6
                 MOVE.W      #$AAAA,$67C8
                 MOVE.W      #$AAAA,$67CA
-                MOVE.W      #$23FC,$67CC        MOVE.B $BBBBBBBB,#$AA
+                MOVE.W      #$23FC,$67CC        MOVE.B $BBBBBBBB,#$AAAAAAAA
                 MOVE.W      #$BBBB,$67CE
                 MOVE.W      #$BBBB,$67D0
                 MOVE.W      #$AAAA,$67D2
-                MOVE.W      #$AAAA,$67D4        DATA
+                MOVE.W      #$AAAA,$67D4         
+                *********************************************************
+                
+                *********************************************************
+                * ORI TESTING
+                ***
+                ** .B
+                MOVE.W      #$0005,$67D6       ORI.B #$BB,D5
+                MOVE.W      #$BBBB,$67D8
+                MOVE.W      #$000D,$67DA       ORI.B #$XX,A5 ---- INVALID, DATA
+                MOVE.W      #$0015,$67DC       ORI.B #$BB,(A5)
+                MOVE.W      #$BBBB,$67DE
+                MOVE.W      #$001D,$67E0       ORI.B #$BB,(A5)+
+                MOVE.W      #$BBBB,$67E2
+                MOVE.W      #$0025,$67E4       ORI.B #$BB,-(A5)
+                MOVE.W      #$BBBB,$67E6
+                MOVE.W      #$002D,$67E8       ORI.B (D16,AN) --- INVALID, DATA
+                MOVE.W      #$0035,$67EA       ORI.B (D8,AN,XN) --- INVALID, DATA
+                MOVE.W      #$0038,$67EC
+                MOVE.W      #$BBBB,$67EE
+                MOVE.W      #$AAAA,$67F0       ORI.B #$BB,$AAAA
+                MOVE.W      #$0039,$67F2
+                MOVE.W      #$BBBB,$67F4
+                MOVE.W      #$AAAA,$67F6       ORI.B #$BB,#$AAAAAAAA
+                MOVE.W      #$AAAA,$67F8
+                MOVE.W      #$003C,$67FA       ORI.B #$BB,#$XXXX ---- INVALID, DATA          
+                
+                ** .W
+                MOVE.W      #$0045,$67FC       ORI.W #$BBBB,D3
+                MOVE.W      #$BBBB,$67FE
+                MOVE.W      #$004D,$6800       ORI.W #$BBBB,A3 ---- INVALID, DATA
+                MOVE.W      #$0055,$6804       ORI.W #$BBBB,(A3)
+                MOVE.W      #$BBBB,$6806
+                MOVE.W      #$005D,$6808       ORI.W #$BBBB,(A3)+
+                MOVE.W      #$BBBB,$680A
+                MOVE.W      #$0065,$680C       ORI.W #$BBBB,-(A3)
+                MOVE.W      #$BBBB,$680E
+                MOVE.W      #$006D,$6810       ORI.W (D16,AN) --- INVALID, DATA
+                MOVE.W      #$0075,$6812       ORI.W (D8,AN,XN) --- INVALID, DATA
+                MOVE.W      #$0078,$6814
+                MOVE.W      #$BBBB,$6816
+                MOVE.W      #$AAAA,$6818       ORI.W #$BBBB,$AAAA
+                MOVE.W      #$0079,$681A
+                MOVE.W      #$BBBB,$681C
+                MOVE.W      #$AAAA,$681E       ORI.W #$BBBB,$AAAAAAAA
+                MOVE.W      #$AAAA,$6820
+                MOVE.W      #$007C,$6822       ORI.W #$BBBB,#$XXXX ---- INVALID, DATA
+                              
+                ** .L
+                MOVE.W      #$0085,$6824       ORI.W #$BBBBBBBB,D3
+                MOVE.W      #$BBBB,$6826
+                MOVE.W      #$BBBB,$6828
+                MOVE.W      #$008D,$682A       ORI.W #$BBBBBBBB,A3 ---- INVALID, DATA
+                MOVE.W      #$0095,$682C       ORI.W #$BBBBBBBB,(A3)
+                MOVE.W      #$BBBB,$682E
+                MOVE.W      #$BBBB,$6830
+                MOVE.W      #$009D,$6832       ORI.W #$BBBBBBBB,(A3)+
+                MOVE.W      #$BBBB,$6834
+                MOVE.W      #$BBBB,$6836
+                MOVE.W      #$00A5,$6838       ORI.W #$BBBBBBBB,-(A3)
+                MOVE.W      #$BBBB,$683A
+                MOVE.W      #$BBBB,$683C
+                MOVE.W      #$00AD,$683E       ORI.W (D16,AN) --- INVALID, DATA
+                MOVE.W      #$00B5,$6840       ORI.W (D8,AN,XN) --- INVALID, DATA
+                MOVE.W      #$00B8,$6842
+                MOVE.W      #$BBBB,$6844
+                MOVE.W      #$BBBB,$6846
+                MOVE.W      #$AAAA,$6848       ORI.W #$BBBBBBBB,$AAAA
+                MOVE.W      #$BBBB,$684A
+                MOVE.W      #$BBBB,$684C
+                MOVE.W      #$00B9,$684E
+                MOVE.W      #$AAAA,$6850       ORI.W #$BBBBBBBB,$AAAAAAAA
+                MOVE.W      #$BBBB,$6852
+                MOVE.W      #$BBBB,$6854
+                MOVE.W      #$AAAA,$6856
+                MOVE.W      #$00BC,$6858       ORI.W #$BBBB,#$XXXX ---- INVALID, DATA
+                *****************************************************************
                 
 ************************** END OF TESTING *******************************************************************
                 LEA         STACK,SP            Load the stack
-
+                
                 MOVE.B      #14,D0
                 LEA         prompt_start,A1
                 TRAP #15                        ; prompt for starting address
@@ -2384,28 +2460,27 @@ op_ORI          LEA         ORI_STR,A5
                 LSR.L       #6,D1               ; shift the size bits to get the flag 
                 MOVE.L      D1,D6               ; move size bit to D6 to set flag
                 **** CHECK FOR INVALID
-                CMP.W       #%00111100,D5       ; Mode 7, Register 4 is invalid
+                CMP.W       #$3C,D5             ; Mode 7, Register 4 is invalid
                 BEQ         op_DATA
                 
                 CLR.L       D0
                 MOVE.W      D5,D0               ; Move the EA into D0
-                ANDI.W      #%00111000,D0       ; Separate the EA Mode into D0
-                CMP.W       #%00001000,D0       ; Compare the An Addressing mode
+                ANDI.W      #$38,D0             ; Separate the EA Mode into D0
+                CMP.W       #$08,D0             ; Compare the An Addressing mode
                 BEQ         op_DATA             ; invalid
                 
-                MOVE.W      #%111,D4            ; set mode to 7 for mode 7
-                MOVE.W      #%100,D3            ; set register to 4 for Immediate Data
-                ADD.L       #$00000002,A2       ; move the current address forward by a word
+                MOVE.L      #$00000007,D4       ; set mode to 7 for mode 7
+                MOVE.L      #$00000004,D3       ; set register to 4 for Immediate Data
                 
+                ADD.L       #$00000002,A2       ; move the current address forward by a word
+
                 JSR         FIND_OPMODE         ; create the left side of the operation
                 JSR         PRINT_COMMA         ; find the comma
-                
-                MOVE.W      (A1),D5             ; Move the original operation into D5
-                ANDI.L      #$003F,D5           ; mask the last 6 bits
+
                 JSR         FIND_EAMODE         ; create the right side of the operation
 
                 **** FINDING/ADDING EA TO STRING HERE
-            
+                
                 JSR         PRINT_init          ; print the string
                 BRA         loop_exit
             
@@ -3713,6 +3788,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 
