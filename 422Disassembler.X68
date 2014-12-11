@@ -782,9 +782,9 @@ GET_START
             
                 JSR         asciiToHexS         ; convert user input from start address to hex
 	            
-	            CMP.L 	     #0, D1		        * check to see if asciiToHexS reported an error
-	            BNE 	     INPUT_ERROR	    * find wthe error message is. print it and loop to GET_START
-                MOVE.L	     D3, A0		        * get the hex address
+	            CMP.L 	    #0, D1		        * check to see if asciiToHexS reported an error
+	            BNE 	    INPUT_ERROR	            * find wthe error message is. print it and loop to GET_START
+                MOVE.L	    D3, A0		            * get the hex address
 
                 MOVE.L	    A0,D3		            * put the start address in a data register
 	            ANDI.L	    #$FFFFFFFE,D3	        * convert the address to an even number if it already isn't
@@ -804,22 +804,22 @@ GET_END
                 TRAP        #15                 ; store user input
                 JSR         asciiToHexE         ; convert user input for end address to hex
                 
-	            CMP.L 	#0, D1		    * check to see if asciiToHexE reported an error 
-	            BNE	INPUT_ERROR	        * error found. print it and loop to GET_START
-                MOVE.L	D4, A3		    * move end address to A3
+	            CMP.L 	    #0, D1		        * check to see if asciiToHexE reported an error 
+	            BNE	        INPUT_ERROR	        * error found. print it and loop to GET_START
+                MOVE.L	    D4, A3		        * move end address to A3
                 
-	            MOVE.B	#$04, D1	    * set the error code
-	            CMP.L	#maxaddress, A3	* check if end address is in bounds
-	            BLT	INPUT_ERROR	        * find error
+	            MOVE.B	    #$04, D1	        * set the error code
+	            CMP.L	    #maxaddress, A3	    * check if end address is in bounds
+	            BLT	        INPUT_ERROR	        * find error
       
-	            SUBQ.L	#2, A3		    * take away 2 bytes to test distance
-	            MOVE.B	#$02, D1	    * set the error code
-	            CMP.L	A3, D3		    * check to see if end address is greater than start address
-	            BGT	INPUT_ERROR	        * find error
-	            ADDQ.L	#2, A3		    * return A3 back to normal
+	            SUBQ.L	    #2, A3		        * take away 2 bytes to test distance
+	            MOVE.B	    #$02, D1	        * set the error code
+	            CMP.L	    A3, D3		        * check to see if end address is greater than start address
+	            BGT	        INPUT_ERROR	        * find error
+	            ADDQ.L	    #2, A3		        * return A3 back to normal
                 
-                MOVE.L	A3,D4		    * put the end address in a data register
-	            ANDI.L	#$FFFFFFFE,D4	* convert the address to an even number if it already isn't
+                MOVE.L	    A3,D4		        * put the end address in a data register
+	            ANDI.L	    #$FFFFFFFE,D4	    * convert the address to an even number if it already isn't
             
                 MOVE.L      D3,A1               ; move the start address into A1
                 MOVE.L      D3,A2               ; also move it into A2
@@ -958,61 +958,59 @@ ATHE_done       OR.L        D0,D4               ; OR the result to the retVal
                 RTS
                 
 INVALID_ADD
-	            MOVE.B	#$01,D1		* Return error in D1 (0 = success) 
+	            MOVE.B	    #$01,D1		        * Return error in D1 (0 = success) 
                 RTS               
-**********************************************************************************************
-* INPUT_ERROR - Display some error message based on the condition of the error.
-*			After such error has been displayed, the program will return
-*			to prompt the user for the starting address.
-*	   
+*******************************************************************************************
+* INPUT_ERROR 
+* Determines what error message to print based on what D1 is before jumping here	   
 * D1 = Error code
 *
 
 * compare error codes to see what type of error was caught
 INPUT_ERROR
-	CMP.B	#%01, D1	 
-	BEQ	E1	            * got to type 1 error
+	            CMP.B	    #%01,D1	 
+	            BEQ	E1	                    * got to type 1 error
 
-	CMP.B	#%10, D1	
-	BEQ	E2	            * go to type 2 error
+	            CMP.B	    #%10,D1	
+	            BEQ	        E2	            * go to type 2 error
 	
-	CMP.B	#%11, D1
-	BEQ	E3	            * go to type 3 error    
+	            CMP.B	    #%11,D1
+	            BEQ	E3	                    * go to type 3 error    
 
-	CMP.W	#%100, D1
-	BEQ	E4	            * go to type 4 error
+	            CMP.W	    #%100,D1
+	            BEQ	E4	                    * go to type 4 error
 
-	LEA	ERROR_STR, A1	* load the error string into A1
-	BRA	PRINT_ERROR	    * print default error and go to GET_START
+	            LEA	        ERROR_STR, A1	* get error message
+	            BRA	        PRINT_ERROR     * print default error and go to GET_START
 
 * Address entered was not valid	
 E1	
-	            LEA	    ERROR_INVALID_ADD_STR, A1	* load error string
-	            BRA	    PRINT_ERROR	            * print invalid address message
+	            LEA	        ERROR_INVALID_ADD_STR, A1	* load error string
+	            BRA	        PRINT_ERROR	                * print invalid address message
 
 * Start and end address are less than 2 bits apart, or start address is greater than end address	
 E2	
-	            LEA	    ERROR_SGREATER_STR, A1	* load error string
-	            CMP     D4,D3                   * check to see if start address is greater than end address
-                BGT     PRINT_ERROR           * print start is greater than end message
-                LEA	    ERROR_2BYTE_STR, A1	    * load error string
-	            BRA	    PRINT_ERROR	        * print less than 2 bits apart message
+	            LEA	        ERROR_SGREATER_STR, A1	    * load error string
+	            CMP         D4,D3                       * check to see if start address is greater than end address
+                BGT         PRINT_ERROR                 * print start is greater than end message
+                LEA	        ERROR_2BYTE_STR, A1	        * load error string
+	            BRA	        PRINT_ERROR	                * print less than 2 bits apart message
 
 * the start address is less than the minimum address bound	
 E3	    
-	            LEA	ERROR_SBOUND_STR, A1	    * load error string 
-	            BRA	PRINT_ERROR	            * display the error message
+	            LEA	        ERROR_SBOUND_STR, A1	    * load error string 
+	            BRA	        PRINT_ERROR	                * display the error message
 
 * the end address is greater than the maximum bound	
 E4	    
-	            LEA	ERROR_EBOUND_STR, A1	    * load error string
-	            BRA	PRINT_ERROR	            * print the error message
+	            LEA	        ERROR_EBOUND_STR, A1	    * load error string
+	            BRA	        PRINT_ERROR	                * print the error message
 
 * print out the error message that was loaded in on of the error types	
 PRINT_ERROR
-	            MOVE.B	#13, D0     * print the error message	                
-	            TRAP	#15		                
-	            BRA 	GET_START   * go to GET_START
+	            MOVE.B	    #13, D0                     * print the error message	                
+	            TRAP	    #15		                
+	            BRA 	    GET_START                   * go to GET_START
 ******************************* HEX TO ASCII *****************************
 * Convert starting address from Hex to Ascii, stores in A0
 * D0 = value to convert, D1 = number of bytes to process, A0 = retval
