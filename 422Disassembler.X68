@@ -766,7 +766,471 @@ START:
                 MOVE.W      #$3078,$64B6       MOVEA.W     $xxxx,A0
                 MOVE.W      #$1234,$64B8       MOVEA.W      1234
                 *******************************************************
-                       
+                
+                *******************************************************
+                * MOVE TESTS
+                ** .B
+                ** EA DESTINATION MODE 000 **
+                MOVE.W      #$1A03,$64BA        MOVE.B D3,D5
+                MOVE.W      #$1A0B,$64BC        MOVE.B D3,A5
+                MOVE.W      #$1A13,$64BE        MOVE.B D3,(A5)
+                MOVE.W      #$1A1B,$64C0        MOVE.B D3,(A5)+
+                MOVE.W      #$1A23,$64C2        MOVE.B D3,-(A5)
+                MOVE.W      #$1A2B,$64C4        DATA, INVALID
+                MOVE.W      #$1A33,$64C6        DATA, INVALID
+                MOVE.W      #$1A38,$64C8        MOVE.B D3,$AAAA
+                MOVE.W      #$AAAA,$64CA
+                MOVE.W      #$1A39,$64CC        MOVE.B D3,$AAAAAAAAA
+                MOVE.W      #$AAAA,$64CE
+                MOVE.W      #$AAAA,$64D0
+                MOVE.W      #$1A3C,$64D2        MOVE.B D3, #$AA
+                MOVE.W      #$AAAA,$64D4
+                MOVE.W      #$AAAA,$64D6        DATA
+                
+                ** EA DESTINATION MODE 001 **
+                MOVE.W      #$1A43,$64D8        MOVEA.B A3,D5 --- DATA, INVALID
+                MOVE.W      #$1A4B,$64DA        MOVEA.B A3,A5
+                MOVE.W      #$1A53,$64DC        MOVEA.B A3,(A5)
+                MOVE.W      #$1A5B,$64DE        MOVEA.B A3,(A5)+
+                MOVE.W      #$1A63,$64E0        MOVEA.B A3,-(A5)
+                MOVE.W      #$1A6B,$64E2        DATA, INVALID
+                MOVE.W      #$1A73,$64E4        DATA, INVALID
+                MOVE.W      #$1A78,$64E6        MOVEA.B A3,$AAAA
+                MOVE.W      #$AAAA,$64E8
+                MOVE.W      #$1A79,$64EA        MOVEA.B A3,$AAAAAAAAA
+                MOVE.W      #$AAAA,$64EC
+                MOVE.W      #$AAAA,$64EE
+                MOVE.W      #$1A7C,$64F0        MOVEA.B A3, #$AA --- DATA, INVALID
+                MOVE.W      #$AAAA,$64F2        DATA
+                MOVE.W      #$AAAA,$64F4        DATA
+                
+                ** EA DESTINATION MODE 010 **
+                MOVE.W      #$1A83,$64F6        MOVE.B (A3),D5
+                MOVE.W      #$1A8B,$64F8        MOVE.B (A3),A5
+                MOVE.W      #$1A93,$64FA        MOVE.B (A3),(A5)
+                MOVE.W      #$1A9B,$64FC        MOVE.B (A3),(A5)+
+                MOVE.W      #$1AA3,$64FE        MOVE.B (A3),-(A5)
+                MOVE.W      #$1AAB,$6500        DATA, INVALID
+                MOVE.W      #$1AB3,$6502        DATA, INVALID
+                MOVE.W      #$1AB8,$6504        MOVE.B (A3),$AAAA
+                MOVE.W      #$AAAA,$6506
+                MOVE.W      #$1AB9,$6508        MOVE.B (A3),$AAAAAAAAA
+                MOVE.W      #$AAAA,$650A
+                MOVE.W      #$AAAA,$650C
+                MOVE.W      #$1ABC,$650E        MOVE.B (A3),#$AA
+                MOVE.W      #$AAAA,$6510
+                MOVE.W      #$AAAA,$6512        DATA
+                
+                ** EA DESTINATION MODE 011 **
+                MOVE.W      #$1AC3,$6514        MOVE.B (A3)+,D5
+                MOVE.W      #$1ACB,$6516        MOVE.B (A3)+,A5
+                MOVE.W      #$1AD3,$6518        MOVE.B (A3)+,(A5)
+                MOVE.W      #$1ADB,$651A        MOVE.B (A3)+,(A5)+
+                MOVE.W      #$1AE3,$651C        MOVE.B (A3)+,-(A5)
+                MOVE.W      #$1AEB,$651E        DATA, INVALID
+                MOVE.W      #$1AF3,$6520        DATA, INVALID
+                MOVE.W      #$1AF8,$6522        MOVE.B (A3)+,$AAAA
+                MOVE.W      #$AAAA,$6524
+                MOVE.W      #$1AF9,$6526        MOVE.B (A3)+,$AAAAAAAAA
+                MOVE.W      #$AAAA,$6528
+                MOVE.W      #$AAAA,$652A
+                MOVE.W      #$1AFC,$652C        MOVE.B (A3)+,#$AA
+                MOVE.W      #$AAAA,$652E
+                MOVE.W      #$AAAA,$6530        DATA
+                
+                ** EA SOURCE MODE 100 **
+                MOVE.W      #$1B03,$6532        MOVE.B -(A3),D5
+                MOVE.W      #$1B0B,$6534        MOVE.B -(A3),A5
+                MOVE.W      #$1B13,$6536        MOVE.B -(A3),(A5)
+                MOVE.W      #$1B1B,$6538        MOVE.B -(A3),(A5)+
+                MOVE.W      #$1B23,$653A        MOVE.B -(A3),-(A5)
+                MOVE.W      #$1B2B,$653C        DATA, INVALID
+                MOVE.W      #$1B33,$653E        DATA, INVALID
+                MOVE.W      #$1B38,$6540        MOVE.B -(A3),$AAAA
+                MOVE.W      #$AAAA,$6542
+                MOVE.W      #$1B39,$6544        MOVE.B -(A3),$AAAAAAAAA
+                MOVE.W      #$AAAA,$6546
+                MOVE.W      #$AAAA,$6548
+                MOVE.W      #$1B3C,$654A        MOVE.B -(A3),#$AA
+                MOVE.W      #$AAAA,$654C
+                MOVE.W      #$AAAA,$654E        DATA
+                
+                ** EA SOURCE MODE 101 **
+                MOVE.W      #$1B43,$6550        DATA, MODE 5 INVALID
+                
+                ** EA SOURCE MODE 110 **
+                MOVE.W      #$1B83,$6552        DATA, MODE 6 INVALID
+                
+                ** EA SOURCE MODE 111 REGISTER 000 **
+                MOVE.W      #$11C3,$6554        MOVE.B $AAAA,D5
+                MOVE.W      #$AAAA,$6556
+                MOVE.W      #$11CB,$6558        MOVE.B $AAAA,A5
+                MOVE.W      #$AAAA,$655A
+                MOVE.W      #$11D3,$655C        MOVE.B $AAAA,(A5)
+                MOVE.W      #$AAAA,$655E
+                MOVE.W      #$11DB,$6560        MOVE.B $AAAA,(A5)+
+                MOVE.W      #$AAAA,$6562
+                MOVE.W      #$11E3,$6564        MOVE.B $AAAA,-(A5)
+                MOVE.W      #$AAAA,$6566
+                MOVE.W      #$11EB,$6568        DATA, INVALID
+                MOVE.W      #$11F3,$656A        DATA, INVALID
+                MOVE.W      #$11F8,$656C        MOVE.B $BBBB,$AAAA
+                MOVE.W      #$BBBB,$656E
+                MOVE.W      #$AAAA,$6570
+                MOVE.W      #$11F9,$6572        MOVE.B $BBBB,$AAAAAAAAA
+                MOVE.W      #$BBBB,$6574
+                MOVE.W      #$AAAA,$6576
+                MOVE.W      #$AAAA,$6578
+                MOVE.W      #$11FC,$657A        MOVE.B $BBBB,#$AA
+                MOVE.W      #$BBBB,$657C
+                MOVE.W      #$AAAA,$657E
+                MOVE.W      #$AAAA,$6580        DATA
+                
+                ** EA SOURCE MODE 111 REGISTER 001 **
+                MOVE.W      #$13C3,$6582        MOVE.B $AAAAAAAAA,D5
+                MOVE.W      #$AAAA,$6584
+                MOVE.W      #$AAAA,$6586
+                MOVE.W      #$13CB,$6588        MOVE.B $AAAAAAAAA,A5
+                MOVE.W      #$AAAA,$658A
+                MOVE.W      #$AAAA,$658C
+                MOVE.W      #$13D3,$658E        MOVE.B $AAAAAAAAA,(A5)
+                MOVE.W      #$AAAA,$6590
+                MOVE.W      #$AAAA,$6592
+                MOVE.W      #$13DB,$6594        MOVE.B $AAAAAAAAA,(A5)+
+                MOVE.W      #$AAAA,$6596
+                MOVE.W      #$AAAA,$6598
+                MOVE.W      #$13E3,$659A        MOVE.B $AAAAAAAAA,-(A5)
+                MOVE.W      #$AAAA,$659C
+                MOVE.W      #$AAAA,$659E
+                MOVE.W      #$13EB,$65A0        DATA, INVALID
+                MOVE.W      #$13F3,$65A2        DATA, INVALID
+                MOVE.W      #$13F8,$65A4        MOVE.B $BBBBBBBB,$AAAA
+                MOVE.W      #$BBBB,$65A6
+                MOVE.W      #$BBBB,$65A8
+                MOVE.W      #$AAAA,$65AA
+                MOVE.W      #$13F9,$65AC        MOVE.B $BBBBBBBB,$AAAAAAAAA
+                MOVE.W      #$BBBB,$65AE
+                MOVE.W      #$BBBB,$65B0
+                MOVE.W      #$AAAA,$65B2
+                MOVE.W      #$AAAA,$65B4
+                MOVE.W      #$13FC,$65B6        MOVE.B $BBBBBBBB,#$AA
+                MOVE.W      #$BBBB,$65B8
+                MOVE.W      #$BBBB,$65BA
+                MOVE.W      #$AAAA,$65BC
+                MOVE.W      #$AAAA,$65BE        DATA
+                
+                ** EA SOURCE MODE 111 REGISTER 100 **
+                MOVE.W      #$19CC,$65C0        DATA, INVALID
+                *******************************************************
+                
+                *******************************************************
+                * MOVE TESTS
+                ** .W
+                ** EA DESTINATION MODE 000 **
+                MOVE.W      #$3A03,$65C2        MOVE.B D3,D5
+                MOVE.W      #$3A0B,$65C4        MOVE.B D3,A5
+                MOVE.W      #$3A13,$65C6        MOVE.B D3,(A5)
+                MOVE.W      #$3A1B,$65C8        MOVE.B D3,(A5)+
+                MOVE.W      #$3A23,$65CA        MOVE.B D3,-(A5)
+                MOVE.W      #$3A2B,$65CC        DATA, INVALID
+                MOVE.W      #$3A33,$65CE        DATA, INVALID
+                MOVE.W      #$3A38,$65D0        MOVE.B D3,$AAAA
+                MOVE.W      #$AAAA,$65D2
+                MOVE.W      #$3A39,$65D2        MOVE.B D3,$AAAAAAAAA
+                MOVE.W      #$AAAA,$65D4
+                MOVE.W      #$AAAA,$65D6
+                MOVE.W      #$3A3C,$65D8        MOVE.B D3, #$AA
+                MOVE.W      #$AAAA,$65DA
+                MOVE.W      #$AAAA,$65DC        DATA
+                
+                ** EA DESTINATION MODE 001 **
+                MOVE.W      #$3A43,$65DE        MOVEA.B A3,D5 --- DATA, INVALID
+                MOVE.W      #$3A4B,$65E0        MOVEA.B A3,A5
+                MOVE.W      #$3A53,$65E2        MOVEA.B A3,(A5)
+                MOVE.W      #$3A5B,$65E4        MOVEA.B A3,(A5)+
+                MOVE.W      #$3A63,$65E6        MOVEA.B A3,-(A5)
+                MOVE.W      #$3A6B,$65E8        DATA, INVALID
+                MOVE.W      #$3A73,$65EA        DATA, INVALID
+                MOVE.W      #$3A78,$65EC        MOVEA.B A3,$AAAA
+                MOVE.W      #$AAAA,$65EE
+                MOVE.W      #$3A79,$65F0        MOVEA.B A3,$AAAAAAAAA
+                MOVE.W      #$AAAA,$65F2
+                MOVE.W      #$AAAA,$65F4
+                MOVE.W      #$3A7C,$65F6        MOVEA.B A3, #$AA --- DATA, INVALID
+                MOVE.W      #$AAAA,$65F8        DATA
+                MOVE.W      #$AAAA,$65FA        DATA
+                
+                ** EA DESTINATION MODE 010 **
+                MOVE.W      #$3A83,$65FC        MOVE.B (A3),D5
+                MOVE.W      #$3A8B,$65FE        MOVE.B (A3),A5
+                MOVE.W      #$3A93,$6600        MOVE.B (A3),(A5)
+                MOVE.W      #$3A9B,$6602        MOVE.B (A3),(A5)+
+                MOVE.W      #$3AA3,$6604        MOVE.B (A3),-(A5)
+                MOVE.W      #$3AAB,$6606        DATA, INVALID
+                MOVE.W      #$3AB3,$6608        DATA, INVALID
+                MOVE.W      #$3AB8,$660A        MOVE.B (A3),$AAAA
+                MOVE.W      #$AAAA,$660C
+                MOVE.W      #$3AB9,$660E        MOVE.B (A3),$AAAAAAAAA
+                MOVE.W      #$AAAA,$6610
+                MOVE.W      #$AAAA,$6612
+                MOVE.W      #$3ABC,$6614        MOVE.B (A3),#$AA
+                MOVE.W      #$AAAA,$6616
+                MOVE.W      #$AAAA,$6618        DATA
+                
+                ** EA DESTINATION MODE 011 **
+                MOVE.W      #$3AC3,$661A        MOVE.B (A3)+,D5
+                MOVE.W      #$3ACB,$661C        MOVE.B (A3)+,A5
+                MOVE.W      #$3AD3,$661E        MOVE.B (A3)+,(A5)
+                MOVE.W      #$3ADB,$6620        MOVE.B (A3)+,(A5)+
+                MOVE.W      #$3AE3,$6622        MOVE.B (A3)+,-(A5)
+                MOVE.W      #$3AEB,$6624        DATA, INVALID
+                MOVE.W      #$3AF3,$6626        DATA, INVALID
+                MOVE.W      #$3AF8,$6628        MOVE.B (A3)+,$AAAA
+                MOVE.W      #$AAAA,$662A
+                MOVE.W      #$3AF9,$662C        MOVE.B (A3)+,$AAAAAAAAA
+                MOVE.W      #$AAAA,$662E
+                MOVE.W      #$AAAA,$6630
+                MOVE.W      #$3AFC,$6632        MOVE.B (A3)+,#$AA
+                MOVE.W      #$AAAA,$6634
+                MOVE.W      #$AAAA,$6636        DATA
+               
+                ** EA SOURCE MODE 100 **
+                MOVE.W      #$3B03,$6638        MOVE.B -(A3),D5
+                MOVE.W      #$3B0B,$663A        MOVE.B -(A3),A5
+                MOVE.W      #$3B13,$663C        MOVE.B -(A3),(A5)
+                MOVE.W      #$3B1B,$663E        MOVE.B -(A3),(A5)+
+                MOVE.W      #$3B23,$6640        MOVE.B -(A3),-(A5)
+                MOVE.W      #$3B2B,$6642        DATA, INVALID
+                MOVE.W      #$3B33,$6644        DATA, INVALID
+                MOVE.W      #$3B38,$6646        MOVE.B -(A3),$AAAA
+                MOVE.W      #$AAAA,$6648
+                MOVE.W      #$3B39,$664A        MOVE.B -(A3),$AAAAAAAAA
+                MOVE.W      #$AAAA,$664C
+                MOVE.W      #$AAAA,$664E
+                MOVE.W      #$3B3C,$6650        MOVE.B -(A3),#$AA
+                MOVE.W      #$AAAA,$6652
+                MOVE.W      #$AAAA,$6654        DATA
+                
+                ** EA SOURCE MODE 101 **
+                MOVE.W      #$3B43,$6656        DATA, MODE 5 INVALID
+                
+                ** EA SOURCE MODE 110 **
+                MOVE.W      #$3B83,$6658        DATA, MODE 6 INVALID
+                
+                ** EA SOURCE MODE 111 REGISTER 000 **
+                MOVE.W      #$31C3,$665A        MOVE.B $AAAA,D5
+                MOVE.W      #$AAAA,$665C
+                MOVE.W      #$31CB,$665E        MOVE.B $AAAA,A5
+                MOVE.W      #$AAAA,$6660
+                MOVE.W      #$31D3,$6662        MOVE.B $AAAA,(A5)
+                MOVE.W      #$AAAA,$6664
+                MOVE.W      #$31DB,$6666        MOVE.B $AAAA,(A5)+
+                MOVE.W      #$AAAA,$6668
+                MOVE.W      #$31E3,$666A        MOVE.B $AAAA,-(A5)
+                MOVE.W      #$AAAA,$666C
+                MOVE.W      #$31EB,$666E        DATA, INVALID
+                MOVE.W      #$31F3,$6670        DATA, INVALID
+                MOVE.W      #$31F8,$6672        MOVE.B $BBBB,$AAAA
+                MOVE.W      #$BBBB,$6674
+                MOVE.W      #$AAAA,$6676
+                MOVE.W      #$31F9,$6678        MOVE.B $BBBB,$AAAAAAAAA
+                MOVE.W      #$BBBB,$667A
+                MOVE.W      #$AAAA,$667C
+                MOVE.W      #$AAAA,$667E
+                MOVE.W      #$31FC,$6680        MOVE.B $BBBB,#$AA
+                MOVE.W      #$BBBB,$6682
+                MOVE.W      #$AAAA,$6684
+                MOVE.W      #$AAAA,$6686        DATA
+               
+                ** EA SOURCE MODE 111 REGISTER 001 **
+                MOVE.W      #$33C3,$6688        MOVE.B $AAAAAAAAA,D5
+                MOVE.W      #$AAAA,$668A
+                MOVE.W      #$AAAA,$668C
+                MOVE.W      #$33CB,$668E        MOVE.B $AAAAAAAAA,A5
+                MOVE.W      #$AAAA,$6690
+                MOVE.W      #$AAAA,$6692
+                MOVE.W      #$33D3,$6694        MOVE.B $AAAAAAAAA,(A5)
+                MOVE.W      #$AAAA,$6696
+                MOVE.W      #$AAAA,$6698
+                MOVE.W      #$33DB,$669A        MOVE.B $AAAAAAAAA,(A5)+
+                MOVE.W      #$AAAA,$669C
+                MOVE.W      #$AAAA,$669E
+                MOVE.W      #$33E3,$66A0        MOVE.B $AAAAAAAAA,-(A5)
+                MOVE.W      #$AAAA,$66A2
+                MOVE.W      #$AAAA,$66A4
+                MOVE.W      #$33EB,$66A6        DATA, INVALID
+                MOVE.W      #$33F3,$66A8        DATA, INVALID
+                MOVE.W      #$33F8,$66AA        MOVE.B $BBBBBBBB,$AAAA
+                MOVE.W      #$BBBB,$66AC
+                MOVE.W      #$BBBB,$66AE
+                MOVE.W      #$AAAA,$66B0
+                MOVE.W      #$33F9,$66B2        MOVE.B $BBBBBBBB,$AAAAAAAAA
+                MOVE.W      #$BBBB,$66B4
+                MOVE.W      #$BBBB,$66B6
+                MOVE.W      #$AAAA,$66B8
+                MOVE.W      #$AAAA,$66BA
+                MOVE.W      #$33FC,$66BC        MOVE.B $BBBBBBBB,#$AA
+                MOVE.W      #$BBBB,$66BE
+                MOVE.W      #$BBBB,$66C0
+                MOVE.W      #$AAAA,$66C2
+                MOVE.W      #$AAAA,$66CC        DATA
+                
+                ** EA SOURCE MODE 111 REGISTER 100 **
+                MOVE.W      #$19CC,$66CE        DATA, INVALID
+                ******************************************************************
+
+                *******************************************************
+                * MOVE TESTS
+                ** .L
+                ** EA DESTINATION MODE 000 **
+                MOVE.W      #$2A03,$66D0        MOVE.B D3,D5
+                MOVE.W      #$2A0B,$66D2        MOVE.B D3,A5
+                MOVE.W      #$2A13,$66D4        MOVE.B D3,(A5)
+                MOVE.W      #$2A1B,$66D6        MOVE.B D3,(A5)+
+                MOVE.W      #$2A23,$66D8        MOVE.B D3,-(A5)
+                MOVE.W      #$2A2B,$66DA        DATA, INVALID
+                MOVE.W      #$2A33,$66DC        DATA, INVALID
+                MOVE.W      #$2A38,$66DE        MOVE.B D3,$AAAA
+                MOVE.W      #$AAAA,$66E0
+                MOVE.W      #$2A39,$66E2        MOVE.B D3,$AAAAAAAAA
+                MOVE.W      #$AAAA,$66E4
+                MOVE.W      #$AAAA,$66E6
+                MOVE.W      #$2A3C,$66E8        MOVE.B D3, #$AA
+                MOVE.W      #$AAAA,$66EA
+                MOVE.W      #$AAAA,$66EC        DATA
+                
+                ** EA DESTINATION MODE 001 **
+                MOVE.W      #$2A43,$66EE        MOVEA.B A3,D5 --- DATA, INVALID
+                MOVE.W      #$2A4B,$66F0        MOVEA.B A3,A5
+                MOVE.W      #$2A53,$66F2        MOVEA.B A3,(A5)
+                MOVE.W      #$2A5B,$66F4        MOVEA.B A3,(A5)+
+                MOVE.W      #$2A63,$66F6        MOVEA.B A3,-(A5)
+                MOVE.W      #$2A6B,$66F8        DATA, INVALID
+                MOVE.W      #$2A73,$66FA        DATA, INVALID
+                MOVE.W      #$2A78,$66FC        MOVEA.B A3,$AAAA
+                MOVE.W      #$AAAA,$66FE
+                MOVE.W      #$2A79,$6700        MOVEA.B A3,$AAAAAAAAA
+                MOVE.W      #$AAAA,$6702
+                MOVE.W      #$AAAA,$6704
+                MOVE.W      #$2A7C,$6706        MOVEA.B A3, #$AA --- DATA, INVALID
+                MOVE.W      #$AAAA,$6708        DATA
+                MOVE.W      #$AAAA,$670A        DATA
+               
+                ** EA DESTINATION MODE 010 **
+                MOVE.W      #$2A83,$670C        MOVE.B (A3),D5
+                MOVE.W      #$2A8B,$670E        MOVE.B (A3),A5
+                MOVE.W      #$2A93,$6710        MOVE.B (A3),(A5)
+                MOVE.W      #$2A9B,$6712        MOVE.B (A3),(A5)+
+                MOVE.W      #$2AA3,$6714        MOVE.B (A3),-(A5)
+                MOVE.W      #$2AAB,$6716        DATA, INVALID
+                MOVE.W      #$2AB3,$6718        DATA, INVALID
+                MOVE.W      #$2AB8,$671A        MOVE.B (A3),$AAAA
+                MOVE.W      #$AAAA,$671C
+                MOVE.W      #$2AB9,$671E        MOVE.B (A3),$AAAAAAAAA
+                MOVE.W      #$AAAA,$6720
+                MOVE.W      #$AAAA,$6722
+                MOVE.W      #$2ABC,$6724        MOVE.B (A3),#$AA
+                MOVE.W      #$AAAA,$6726
+                MOVE.W      #$AAAA,$6728        DATA
+                
+                ** EA DESTINATION MODE 011 **
+                MOVE.W      #$2AC3,$672A        MOVE.B (A3)+,D5
+                MOVE.W      #$2ACB,$672C        MOVE.B (A3)+,A5
+                MOVE.W      #$2AD3,$672E        MOVE.B (A3)+,(A5)
+                MOVE.W      #$2ADB,$6730        MOVE.B (A3)+,(A5)+
+                MOVE.W      #$2AE3,$6732        MOVE.B (A3)+,-(A5)
+                MOVE.W      #$2AEB,$6734        DATA, INVALID
+                MOVE.W      #$2AF3,$6736        DATA, INVALID
+                MOVE.W      #$2AF8,$6738        MOVE.B (A3)+,$AAAA
+                MOVE.W      #$AAAA,$673A
+                MOVE.W      #$2AF9,$673C        MOVE.B (A3)+,$AAAAAAAAA
+                MOVE.W      #$AAAA,$673E
+                MOVE.W      #$AAAA,$6740
+                MOVE.W      #$2AFC,$6742        MOVE.B (A3)+,#$AA
+                MOVE.W      #$AAAA,$6744
+                MOVE.W      #$AAAA,$6746        DATA
+               
+                ** EA SOURCE MODE 100 **
+                MOVE.W      #$2B03,$6748        MOVE.B -(A3),D5
+                MOVE.W      #$2B0B,$674A        MOVE.B -(A3),A5
+                MOVE.W      #$2B13,$674C        MOVE.B -(A3),(A5)
+                MOVE.W      #$2B1B,$674E        MOVE.B -(A3),(A5)+
+                MOVE.W      #$2B23,$6750        MOVE.B -(A3),-(A5)
+                MOVE.W      #$2B2B,$6752        DATA, INVALID
+                MOVE.W      #$2B33,$6754        DATA, INVALID
+                MOVE.W      #$2B38,$6756        MOVE.B -(A3),$AAAA
+                MOVE.W      #$AAAA,$6758
+                MOVE.W      #$2B39,$675A        MOVE.B -(A3),$AAAAAAAAA
+                MOVE.W      #$AAAA,$675C
+                MOVE.W      #$AAAA,$675E
+                MOVE.W      #$2B3C,$6760        MOVE.B -(A3),#$AA
+                MOVE.W      #$AAAA,$6762
+                MOVE.W      #$AAAA,$6764        DATA
+              
+                ** EA SOURCE MODE 101 **
+                MOVE.W      #$2B43,$6766        DATA, MODE 5 INVALID
+                
+                ** EA SOURCE MODE 110 **
+                MOVE.W      #$2B83,$6768        DATA, MODE 6 INVALID
+                
+                ** EA SOURCE MODE 111 REGISTER 000 **
+                MOVE.W      #$21C3,$676A        MOVE.B $AAAA,D5
+                MOVE.W      #$AAAA,$676C
+                MOVE.W      #$21CB,$676E        MOVE.B $AAAA,A5
+                MOVE.W      #$AAAA,$6770
+                MOVE.W      #$21D3,$6772        MOVE.B $AAAA,(A5)
+                MOVE.W      #$AAAA,$6774
+                MOVE.W      #$21DB,$6776        MOVE.B $AAAA,(A5)+
+                MOVE.W      #$AAAA,$6778
+                MOVE.W      #$21E3,$677A        MOVE.B $AAAA,-(A5)
+                MOVE.W      #$AAAA,$677C
+                MOVE.W      #$21EB,$677E        DATA, INVALID
+                MOVE.W      #$21F3,$6780        DATA, INVALID
+                MOVE.W      #$21F8,$6782        MOVE.B $BBBB,$AAAA
+                MOVE.W      #$BBBB,$6784
+                MOVE.W      #$AAAA,$6786
+                MOVE.W      #$21F9,$6788        MOVE.B $BBBB,$AAAAAAAAA
+                MOVE.W      #$BBBB,$678A
+                MOVE.W      #$AAAA,$678C
+                MOVE.W      #$AAAA,$678E
+                MOVE.W      #$21FC,$6790        MOVE.B $BBBB,#$AA
+                MOVE.W      #$BBBB,$6792
+                MOVE.W      #$AAAA,$6794
+                MOVE.W      #$AAAA,$6796        DATA
+               
+                ** EA SOURCE MODE 111 REGISTER 001 **
+                MOVE.W      #$23C3,$6798        MOVE.B $AAAAAAAAA,D5
+                MOVE.W      #$AAAA,$679A
+                MOVE.W      #$AAAA,$679C
+                MOVE.W      #$23CB,$679E        MOVE.B $AAAAAAAAA,A5
+                MOVE.W      #$AAAA,$67A0
+                MOVE.W      #$AAAA,$67A2
+                MOVE.W      #$23D3,$67A4        MOVE.B $AAAAAAAAA,(A5)
+                MOVE.W      #$AAAA,$67A6
+                MOVE.W      #$AAAA,$67A8
+                MOVE.W      #$23DB,$67AA        MOVE.B $AAAAAAAAA,(A5)+
+                MOVE.W      #$AAAA,$67AC
+                MOVE.W      #$AAAA,$67AE
+                MOVE.W      #$23E3,$67B0        MOVE.B $AAAAAAAAA,-(A5)
+                MOVE.W      #$AAAA,$67B2
+                MOVE.W      #$AAAA,$67B4
+                MOVE.W      #$23EB,$67B6        DATA, INVALID
+                MOVE.W      #$23F3,$67B8        DATA, INVALID
+                MOVE.W      #$23F8,$67BA        MOVE.B $BBBBBBBB,$AAAA
+                MOVE.W      #$BBBB,$67BC
+                MOVE.W      #$BBBB,$67BE
+                MOVE.W      #$AAAA,$67C0
+                MOVE.W      #$23F9,$67C2        MOVE.B $BBBBBBBB,$AAAAAAAAA
+                MOVE.W      #$BBBB,$67C4
+                MOVE.W      #$BBBB,$67C6
+                MOVE.W      #$AAAA,$67C8
+                MOVE.W      #$AAAA,$67CA
+                MOVE.W      #$23FC,$67CC        MOVE.B $BBBBBBBB,#$AA
+                MOVE.W      #$BBBB,$67CE
+                MOVE.W      #$BBBB,$67D0
+                MOVE.W      #$AAAA,$67D2
+                MOVE.W      #$AAAA,$67D4        DATA
+                
 ************************** END OF TESTING *******************************************************************
                 LEA         STACK,SP            Load the stack
 
@@ -3249,6 +3713,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   ; last line of source
+
 
 
 *~Font name~Courier New~
