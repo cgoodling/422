@@ -131,7 +131,7 @@ START:
                 MOVE.W      #$ABCD,$6092       OR.B #$ABCD,D5              
                 
                 ** EA Destination ** .B
-                MOVE.W      #$8A03,$6094       OR.B D5,D3 ---- INVALID, DATA
+                MOVE.W      #$8B03,$6094       OR.B D5,D3 ---- INVALID, DATA
                 MOVE.W      #$8B0B,$6096       OR.B D5,A3 ---- INVALID, DATA
                 MOVE.W      #$8B13,$6098       OR.B D5,(A3)
                 MOVE.W      #$8B1B,$609A       OR.B D5,(A3)+
@@ -178,23 +178,23 @@ START:
                 MOVE.W      #$AAAA,$60E6
                 
                 ** EA Source ** .L
-                MOVE.W      #$8A83,$60E8       OR.W D3,D5
-                MOVE.W      #$8A8B,$60EA       OR.W A3,D5 ---- INVALID, DATA
-                MOVE.W      #$8A93,$60EC       OR.W (A3),D5
-                MOVE.W      #$8A9B,$60EE       OR.W (A3)+,D5
-                MOVE.W      #$8AA3,$60F0       OR.W -(A3),D5
-                MOVE.W      #$8AAB,$60F2       OR.W (D16,AN) --- INVALID, DATA
-                MOVE.W      #$8AB3,$60F4       OR.W (D8,AN,XN) --- INVALID, DATA
+                MOVE.W      #$8A83,$60E8       OR.L D3,D5
+                MOVE.W      #$8A8B,$60EA       OR.L A3,D5 ---- INVALID, DATA
+                MOVE.W      #$8A93,$60EC       OR.L (A3),D5
+                MOVE.W      #$8A9B,$60EE       OR.L (A3)+,D5
+                MOVE.W      #$8AA3,$60F0       OR.L -(A3),D5
+                MOVE.W      #$8AAB,$60F2       OR.L (D16,AN) --- INVALID, DATA
+                MOVE.W      #$8AB3,$60F4       OR.L (D8,AN,XN) --- INVALID, DATA
                 MOVE.W      #$8AB8,$60F6
-                MOVE.W      #$AAAA,$60F8       OR.W $AAAA,D5
+                MOVE.W      #$AAAA,$60F8       OR.L $AAAA,D5
                 MOVE.W      #$8AB9,$60FA
-                MOVE.W      #$AAAA,$60FC       OR.W $AAAAAAAA,D5
+                MOVE.W      #$AAAA,$60FC       OR.L $AAAAAAAA,D5
                 MOVE.W      #$AAAA,$60FE
-                MOVE.W      #$8ABC,$6100
-                MOVE.W      #$ABCD,$6102       OR.W #$ABCD,D5               
-                
+                MOVE.W      #$8ABC,$6100       OR.L #$xxxxxxxx,D5
+                MOVE.W      #$ABCD,$6102              abcd        
+                MOVE.W      #$1234,$6104                  1234      
                 ** EA Destination ** .L
-                MOVE.W      #$8B83,$6104       OR.W D5,D3 ---- INVALID, DATA
+                *MOVE.W      #$8B83,$6104       OR.W D5,D3 ---- INVALID, DATA
                 MOVE.W      #$8B8B,$6106       OR.W D5,A3 ---- INVALID, DATA
                 MOVE.W      #$8B93,$6108       OR.W D5,(A3)
                 MOVE.W      #$8B9B,$610A       OR.W D5,(A3)+
@@ -2274,6 +2274,8 @@ SHIFT_IR        JSR         opcode_size_str     * add the size to the string
                 
 op_SHIFT_EA     JSR         PRINT_ALI_4
                 
+                ANDI.W      #%00111111,D5
+                
                 CMP.W       #%00111100,D5       * mode 7, reg 4 invalid
                 BEQ         op_DATA
                 
@@ -2399,19 +2401,25 @@ CMP_opmode      CMP.W       #%0000,D4           * check if byte
 * Helper method for OR to set the size op the operation                
 *                
 *
-OR_opmode       CMP.W       #%0000,D4
+OR_opmode       MOVE.B      #%00000000,D6       * set D6 for a byte operation
+                CMP.W       #%0000,D4           * check for byte operation EA source
                 BEQ         print_B_str
-                CMP.W       #%0100,D4
+                CMP.W       #%0100,D4           * check for byte operation EA destination
                 BEQ         print_B_str
-                CMP.W       #%0001,D4
+                
+                MOVE.B      #%00000001,D6       * set D6 for a word operation
+                CMP.W       #%0001,D4           * check for word operation EA source
                 BEQ         print_W_str
-                CMP.W       #%0101,D4
+                CMP.W       #%0101,D4           * check for word operation EA destination
                 BEQ         print_W_str
-                CMP.W       #%0010,D4
+                
+                MOVE.B      #%00000010,D6       * set D6 for a long operation
+                CMP.W       #%0010,D4           * check for a long operation EA source
                 BEQ         print_L_str
-                CMP.W       #%0110,D4
+                CMP.W       #%0110,D4           * check for a long operation EA destination
                 BEQ         print_L_str
-                CMP.W       #%0111,D4
+                
+                CMP.W       #%0111,D4           * check for an invalid opmode
                 BEQ         op_DATA
 
 *-----------------------------------------------------------------*
@@ -2827,9 +2835,6 @@ op_OR_DEST      CMPI.W      #$003C,D5           * mode 7, register 4 is invalid
 op_OR_SRC       MOVE.L      D5,D0
                 ANDI.W      #$0038,D0           * mask the mode
                 CMPI.W      #$0008,D0           * mode 1 is invalid
-                BEQ         op_DATA
-                
-                CMPI.W      #$0000,D0           * mode 0 is invalid
                 BEQ         op_DATA
                 
                 ADD.W       #$0002,A2           * increment the current address
@@ -4348,6 +4353,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   * last line of source
+
 
 
 
