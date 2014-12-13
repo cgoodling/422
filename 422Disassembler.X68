@@ -15,8 +15,7 @@ LF              EQU         $0A
 STACK           EQU         $8000
                 ORG         $1000
 minaddress	    EQU	        $00000000 	
-maxaddress	    EQU	        $00FFFFFF 	                
-NMASK           EQU         %00001111
+maxaddress	    EQU	        $00FFFFFE 	                
             
 *----------------------------------------------------------*
 *Mode Masks
@@ -2905,6 +2904,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   * last line of source
+
 
 
 
