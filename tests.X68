@@ -2357,10 +2357,165 @@
 **********************************************************************
 **********************************************************************
     
+    JSR  (A1)
+    JSR  $7246
+
+********************************************************************** 
+* LSL / LSR / ASL / ASR
+*
+*
+    LSR     #3,D3
+    LSL     #2,D2
+    ASL     #7,D4
+    ASR     #5,D5
+    LSR     D4,D3
+    LSL     D5,D2
+    ASL     D6,D4
+    ASR     D7,D5
+
+
+    LSL.B  D0,D1
+    LSL.B  #7,D2
+    
+    LSL.W  D3,D4
+    LSL.W  #8,D5
+
+    LSL.L  D6,D7
+    LSL.L  #3,D0
+    
+    LSR.B  D1,D2
+    LSR.B  #4,D3
+    
+    LSR.W  D4,D5
+    LSR.W  #5,D6
+
+    LSR.L  D7,D1
+    LSR.L  #6,D2
+
+
+********************************************************************** 
+* CMPI
+*
+*
+    CMPI.B  #89,D0
+    CMPI.B  #43,(A1)
+    CMPI.B  #33,(A2)+
+    CMPI.B  #32,-(A3)
+    CMPI.B  #52,$7246
+    CMPI.B  #33,$69324FAD
+    
+    CMPI.W  #1489,D0
+    CMPI.W  #4332,(A1)
+    CMPI.W  #3553,(A2)+
+    CMPI.W  #1532,-(A3)
+    CMPI.W  #5299,$7246
+    CMPI.W  #3348,$69324FAD
+
+    CMPI.L  #12345689,D0
+    CMPI.L  #12345689,(A1)
+    CMPI.L  #12345689,(A2)+
+    CMPI.L  #12345689,-(A3)
+    CMPI.L  #12345689,$7246
+    CMPI.L  #12345689,$69324FAD
+
+**********************************************************************
+* ADDA
+*
+
+    ADDA.W  D2,A2
+    ADDA.W  #2349,A3       ADDI
+    ADDA.W  A2,A1
+    ADDA.W  (A2),A4
+    ADDA.W  (A2)+,A6
+    ADDA.W  -(A3),A5
+    ADDA.W  $5678,A2
+
+    ADDA.L  D1,A1
+    ADDA.L  #5890,A4
+    ADDA.L  A2,A5
+    ADDA.L  (A2),A6
+    ADDA.L  (A2)+,A2
+    ADDA.L  -(A3),A3
+    ADDA.L  $9876,A1
+    ADDA.L  $FF526790,A0
+
+**********************************************************************
+* ADD
+*
+
+    ADD.B  D3,D4
+    ADD.B  #48,D3          ADDI
+    ADD.B  (A2),D5
+    ADD.B  (A2)+,D3
+    ADD.B  -(A3),D4
+    ADD.B  $4321,D5
+    ADD.B  $3285DF12,D6
+    ADD.B   D5,(A2)
+    ADD.B   D3,(A2)+
+    ADD.B   D4,-(A3)
+    ADD.B   D1,D2
+
+    ADD.W  D2,D5
+    ADD.W  #2349,D2        ADDI
+    ADD.W  A2,D1
+    ADD.W  (A2),D5
+    ADD.W  (A2)+,D3
+    ADD.W  -(A3),D4
+    ADD.W  $5678,D5
+    ADD.W  $2E13,D6
+    ADD.W   D5,(A2)
+    ADD.W   D3,(A2)+
+    ADD.W   D4,-(A3)
+
+    ADD.L  D1,D2
+    ADD.L  #5890,D2        ADDI
+    ADD.L  A2,D1
+    ADD.L  (A2),D5
+    ADD.L  (A2)+,D3
+    ADD.L  -(A3),D4
+    ADD.L  $9876,D4
+    ADD.L  $FF526790,D5
+    ADD.L   D5,(A2)
+    ADD.L   D3,(A2)+
+    ADD.L   D4,-(A3)
+
+**********************************************************************
+* CMP
+*
+
+    CMP.B  D3,D4
+    CMP.B  #48,D3          CMPI
+    CMP.B  (A2),D5
+    CMP.B  (A2)+,D3
+    CMP.B  -(A3),D4
+    CMP.B   D1,D2
+
+    CMP.W  D2,D5
+    CMP.W  #2349,D2        CMPI
+    CMP.W  A2,D1
+    CMP.W  (A2),D5
+    CMP.W  (A2)+,D3
+    CMP.W  -(A3),D4
+    CMP.W  $5678,D5
+    CMP.W  $2E13,D6
+
+    CMP.L  D1,D2
+    CMP.L  #5890,D2        CMPI
+    CMP.L  A2,D1
+    CMP.L  (A2),D5
+    CMP.L  (A2)+,D3
+    CMP.L  -(A3),D4
+    CMP.L  $9876,D4
+    CMP.L  $FF526790,D5    
+    
+   
+    
 
 leave
     
 * Put variables and constants here
+
+
 
 *~Font name~Courier New~
 *~Font size~12~
