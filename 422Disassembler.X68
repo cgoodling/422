@@ -842,7 +842,12 @@ SHIFT_count     JSR         PRINT_ALI_1
                 ANDI.W      #$0E00,D1
                 LSR.L       #8,D1
                 LSR.L       #1,D1               * shift to get the register
-                ADD.W       #$30,D1             * convert ascii number to hex
+                
+                CMP.B       #0,D1               * check for zero
+                BEQ         SC_EIGHT
+
+                
+SC_RESUME       ADD.W       #$30,D1             * convert ascii number to hex
             
                 MOVE.B      D1,(A4)+            * move the register to A4
                 MOVE.B      #$00,(A4)+          * add the string terminating character
@@ -911,6 +916,10 @@ SHIFT_reg       JSR         PRINT_ALI_1
                 ADD.W       #$02,A2
                 BRA         loop_exit
                 
+                
+SC_EIGHT        MOVE.B      #8,D1               * for shift #8
+                BRA         SC_RESUME    
+            
 *-----------------------------------------------------------------*
 * Helper method for EOR to set the operation size
 *
@@ -1413,6 +1422,10 @@ op_ORI          LEA         ORI_STR,A5
                 ANDI.W      #$38,D0             ; Separate the EA Mode into D0
                 CMP.W       #$08,D0             ; Compare the An Addressing mode
                 BEQ         op_DATA             ; invalid
+                CMP.W       #$28,D0             * check for mode 5
+                BEQ         op_DATA
+                CMP.W       #$30,D0             * check for mode 6
+                BEQ         op_DATA
                 
                 MOVE.L      #$00000007,D4       ; set mode to 7 for mode 7
                 MOVE.L      #$00000004,D3       ; set register to 4 for Immediate Data
@@ -1710,6 +1723,17 @@ op_CMPI         LEA         CMPI_STR,A5
                 ANDI.W      #$38,D0             ; Separate the EA Mode into D0
                 CMP.W       #$08,D0             ; Compare the An Addressing mode
                 BEQ         op_DATA             ; invalid
+                
+                CLR.L       D0
+                MOVE.W      D5,D0               ; Move the EA into D0
+                ANDI.W      #$38,D0             ; Separate the EA Mode into D0
+                CMP.W       #$08,D0             ; Compare the An Addressing mode
+                BEQ         op_DATA             ; invalid
+                CMP.W       #$28,D0             * check for mode 5
+                BEQ         op_DATA
+                CMP.W       #$30,D0             * check for mode 6
+                BEQ         op_DATA
+                
                 MOVE.W      D3,D6
                 LSR.L       #6,D6
                 MOVE.L      #$00000007,D4       ; set mode to 7 for mode 7
@@ -2881,6 +2905,8 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   String for one line of instruction
 
                 END         START                   * last line of source
+
+
 
 
 
