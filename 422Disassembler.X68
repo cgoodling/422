@@ -16,7 +16,6 @@ STACK           EQU         $8000
                 ORG         $1000
 minaddress	    EQU	        $00000000 	
 maxaddress	    EQU	        $00FFFFFF 	                
-NMASK           EQU         %00001111
             
 *----------------------------------------------------------*
 *Mode Masks
@@ -421,7 +420,7 @@ op0010
                 
                 
                 LEA         MOVEL_STR,A5        * Load the MOVE.L string
-                MOVE.B      #%10,D6             * Set IM-DATA size code
+                MOVE.B      #$02,D6             * Set IM-DATA size code
                 BRA         op_MOVE             * Branch to general move op
                 
                 BRA         op_DATA
@@ -1413,13 +1412,13 @@ op_ORI          LEA         ORI_STR,A5
                 BEQ         op_DATA
                 
                 CLR.L       D0
-                MOVE.W      D5,D0               ; Move the EA into D0
-                ANDI.W      #$38,D0             ; Separate the EA Mode into D0
-                CMP.W       #$08,D0             ; Compare the An Addressing mode
-                BEQ         op_DATA             ; invalid
-                CMP.W       #$28,D0             * check for mode 5
+                MOVE.W      D5,D0                   * Move the EA into D0
+                ANDI.W      #$38,D0                 * Separate the EA Mode into D0
+                CMP.W       #$08,D0                 * Compare the An Addressing mode
+                BEQ         op_DATA                 * invalid
+                CMP.W       #$28,D0                 * check for mode 5
                 BEQ         op_DATA
-                CMP.W       #$30,D0             * check for mode 6
+                CMP.W       #$30,D0                 * check for mode 6
                 BEQ         op_DATA
                 
                 MOVE.L      #$00000007,D4           * set mode to 7 for mode 7
@@ -1544,19 +1543,19 @@ op_MOVEA
                 LSR.L       #6,D1                   * shift the size bits to get the flag 
                 LSR.L       #6,D1                   * shift the size bits to get the flag
                 MOVE.L      A5,(A6)+
-                JSR         PRINT_TAB           * print space for alignment
+                JSR         PRINT_TAB               * print space for alignment
                
-                MOVE.L      D1,D6               * move size bit to D6 to set flag
-                CMP.B       #%0011,D1           * Check for size .W
+                MOVE.L      D1,D6                   * move size bit to D6 to set flag
+                CMP.B       #$03,D1                 * Check for size .W
                 BEQ         SET_MOVEA_W
 
-MOVEA_CONT      ADD.W       #$02,A2             * increment the current address
-                JSR         FIND_EAMODE         * add the left side of operation to output string
-                JSR         PRINT_COMMA         * add a comma to output string
-                MOVE.W      #%001,D4            * set mode to 1 for An
-                JSR         FIND_OPMODE         * add right operand to output string
-                JSR         PRINT_init          * print the output string
-                BRA         loop_exit           * exit the loop    
+MOVEA_CONT      ADD.W       #$02,A2                 * increment the current address
+                JSR         FIND_EAMODE             * add the left side of operation to output string
+                JSR         PRINT_COMMA             * add a comma to output string
+                MOVE.W      #$0001,D4               * set mode to 1 for An
+                JSR         FIND_OPMODE             * add right operand to output string
+                JSR         PRINT_init              * print the output string
+                BRA         loop_exit               * exit the loop    
             
 SET_MOVEA_W     MOVE.B      #1,D6
                 BRA         MOVEA_CONT            
@@ -1714,19 +1713,19 @@ op_CMPI         LEA         CMPI_STR,A5
                 BEQ         op_DATA
                 
                 CLR.L       D0
-                MOVE.W      D5,D0               ; Move the EA into D0
-                ANDI.W      #$38,D0             ; Separate the EA Mode into D0
-                CMP.W       #$08,D0             ; Compare the An Addressing mode
-                BEQ         op_DATA             ; invalid
+                MOVE.W      D5,D0                   * Move the EA into D0
+                ANDI.W      #$38,D0                 * Separate the EA Mode into D0
+                CMP.W       #$08,D0                 * Compare the An Addressing mode
+                BEQ         op_DATA                 * invalid
                 
                 CLR.L       D0
-                MOVE.W      D5,D0               ; Move the EA into D0
-                ANDI.W      #$38,D0             ; Separate the EA Mode into D0
-                CMP.W       #$08,D0             ; Compare the An Addressing mode
-                BEQ         op_DATA             ; invalid
-                CMP.W       #$28,D0             * check for mode 5
+                MOVE.W      D5,D0                   * Move the EA into D0
+                ANDI.W      #$38,D0                 * Separate the EA Mode into D0
+                CMP.W       #$08,D0                 * Compare the An Addressing mode
+                BEQ         op_DATA                 * invalid
+                CMP.W       #$28,D0                 * check for mode 5
                 BEQ         op_DATA
-                CMP.W       #$30,D0             * check for mode 6
+                CMP.W       #$30,D0                 * check for mode 6
                 BEQ         op_DATA
                 
                 MOVE.W      D3,D6
@@ -2890,6 +2889,7 @@ SP_REG          DC.B        'SP',0
 INST_LINE       DCB.B       256,0                   * String for one line of instruction
 
                 END         START                   * last line of source
+
 *~Font name~Courier New~
 *~Font size~14~
 *~Tab type~1~
