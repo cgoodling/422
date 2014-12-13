@@ -2508,12 +2508,66 @@
     CMP.L  $9876,D4
     CMP.L  $FF526790,D5    
     
-   
+**********************************************************************
+* BCLR
+*
+    BCLR    D5,D3
+    BCLR    D5,(A3)
+    BCLR    D5,(A3)+
+    BCLR    D5,-(A3)
+    BCLR    D5,$AAAA
+    BCLR    D5,$AAAAAAAA
+    
+    BCLR    #15,D3
+    BCLR    #15,(A3)
+    BCLR    #15,(A3)+
+    BCLR    #15,-(A3)
+    BCLR    #15,$AAAA
+    BCLR    #15,$AAAAAAAA
+
+**********************************************************************
+* ROL/ROR
+*
+    ROL.B   #3,D5
+    ROL.W   #3,D5
+    ROL.L   #3,D5
+    
+    ROL.B   D3,D5
+    ROL.W   D3,D5
+    ROL.L   D3,D5
+    
+    ROR.B   #3,D5
+    ROR.W   #3,D5
+    ROR.L   #3,D5
+    
+    ROR.B   D3,D5
+    ROR.W   D3,D5
+    ROR.L   D3,D5
+    
+    ROR     (A5)
+    ROL     (A5)
+    ROR     (A5)+
+    ROL     (A5)+
+    ROR     -(A5)
+    ROL     -(A5)
+    ROR     $AAAA
+    ROL     $AAAA
+    ROR     $AAAAAAAA
+    ROL     $AAAAAAAA
+
+**********************************************************************
+* Bcc
+*
+    BCS     leave
+    BGE     leave
+    BLT     leave
+    BVC     leave
     
 
 leave
     
 * Put variables and constants here
+
 
 
 
