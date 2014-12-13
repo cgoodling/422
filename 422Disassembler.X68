@@ -15,7 +15,7 @@ LF              EQU         $0A
 STACK           EQU         $8000
                 ORG         $1000
 minaddress	    EQU	        $00000000 	
-maxaddress	    EQU	        $00FFFFFF 	                
+maxaddress	    EQU	        $00FFFFFE 	                
             
 *----------------------------------------------------------*
 *Mode Masks
